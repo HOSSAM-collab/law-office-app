@@ -275,6 +275,36 @@
     let employees = [];
     let currentUser = null;
 
+    // دالة لإضافة المدير الافتراضي تلقائياً
+    function addDefaultAdmin() {
+        const defaultAdmin = {
+            id: "admin_default",
+            username: "حسام الشويخ",
+            password: "000000",
+            role: "مدير"
+        };
+        
+        database.ref('employees').once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                // لو مفيش موظفين، ضيف المدير
+                database.ref('employees').set({
+                    [defaultAdmin.id]: defaultAdmin
+                }).then(() => {
+                    console.log("✅ تم إضافة المدير الافتراضي تلقائياً");
+                    employees = [defaultAdmin];
+                }).catch(error => {
+                    console.error("❌ خطأ في إضافة المدير:", error);
+                });
+            } else {
+                // لو فيه موظفين، حملهم
+                const data = snapshot.val();
+                employees = Object.values(data);
+            }
+        }).catch(error => {
+            console.error("❌ خطأ في قراءة الموظفين:", error);
+        });
+    }
+
     // تحميل البيانات من Firebase
     function loadDataFromFirebase() {
         database.ref('activeCases').on('value', (snapshot) => {
@@ -302,10 +332,10 @@
         
         database.ref('employees').on('value', (snapshot) => {
             const data = snapshot.val();
-            employees = data ? Object.values(data) : [];
-            if(employees.length === 0){
-                employees.push({ id: Date.now().toString(), username: 'حسام الشويخ', password: '000000', role: 'مدير' });
-                saveEmployees();
+            if (data) {
+                employees = Object.values(data);
+            } else {
+                employees = [];
             }
             renderTabsBasedOnRole();
         });
@@ -378,6 +408,8 @@
         } else {
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('mainContent').style.display = 'none';
+            // أول مرة، تأكد من وجود المدير في Firebase
+            addDefaultAdmin();
         }
     }
     
