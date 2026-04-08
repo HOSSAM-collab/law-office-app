@@ -241,7 +241,7 @@
         <button onclick="attemptLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
         <div id="loginError" class="error-msg">اسم المستخدم أو كلمة المرور غير صحيحة</div>
     </div>
-    <div class="login-footer">تصميم حسام الشويخ</div>
+    <div class="login-footer">تصميم  </div>
 </div>
 
 <div id="maintenanceScreen" class="maintenance-overlay" style="display: none;">
@@ -389,7 +389,7 @@
     <!-- جلسات الغد -->
     <div id="tomorrowSessionsPanel" class="panel"><h3>📅 جلسات الغد</h3><div id="tomorrowSessionsList"></div></div>
 
-    <!-- الأجندة -->
+    <!-- الأجندة المتطورة -->
     <div id="advancedAgendaPanel" class="panel"><h3>📅 الأجندة</h3><div id="advancedAgendaList"></div></div>
 
     <!-- ماتم في الجلسات -->
@@ -415,10 +415,10 @@
             <div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div>
             <button type="submit">➕ إضافة موكل</button>
         </form>
-        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></tr></div>
+        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></td></div>
     </div>
 
-    <!-- الأعمال الإدارية (مقسمة لقيد التنفيذ ومنتهية) -->
+    <!-- الأعمال الإدارية (مقسمة) -->
     <div id="adminWorksPanel" class="panel">
         <h3>📋 الأعمال الإدارية</h3>
         <div class="admin-works-section">
@@ -677,6 +677,7 @@
     function canDelete(){ return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
     function isAdmin(){ return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
 
+    // تنبيهات الخبراء وتوكيلات التنفيذ (قبل الموعد بيوم)
     function checkEnforcementReminders() {
         let today = new Date();
         today.setHours(0,0,0,0);
@@ -709,6 +710,7 @@
         });
     }
 
+    // بحث داخلي
     function searchActiveCases() {
         activeSearchTerm = document.getElementById('activeSearchInput').value.trim().toLowerCase();
         renderActiveCases();
@@ -731,6 +733,7 @@
         renderClosedCases();
     }
 
+    // دوال الخبراء
     function renderExperts() {
         let container = document.getElementById('expertsList');
         if(!container) return;
@@ -740,11 +743,20 @@
             let clientName = caseData ? (clients.find(cl => cl.id == caseData.clientId)?.name || 'غير محدد') : 'غير محدد';
             let opponentName = caseData ? caseData.opponentName : 'غير محدد';
             let isPast = new Date(e.expertDate) < new Date();
-            return `<div class="expert-card" style="${isPast ? 'opacity:0.7;' : ''}">
+            let isTomorrow = false;
+            if(e.expertDate) {
+                let tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0,0,0,0);
+                let expertDate = new Date(e.expertDate);
+                expertDate.setHours(0,0,0,0);
+                isTomorrow = expertDate.getTime() === tomorrow.getTime();
+            }
+            return `<div class="expert-card" style="${isPast ? 'opacity:0.7;' : ''} ${isTomorrow ? 'border-right-color:#ffc107;' : ''}">
                 <h4>👨‍⚖️ خبير - ${e.caseNumber} (${e.caseYear})</h4>
                 <div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole || '-'})</span>
                 <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole || '-'})</span></div>
-                <div class="info-row"><span class="info-badge"><i class="fas fa-calendar"></i> موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}</span>
+                <div class="info-row"><span class="info-badge"><i class="fas fa-calendar"></i> موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}${isTomorrow ? ' <span style="color:#ffc107;">(غداً!)</span>' : ''}</span>
                 <span class="info-badge"><i class="fas fa-sticky-note"></i> ملاحظات: ${e.notes || 'لا توجد'}</span></div>
                 <div class="admin-actions">
                     <button onclick="editExpert('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button>
@@ -839,6 +851,7 @@
         }
     };
 
+    // الأرشيف
     function renderArchive() {
         let container = document.getElementById('archiveCategories');
         if(!container) return;
@@ -859,6 +872,7 @@
         event.target.classList.add('active');
     };
 
+    // بحث عام
     window.performSearch = function() {
         let searchType = document.getElementById('searchType').value;
         let resultsDiv = document.getElementById('searchResults');
@@ -978,6 +992,7 @@
     
     window.closeModal = function(){ document.getElementById('detailsModal').style.display = 'none'; };
     
+    // جلسات الغد (تجيب الجلسات اللي بكره فعلاً)
     function getTomorrowSessions() {
         let tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -994,9 +1009,14 @@
         let container = document.getElementById('tomorrowSessionsList');
         if(!container) return;
         let sessions = getTomorrowSessions();
-        container.innerHTML = sessions.length ? sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div></div>`).join('') : '<div class="session-card"><p style="text-align:center">📅 لا توجد جلسات غداً</p></div>';
+        if(sessions.length === 0) {
+            container.innerHTML = '<div class="session-card"><p style="text-align:center">📅 لا توجد جلسات غداً</p></div>';
+            return;
+        }
+        container.innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div></div>`).join('');
     }
     
+    // الأجندة المتطورة
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
     
@@ -1317,6 +1337,7 @@
         }
     };
     
+    // سجل الأحكام - يرجع من المنتهية أو المكتب
     function renderJudgmentRecords() {
         let container = document.getElementById('judgmentRecordsList');
         if(!container) return;
@@ -1708,7 +1729,7 @@
         if(document.getElementById('newCasePanel')) document.getElementById('newCasePanel').classList.add('active-panel');
         
         if(isAdminUser && !document.getElementById('employeesPanel')) {
-            let employeesPanelHtml = `<div id="employeesPanel" class="panel"><h3>👨‍💼 إدارة الموظفين</h3><form id="employeeForm"><div class="form-group"><label>اسم المستخدم</label><input type="text" id="empUsername" required></div><div class="form-group"><label>كلمة المرور</label><input type="password" id="empPassword" required></div><div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="مدير">مدير</option><option value="محامي">محامي</option></select></div><button type="submit">➕ إضافة موظف</button></form><div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div></div>`;
+            let employeesPanelHtml = `<div id="employeesPanel" class="panel"><h3>👨‍💼 إدارة الموظفين</h3><form id="employeeForm"><div class="form-group"><label>اسم المستخدم</label><input type="text" id="empUsername" required></div><div class="form-group"><label>كلمة المرور</label><input type="password" id="empPassword" required></div><div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="مدير">مدير</option><option value="محامي">محامي</option></select></div><button type="submit">➕ إضافة موظف</button></form><div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th><tr></thead><tbody></tbody></table></div></div>`;
             document.querySelector('.container').insertAdjacentHTML('beforeend', employeesPanelHtml);
             renderEmployeesTable();
             document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
@@ -1803,7 +1824,6 @@
         let caseYear = document.getElementById('caseYear').value;
         let caseCourt = document.getElementById('caseCourt').value;
         
-        // معالجة الدائرة (أو الأخرى)
         let caseCircuit = document.getElementById('caseCircuit').value;
         if (caseCircuit === 'أخرى') {
             caseCircuit = document.getElementById('otherCircuit').value;
