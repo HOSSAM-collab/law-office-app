@@ -191,6 +191,35 @@
             max-height: 500px;
             overflow-y: auto;
         }
+        
+        /* تقسيم الأعمال الإدارية */
+        .admin-works-section {
+            margin-bottom: 30px;
+        }
+        .admin-works-title {
+            background: #1a4a5f;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        /* بحث داخلي */
+        .internal-search {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .internal-search input {
+            flex: 1;
+            min-width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -233,7 +262,7 @@
     </div>
 
     <div class="search-section">
-        <div class="search-title"><i class="fas fa-search"></i> بحث في القضايا</div>
+        <div class="search-title"><i class="fas fa-search"></i> بحث عام في القضايا</div>
         <div class="search-box">
             <div class="search-group">
                 <label>بحث بـ</label>
@@ -276,13 +305,25 @@
 
     <div class="tabs" id="tabsContainer"></div>
 
+    <!-- قضية جديدة -->
     <div id="newCasePanel" class="panel">
         <h3>➕ إضافة قضية جديدة</h3>
         <form id="newCaseForm">
             <div class="form-group"><label>رقم القضية <span style="color:red">*</span></label><input type="text" id="caseNumber" required></div>
             <div class="form-group"><label>سنة القضية <span style="color:red">*</span></label><input type="text" id="caseYear" placeholder="مثال: 2025" required></div>
             <div class="form-group"><label>المحكمة <span style="color:red">*</span></label><div class="court-options" id="courtOptions"></div><input type="text" id="caseCourt" placeholder="أو اكتب اسم المحكمة" style="display:none;"></div>
-            <div class="form-group"><label>الدائرة</label><input type="text" id="caseCircuit"></div>
+            <div class="form-group"><label>الدائرة <span style="color:red">*</span></label>
+                <select id="caseCircuit" required>
+                    <option value="">اختر الدائرة</option>
+                    <option value="مدني">مدني</option>
+                    <option value="مدني كلي">مدني كلي</option>
+                    <option value="مدني مستأنف">مدني مستأنف</option>
+                    <option value="جنح">جنح</option>
+                    <option value="صحة توقيع">صحة توقيع</option>
+                    <option value="أسرة المراغة">أسرة المراغة</option>
+                    <option value="أسرة سوهاج">أسرة سوهاج</option>
+                </select>
+            </div>
             <div class="form-group"><label>تاريخ الجلسة الأولى <span style="color:red">*</span></label><input type="datetime-local" id="firstSessionDate" required></div>
             <div class="form-group"><label>الموكل <span style="color:red">*</span></label><select id="caseClient" required><option value="">اختر موكل</option></select></div>
             <div class="form-group"><label>صفة الموكل <span style="color:red">*</span></label>
@@ -323,11 +364,38 @@
         </form>
     </div>
 
-    <div id="activeCasesPanel" class="panel"><h3>📂 قضايا المكتب</h3><div id="activeCasesList"></div></div>
+    <!-- قضايا المكتب مع بحث داخلي -->
+    <div id="activeCasesPanel" class="panel">
+        <h3>📂 قضايا المكتب</h3>
+        <div class="internal-search">
+            <input type="text" id="activeSearchInput" placeholder="🔍 بحث في قضايا المكتب (رقم القضية أو اسم الموكل)...">
+            <button onclick="searchActiveCases()" class="btn-sm">بحث</button>
+            <button onclick="clearActiveSearch()" class="btn-sm btn-warning">مسح</button>
+        </div>
+        <div id="activeCasesList"></div>
+    </div>
+
+    <!-- جلسات الغد -->
     <div id="tomorrowSessionsPanel" class="panel"><h3>📅 جلسات الغد</h3><div id="tomorrowSessionsList"></div></div>
+
+    <!-- الأجندة -->
     <div id="advancedAgendaPanel" class="panel"><h3>📅 الأجندة</h3><div id="advancedAgendaList"></div></div>
+
+    <!-- ماتم في الجلسات -->
     <div id="pastSessionsPanel" class="panel"><h3>📜 ماتم في الجلسات</h3><div id="pastSessionsList"></div></div>
-    <div id="closedCasesPanel" class="panel"><h3>📦 القضايا المنتهية</h3><div id="closedCasesList"></div></div>
+
+    <!-- قضايا منتهية مع بحث داخلي -->
+    <div id="closedCasesPanel" class="panel">
+        <h3>📦 القضايا المنتهية</h3>
+        <div class="internal-search">
+            <input type="text" id="closedSearchInput" placeholder="🔍 بحث في القضايا المنتهية (رقم القضية أو اسم الموكل)...">
+            <button onclick="searchClosedCases()" class="btn-sm">بحث</button>
+            <button onclick="clearClosedSearch()" class="btn-sm btn-warning">مسح</button>
+        </div>
+        <div id="closedCasesList"></div>
+    </div>
+
+    <!-- الموكلين -->
     <div id="clientsPanel" class="panel">
         <h3>👥 إدارة الموكلين</h3>
         <form id="clientForm">
@@ -338,11 +406,33 @@
         </form>
         <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
     </div>
-    <div id="adminWorksPanel" class="panel"><h3>📋 الأعمال الإدارية</h3><div id="adminWorksList"></div></div>
+
+    <!-- الأعمال الإدارية (مقسمة لقيد التنفيذ ومنتهية) -->
+    <div id="adminWorksPanel" class="panel">
+        <h3>📋 الأعمال الإدارية</h3>
+        <div class="admin-works-section">
+            <div class="admin-works-title"><i class="fas fa-spinner"></i> قيد التنفيذ</div>
+            <div id="adminWorksPendingList"></div>
+        </div>
+        <div class="admin-works-section">
+            <div class="admin-works-title"><i class="fas fa-check-circle"></i> منتهية</div>
+            <div id="adminWorksCompletedList"></div>
+        </div>
+    </div>
+
+    <!-- سجل الأحكام -->
     <div id="judgmentRecordsPanel" class="panel"><h3>⚖️ سجل الأحكام</h3><div id="judgmentRecordsList"></div></div>
+
+    <!-- توكيلات التنفيذ -->
     <div id="enforcementsPanel" class="panel"><h3>📄 توكيلات التنفيذ</h3><button onclick="addEnforcement()" class="btn-success">➕ إضافة توكيل جديد</button><div id="enforcementsList" style="margin-top:20px;"></div></div>
+
+    <!-- الخبراء -->
     <div id="expertsPanel" class="panel"><h3>👨‍⚖️ الخبراء</h3><button onclick="addExpert()" class="btn-success">➕ إضافة خبير جديد</button><div id="expertsList" style="margin-top:20px;"></div></div>
+
+    <!-- الأرشيف -->
     <div id="archivePanel" class="panel"><h3>📚 الأرشيف</h3><div id="archiveCategories"></div><div id="archiveCasesList" class="archive-cases-list"></div></div>
+
+    <!-- التقارير -->
     <div id="reportsPanel" class="panel">
         <h3>📊 التقارير</h3>
         <div class="report-simple"><h4>⚖️ كل القضايا</h4><p>إجمالي القضايا المتداولة: <strong id="reportTotalActive">0</strong></p><p>إجمالي القضايا المنتهية: <strong id="reportTotalClosed">0</strong></p><p>إجمالي الموكلين: <strong id="reportTotalClients">0</strong></p></div>
@@ -382,6 +472,19 @@
     
     let isMaintenanceMode = false;
     let maintenanceEndTime = null;
+    
+    let activeSearchTerm = '';
+    let closedSearchTerm = '';
+
+    const archiveCategories = [
+        { id: "مدني", name: "⚖️ مدني", circuit: "مدني" },
+        { id: "مدني_كلي", name: "⚖️ مدني كلي", circuit: "مدني كلي" },
+        { id: "مدني_مستأنف", name: "⚖️ مدني مستأنف", circuit: "مدني مستأنف" },
+        { id: "جنح", name: "⚖️ جنح", circuit: "جنح" },
+        { id: "صحة_توقيع", name: "✍️ صحة توقيع", circuit: "صحة توقيع" },
+        { id: "اسره_المراغه", name: "👨‍👩‍👧 أسرة المراغة", circuit: "أسرة المراغة" },
+        { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }
+    ];
 
     function loadMaintenanceStatus() {
         database.ref('maintenance').on('value', (snapshot) => {
@@ -396,37 +499,17 @@
     }
 
     function enableMaintenance(durationHours = null) {
-        if (!currentUser || currentUser.superAdmin !== true) {
-            showNotification('غير مسموح لك بهذه العملية');
-            return;
-        }
+        if (!currentUser || currentUser.superAdmin !== true) { showNotification('غير مسموح لك بهذه العملية'); return; }
         let endTime = null;
-        if (durationHours && durationHours > 0) {
-            endTime = new Date(Date.now() + durationHours * 3600000).toISOString();
-        }
-        database.ref('maintenance').set({
-            isActive: true,
-            endTime: endTime,
-            startedBy: currentUser.username,
-            startedAt: new Date().toISOString()
-        }).then(() => {
-            showNotification(`تم تعطيل الموقع للصيانة${durationHours ? ` لمدة ${durationHours} ساعة` : ''}`);
-        }).catch(err => showNotification('حدث خطأ'));
+        if (durationHours && durationHours > 0) endTime = new Date(Date.now() + durationHours * 3600000).toISOString();
+        database.ref('maintenance').set({ isActive: true, endTime: endTime, startedBy: currentUser.username, startedAt: new Date().toISOString() })
+            .then(() => showNotification(`تم تعطيل الموقع للصيانة${durationHours ? ` لمدة ${durationHours} ساعة` : ''}`));
     }
 
     function disableMaintenance() {
-        if (!currentUser || currentUser.superAdmin !== true) {
-            showNotification('غير مسموح لك بهذه العملية');
-            return;
-        }
-        database.ref('maintenance').set({
-            isActive: false,
-            endTime: null,
-            endedBy: currentUser.username,
-            endedAt: new Date().toISOString()
-        }).then(() => {
-            showNotification('تم تشغيل الموقع مرة أخرى');
-        }).catch(err => showNotification('حدث خطأ'));
+        if (!currentUser || currentUser.superAdmin !== true) { showNotification('غير مسموح لك بهذه العملية'); return; }
+        database.ref('maintenance').set({ isActive: false, endTime: null, endedBy: currentUser.username, endedAt: new Date().toISOString() })
+            .then(() => showNotification('تم تشغيل الموقع مرة أخرى'));
     }
 
     function checkMaintenance() {
@@ -435,10 +518,7 @@
             return true;
         }
         if (isMaintenanceMode) {
-            if (maintenanceEndTime && new Date() > new Date(maintenanceEndTime)) {
-                disableMaintenance();
-                return true;
-            }
+            if (maintenanceEndTime && new Date() > new Date(maintenanceEndTime)) { disableMaintenance(); return true; }
             document.getElementById('maintenanceScreen').style.display = 'flex';
             updateMaintenanceTimer();
             return false;
@@ -457,11 +537,8 @@
             let seconds = Math.floor((remaining % 60000) / 1000);
             timerDiv.innerHTML = `<p style="color:#dc3545;"><i class="fas fa-clock"></i> متبقي: ${hours} ساعة ${minutes} دقيقة ${seconds} ثانية</p>`;
             setTimeout(updateMaintenanceTimer, 1000);
-        } else if (isMaintenanceMode) {
-            timerDiv.innerHTML = '<p style="color:#dc3545;"><i class="fas fa-clock"></i> الصيانة مستمرة</p>';
-        } else {
-            timerDiv.innerHTML = '';
-        }
+        } else if (isMaintenanceMode) timerDiv.innerHTML = '<p style="color:#dc3545;"><i class="fas fa-clock"></i> الصيانة مستمرة</p>';
+        else timerDiv.innerHTML = '';
     }
 
     function updateMaintenanceUI() {
@@ -469,12 +546,10 @@
         let statusSpan = document.getElementById('maintenanceStatusSpan');
         if (!btn) return;
         if (isMaintenanceMode) {
-            btn.innerHTML = '🔓 تشغيل الموقع';
-            btn.className = 'btn-success';
+            btn.innerHTML = '🔓 تشغيل الموقع'; btn.className = 'btn-success';
             if (statusSpan) statusSpan.innerHTML = '<span class="maintenance-status status-maintenance-on">🔴 الموقع معطل</span>';
         } else {
-            btn.innerHTML = '🔧 تعطيل الموقع (صيانة)';
-            btn.className = 'btn-warning';
+            btn.innerHTML = '🔧 تعطيل الموقع (صيانة)'; btn.className = 'btn-warning';
             if (statusSpan) statusSpan.innerHTML = '<span class="maintenance-status status-maintenance-off">🟢 الموقع يعمل</span>';
         }
     }
@@ -514,16 +589,6 @@
             else if (timerDiv) timerDiv.innerHTML = '';
         }, 1000);
     }
-
-    const archiveCategories = [
-        { id: "مدني", name: "⚖️ مدني", circuit: "مدني" },
-        { id: "مدني_كلي", name: "⚖️ مدني كلي", circuit: "مدني كلي" },
-        { id: "مدني_مستأنف", name: "⚖️ مدني مستأنف", circuit: "مدني مستأنف" },
-        { id: "جنح", name: "⚖️ جنح", circuit: "جنح" },
-        { id: "صحة_توقيع", name: "✍️ صحة توقيع", circuit: "صحة توقيع" },
-        { id: "اسره_المراغه", name: "👨‍👩‍👧 أسرة المراغة", circuit: "أسرة المراغة" },
-        { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }
-    ];
 
     function loadDataFromFirebase() {
         database.ref('activeCases').on('value', (s) => { activeCases = s.val() ? Object.values(s.val()) : []; updateStats(); renderActiveCases(); renderPastSessions(); renderTomorrowSessions(); renderAdvancedAgenda(); updateReports(); });
@@ -587,6 +652,7 @@
     function canDelete(){ return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
     function isAdmin(){ return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
 
+    // تنبيهات (قبل الموعد بيوم)
     function checkEnforcementReminders() {
         let today = new Date();
         today.setHours(0,0,0,0);
@@ -619,6 +685,31 @@
         });
     }
 
+    // بحث داخلي في قضايا المكتب
+    function searchActiveCases() {
+        activeSearchTerm = document.getElementById('activeSearchInput').value.trim().toLowerCase();
+        renderActiveCases();
+    }
+
+    function clearActiveSearch() {
+        document.getElementById('activeSearchInput').value = '';
+        activeSearchTerm = '';
+        renderActiveCases();
+    }
+
+    // بحث داخلي في القضايا المنتهية
+    function searchClosedCases() {
+        closedSearchTerm = document.getElementById('closedSearchInput').value.trim().toLowerCase();
+        renderClosedCases();
+    }
+
+    function clearClosedSearch() {
+        document.getElementById('closedSearchInput').value = '';
+        closedSearchTerm = '';
+        renderClosedCases();
+    }
+
+    // دوال الخبراء
     function renderExperts() {
         let container = document.getElementById('expertsList');
         if(!container) return;
@@ -727,6 +818,7 @@
         }
     };
 
+    // الأرشيف
     function renderArchive() {
         let container = document.getElementById('archiveCategories');
         if(!container) return;
@@ -747,6 +839,7 @@
         event.target.classList.add('active');
     };
 
+    // بحث عام
     window.performSearch = function() {
         let searchType = document.getElementById('searchType').value;
         let resultsDiv = document.getElementById('searchResults');
@@ -1085,27 +1178,57 @@
         }
     };
     
-    window.closeCaseFromPast = (caseId, sessionType) => {
+    window.closeCaseFromPast = function(caseId, sessionType) {
         let judgment = prompt('أدخل منطوق الحكم النهائي للقضية:');
         if(judgment) {
             let idx = activeCases.findIndex(c => c.id == caseId);
             if(idx !== -1) {
-                closedCases.push({ ...activeCases[idx], judgment, closedAt: new Date().toISOString() });
+                // إضافة القضية إلى closedCases مع الاحتفاظ بالدائرة
+                let closedCase = { ...activeCases[idx], judgment, closedAt: new Date().toISOString() };
+                closedCases.push(closedCase);
                 activeCases.splice(idx,1);
                 saveActiveCases(); saveClosedCases();
-                showNotification('تم إنهاء القضية ونقلها للقضايا المنتهية');
+                showNotification('تم إنهاء القضية ونقلها للقضايا المنتهية والأرشيف حسب الدائرة');
+                // تحديث الأرشيف
+                renderArchive();
             }
         }
     };
     
+    // عرض قضايا المكتب مع البحث الداخلي
     function renderActiveCases() {
         let container = document.getElementById('activeCasesList');
         if(!container) return;
-        if(!activeCases.length) { container.innerHTML = '<p>لا توجد قضايا</p>'; return; }
-        container.innerHTML = activeCases.map(c => {
+        let filteredCases = activeCases;
+        if (activeSearchTerm) {
+            filteredCases = activeCases.filter(c => {
+                let clientName = clients.find(cl => cl.id == c.clientId)?.name || '';
+                return c.number.toLowerCase().includes(activeSearchTerm) || clientName.toLowerCase().includes(activeSearchTerm);
+            });
+        }
+        if(!filteredCases.length) { container.innerHTML = '<p>لا توجد قضايا</p>'; return; }
+        container.innerHTML = filteredCases.map(c => {
             let clientName = clients.find(cl => cl.id == c.clientId)?.name || 'غير محدد';
             let nextSession = c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد');
-            return `<div class="session-card"><h4>⚖️ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span><span class="info-badge"><i class="fas fa-calendar"></i> الجلسة القادمة: ${nextSession}</span></div><p><strong>القرار:</strong> ${c.decision || 'لا يوجد'}</p><div class="admin-actions"><button onclick="editCase('${c.id}')" class="btn-warning btn-sm">✏️ تعديل القضية</button><button onclick="showCloseCaseOptions('${c.id}')" class="btn-danger btn-sm">🏁 إنهاء القضية</button>${canDelete() ? `<button onclick="deleteActiveCase('${c.id}')" class="delete-btn">🗑️ حذف</button>` : ''}</div></div>`;
+            return `<div class="session-card"><h4>⚖️ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span><span class="info-badge"><i class="fas fa-calendar"></i> الجلسة القادمة: ${nextSession}</span><span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit || 'غير محددة'}</span></div><p><strong>القرار:</strong> ${c.decision || 'لا يوجد'}</p><div class="admin-actions"><button onclick="editCase('${c.id}')" class="btn-warning btn-sm">✏️ تعديل القضية</button><button onclick="showCloseCaseOptions('${c.id}')" class="btn-danger btn-sm">🏁 إنهاء القضية</button>${canDelete() ? `<button onclick="deleteActiveCase('${c.id}')" class="delete-btn">🗑️ حذف</button>` : ''}</div></div>`;
+        }).join('');
+    }
+    
+    // عرض القضايا المنتهية مع البحث الداخلي
+    function renderClosedCases() {
+        let container = document.getElementById('closedCasesList');
+        if(!container) return;
+        let filteredCases = closedCases;
+        if (closedSearchTerm) {
+            filteredCases = closedCases.filter(c => {
+                let clientName = clients.find(cl => cl.id == c.clientId)?.name || '';
+                return c.number.toLowerCase().includes(closedSearchTerm) || clientName.toLowerCase().includes(closedSearchTerm);
+            });
+        }
+        if(!filteredCases.length) { container.innerHTML = '<p>لا توجد قضايا منتهية</p>'; return; }
+        container.innerHTML = filteredCases.map(c => {
+            let clientName = clients.find(cl => cl.id == c.clientId)?.name || 'غير محدد';
+            return `<div class="session-card"><h4>✅ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span><span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit || 'غير محددة'}</span></div><p><strong>الحكم:</strong> ${c.judgment}</p><p><strong>تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString()}</p>${canDelete() ? `<button onclick="deleteClosedCase('${c.id}')" class="delete-btn">🗑️ حذف</button>` : ''}</div>`;
         }).join('');
     }
     
@@ -1168,26 +1291,28 @@
         if(judgment) {
             let idx = activeCases.findIndex(c => c.id == caseId);
             if(idx !== -1) {
-                closedCases.push({ ...activeCases[idx], judgment, closedAt: new Date().toISOString() });
+                let closedCase = { ...activeCases[idx], judgment, closedAt: new Date().toISOString() };
+                closedCases.push(closedCase);
                 activeCases.splice(idx,1);
                 saveActiveCases(); saveClosedCases();
                 showNotification('تم إنهاء القضية ونقلها للقضايا المنتهية');
                 document.getElementById('detailsModal').style.display = 'none';
+                renderArchive();
             }
         }
     };
     
-    // سجل الأحكام - الإرجاع من القضايا المنتهية
+    // سجل الأحكام - البحث في المنتهية أولاً ثم المكتب
     function renderJudgmentRecords() {
         let container = document.getElementById('judgmentRecordsList');
         if(!container) return;
         if(!judgmentRecords.length) { container.innerHTML = '<p>لا توجد سجلات أحكام</p>'; return; }
         container.innerHTML = judgmentRecords.map(r => {
-            // البحث في القضايا المنتهية أولاً
+            // البحث في القضايا المنتهية أولاً، ثم المكتب
             let caseData = closedCases.find(c => c.id == r.caseId) || activeCases.find(c => c.id == r.caseId);
             let clientName = caseData ? (clients.find(cl => cl.id == caseData.clientId)?.name || 'غير محدد') : 'غير محدد';
             let opponentName = caseData ? caseData.opponentName : 'غير محدد';
-            let caseStatus = closedCases.find(c => c.id == r.caseId) ? '(منتهية)' : '(متداولة)';
+            let caseStatus = closedCases.find(c => c.id == r.caseId) ? '(منتهية)' : (activeCases.find(c => c.id == r.caseId) ? '(متداولة)' : '(غير موجودة)');
             return `<div class="judgment-record-card"><h4>⚖️ ${r.type} ${caseStatus}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-balance-scale"></i> القضية: ${r.caseNumber} (${r.caseYear})</span><span class="info-badge"><i class="fas fa-building"></i> المحكمة: ${caseData?.court || 'غير محدد'}</span></div><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole || '-'})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole || '-'})</span></div><p><strong>📅 تاريخ الجلسة الجديدة:</strong> ${r.newSessionDate ? new Date(r.newSessionDate).toLocaleString('ar-EG') : 'غير محدد'}</p><p><strong>📝 ملاحظات:</strong> ${r.notes || 'لا توجد'}</p><div class="admin-actions">${r.newSessionDate ? `<button onclick="returnCaseFromJudgment('${r.id}')" class="btn-warning btn-sm"><i class="fas fa-undo"></i> إرجاع لجلسة جديدة</button>` : ''}<button onclick="editJudgmentRecord('${r.id}')" class="btn-primary btn-sm">✏️ تعديل</button></div></div>`;
         }).join('');
     }
@@ -1197,8 +1322,13 @@
         if(record && record.newSessionDate) {
             // البحث في القضايا المنتهية أولاً
             let caseData = closedCases.find(c => c.id == record.caseId);
-            if(!caseData) {
-                showNotification('القضية غير موجودة في القضايا المنتهية');
+            let isFromClosed = true;
+            if (!caseData) {
+                caseData = activeCases.find(c => c.id == record.caseId);
+                isFromClosed = false;
+            }
+            if (!caseData) {
+                showNotification('القضية غير موجودة');
                 return;
             }
             
@@ -1216,8 +1346,12 @@
             
             // حذف السجل من judgmentRecords
             judgmentRecords = judgmentRecords.filter(r => r.id != recordId);
-            // حذف القضية من closedCases
-            closedCases = closedCases.filter(c => c.id != record.caseId);
+            // إذا كانت القضية من المنتهية، احذفها من هناك
+            if (isFromClosed) {
+                closedCases = closedCases.filter(c => c.id != record.caseId);
+            } else {
+                activeCases = activeCases.filter(c => c.id != record.caseId);
+            }
             // إضافة القضية إلى activeCases
             activeCases.push(newCase);
             
@@ -1225,10 +1359,11 @@
             saveClosedCases();
             saveJudgmentRecords();
             
-            showNotification('تم إرجاع القضية من المنتهية لجلسة جديدة في قضايا المكتب');
+            showNotification(`تم إرجاع القضية من ${isFromClosed ? 'المنتهية' : 'المكتب'} لجلسة جديدة`);
             renderJudgmentRecords();
             renderActiveCases();
             renderClosedCases();
+            renderArchive();
         } else {
             showNotification('لم يتم تحديد تاريخ جلسة جديدة');
         }
@@ -1297,10 +1432,12 @@
             if(caseIdx !== -1) {
                 let judgment = prompt('تم إكمال جميع الأعمال الإدارية. أدخل منطوق الحكم النهائي:');
                 if(judgment) {
-                    closedCases.push({ ...activeCases[caseIdx], judgment, closedAt: new Date().toISOString() });
+                    let closedCase = { ...activeCases[caseIdx], judgment, closedAt: new Date().toISOString() };
+                    closedCases.push(closedCase);
                     activeCases.splice(caseIdx,1);
                     saveActiveCases(); saveClosedCases();
                     showNotification('تم نقل القضية للقضايا المنتهية');
+                    renderArchive();
                 }
             }
         }
@@ -1317,18 +1454,36 @@
         renderAdminWorks();
     }
     
+    // عرض الأعمال الإدارية مقسمة
     function renderAdminWorks() {
-        let container = document.getElementById('adminWorksList');
-        if(!container) return;
-        if(!adminWorks.length) { container.innerHTML = '<p>لا توجد أعمال إدارية</p>'; return; }
-        container.innerHTML = adminWorks.map(w => {
-            let caseData = activeCases.find(c => c.id == w.caseId);
-            let clientName = caseData ? (clients.find(cl => cl.id == caseData.clientId)?.name || 'غير محدد') : 'غير محدد';
-            let opponentName = caseData ? caseData.opponentName : 'غير محدد';
-            let statusClass = w.status === 'pending' ? 'status-pending' : (w.status === 'overdue' ? 'status-overdue' : 'status-completed');
-            let statusText = w.status === 'pending' ? 'قيد الانتظار' : (w.status === 'overdue' ? 'متأخر' : 'مكتمل');
-            return `<div class="admin-work-card"><h4>📋 ${w.type}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-balance-scale"></i> القضية: ${w.caseNumber} (${w.caseYear})</span><span class="info-badge"><i class="fas fa-building"></i> المحكمة: ${caseData?.court || 'غير محدد'}</span></div><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole || '-'})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole || '-'})</span></div><p><strong>📅 تاريخ المعاد:</strong> ${w.dueDate ? new Date(w.dueDate).toLocaleString('ar-EG') : 'غير محدد'}</p><p><strong>📝 الملاحظات:</strong> ${w.notes || 'لا توجد'}</p>${w.status === 'overdue' ? '<p style="color:#dc3545;"><i class="fas fa-exclamation-triangle"></i> متأخر عن الموعد!</p>' : ''}<p><span class="work-status ${statusClass}">${statusText}</span></p><div class="admin-actions">${w.status === 'pending' ? `<button onclick="completeAdminWork('${w.id}')" class="btn-success btn-sm">✅ إكمال</button>` : ''}<button onclick="editAdminWork('${w.id}')" class="btn-primary btn-sm">✏️ تعديل</button></div></div>`;
-        }).join('');
+        let pendingContainer = document.getElementById('adminWorksPendingList');
+        let completedContainer = document.getElementById('adminWorksCompletedList');
+        if(!pendingContainer || !completedContainer) return;
+        
+        let pendingWorks = adminWorks.filter(w => w.status !== 'completed');
+        let completedWorks = adminWorks.filter(w => w.status === 'completed');
+        
+        if(!pendingWorks.length) { pendingContainer.innerHTML = '<p>لا توجد أعمال إدارية قيد التنفيذ</p>'; }
+        else {
+            pendingContainer.innerHTML = pendingWorks.map(w => {
+                let caseData = activeCases.find(c => c.id == w.caseId);
+                let clientName = caseData ? (clients.find(cl => cl.id == caseData.clientId)?.name || 'غير محدد') : 'غير محدد';
+                let opponentName = caseData ? caseData.opponentName : 'غير محدد';
+                let statusClass = w.status === 'pending' ? 'status-pending' : 'status-overdue';
+                let statusText = w.status === 'pending' ? 'قيد الانتظار' : 'متأخر';
+                return `<div class="admin-work-card"><h4>📋 ${w.type}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-balance-scale"></i> القضية: ${w.caseNumber} (${w.caseYear})</span><span class="info-badge"><i class="fas fa-building"></i> المحكمة: ${caseData?.court || 'غير محدد'}</span></div><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole || '-'})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole || '-'})</span></div><p><strong>📅 تاريخ المعاد:</strong> ${w.dueDate ? new Date(w.dueDate).toLocaleString('ar-EG') : 'غير محدد'}</p><p><strong>📝 الملاحظات:</strong> ${w.notes || 'لا توجد'}</p>${w.status === 'overdue' ? '<p style="color:#dc3545;"><i class="fas fa-exclamation-triangle"></i> متأخر عن الموعد!</p>' : ''}<p><span class="work-status ${statusClass}">${statusText}</span></p><div class="admin-actions"><button onclick="completeAdminWork('${w.id}')" class="btn-success btn-sm">✅ إكمال</button><button onclick="editAdminWork('${w.id}')" class="btn-primary btn-sm">✏️ تعديل</button></div></div>`;
+            }).join('');
+        }
+        
+        if(!completedWorks.length) { completedContainer.innerHTML = '<p>لا توجد أعمال إدارية منتهية</p>'; }
+        else {
+            completedContainer.innerHTML = completedWorks.map(w => {
+                let caseData = activeCases.find(c => c.id == w.caseId) || closedCases.find(c => c.id == w.caseId);
+                let clientName = caseData ? (clients.find(cl => cl.id == caseData.clientId)?.name || 'غير محدد') : 'غير محدد';
+                let opponentName = caseData ? caseData.opponentName : 'غير محدد';
+                return `<div class="admin-work-card" style="opacity:0.8;"><h4>📋 ${w.type}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-balance-scale"></i> القضية: ${w.caseNumber} (${w.caseYear})</span><span class="info-badge"><i class="fas fa-building"></i> المحكمة: ${caseData?.court || 'غير محدد'}</span></div><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole || '-'})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole || '-'})</span></div><p><strong>📅 تاريخ المعاد:</strong> ${w.dueDate ? new Date(w.dueDate).toLocaleString('ar-EG') : 'غير محدد'}</p><p><strong>📝 الملاحظات:</strong> ${w.notes || 'لا توجد'}</p><p><strong>✅ تاريخ الإكمال:</strong> ${new Date(w.completedAt).toLocaleString('ar-EG')}</p><p><span class="work-status status-completed">مكتمل</span></p></div>`;
+            }).join('');
+        }
         setInterval(checkOverdueWorks, 60000);
     }
     
@@ -1336,7 +1491,18 @@
         let container = document.getElementById('enforcementsList');
         if(!container) return;
         if(!enforcements.length) { container.innerHTML = '<p>لا توجد توكيلات تنفيذ</p>'; return; }
-        container.innerHTML = enforcements.map(e => `<div class="enforcement-card"><h4>📄 توكيل تنفيذ - ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${e.clientName}</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${e.opponentName}</span></div><p><strong><i class="fas fa-tasks"></i> المطلوب في التنفيذ:</strong> ${e.request}</p><p><strong><i class="fas fa-calendar"></i> تاريخ التنفيذ:</strong> ${new Date(e.date).toLocaleString('ar-EG')}</p><p><strong><i class="fas fa-history"></i> الإجراءات السابقة:</strong> ${e.previousActions || 'لا توجد'}</p><p><strong><i class="fas fa-sticky-note"></i> ملاحظات:</strong> ${e.notes || 'لا توجد'}</p><div class="admin-actions"><button onclick="editEnforcement('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button><button onclick="deleteEnforcement('${e.id}')" class="delete-btn">🗑️ حذف</button></div></div>`).join('');
+        container.innerHTML = enforcements.map(e => {
+            let isTomorrow = false;
+            if(e.date) {
+                let tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0,0,0,0);
+                let enforcementDate = new Date(e.date);
+                enforcementDate.setHours(0,0,0,0);
+                isTomorrow = enforcementDate.getTime() === tomorrow.getTime();
+            }
+            return `<div class="enforcement-card" style="${isTomorrow ? 'border-right-color:#ffc107;' : ''}"><h4>📄 توكيل تنفيذ - ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${e.clientName}</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${e.opponentName}</span></div><p><strong><i class="fas fa-tasks"></i> المطلوب في التنفيذ:</strong> ${e.request}</p><p><strong><i class="fas fa-calendar"></i> تاريخ التنفيذ:</strong> ${new Date(e.date).toLocaleString('ar-EG')}${isTomorrow ? ' <span style="color:#ffc107;">(غداً!)</span>' : ''}</p><p><strong><i class="fas fa-history"></i> الإجراءات السابقة:</strong> ${e.previousActions || 'لا توجد'}</p><p><strong><i class="fas fa-sticky-note"></i> ملاحظات:</strong> ${e.notes || 'لا توجد'}</p><div class="admin-actions"><button onclick="editEnforcement('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button><button onclick="deleteEnforcement('${e.id}')" class="delete-btn">🗑️ حذف</button></div></div>`;
+        }).join('');
     }
     
     window.addEnforcement = function() {
@@ -1427,18 +1593,8 @@
         if(confirm('هل أنت متأكد؟')){ activeCases = activeCases.filter(c => c.id != id); saveActiveCases(); showNotification('تم الحذف'); }
     };
     
-    function renderClosedCases() {
-        let container = document.getElementById('closedCasesList');
-        if(!container) return;
-        if(!closedCases.length) { container.innerHTML = '<p>لا توجد قضايا منتهية</p>'; return; }
-        container.innerHTML = closedCases.map(c => {
-            let clientName = clients.find(cl => cl.id == c.clientId)?.name || 'غير محدد';
-            return `<div class="session-card"><h4>✅ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span></div><p><strong>الحكم:</strong> ${c.judgment}</p><p><strong>تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString()}</p>${canDelete() ? `<button onclick="deleteClosedCase('${c.id}')" class="delete-btn">🗑️ حذف</button>` : ''}</div>`;
-        }).join('');
-    }
-    
     window.deleteClosedCase = function(id) {
-        if(confirm('هل أنت متأكد من حذف القضية المنتهية؟')){ closedCases = closedCases.filter(c => c.id != id); saveClosedCases(); showNotification('تم الحذف'); }
+        if(confirm('هل أنت متأكد من حذف القضية المنتهية؟')){ closedCases = closedCases.filter(c => c.id != id); saveClosedCases(); showNotification('تم الحذف'); renderArchive(); }
     };
     
     function renderClientsTable() {
@@ -1466,7 +1622,7 @@
             if(canModify) actions += `<button class="btn-warning btn-sm change-pwd-btn" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
             if(canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
             if(!canModify && !canDel) actions = 'لا يمكن التعديل';
-            return `<tr><td style="text-align:right">${emp.username}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
+            return `<td><td style="text-align:right">${emp.username}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
         }).join('');
     }
     
@@ -1638,16 +1794,16 @@
         let caseNumber = document.getElementById('caseNumber').value;
         let caseYear = document.getElementById('caseYear').value;
         let caseCourt = document.getElementById('caseCourt').value;
+        let caseCircuit = document.getElementById('caseCircuit').value;
         let opponentName = document.getElementById('opponentName').value;
         let opponentRole = document.getElementById('opponentRole').value;
-        if(!clientId || !firstDate || !clientRole || !caseNumber || !caseYear || !caseCourt || !opponentName || !opponentRole) {
+        if(!clientId || !firstDate || !clientRole || !caseNumber || !caseYear || !caseCourt || !caseCircuit || !opponentName || !opponentRole) {
             alert('يرجى ملء جميع الحقول المطلوبة');
             return;
         }
         activeCases.push({
             id: Date.now().toString(),
-            number: caseNumber, year: caseYear, court: caseCourt,
-            circuit: document.getElementById('caseCircuit').value,
+            number: caseNumber, year: caseYear, court: caseCourt, circuit: caseCircuit,
             clientId: clientId, clientRole: clientRole,
             opponentName: opponentName, opponentRole: opponentRole,
             decision: document.getElementById('caseDecision').value,
