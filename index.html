@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>نظام إدارة قضايا - مكتب الخواجا للمحاماة</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/law-office-app/manifest.json">
+    <link rel="apple-touch-icon" href="/law-office-app/icons/icon-192.png">
+    <meta name="theme-color" content="#1a4a5f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="الخواجا">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -192,7 +201,6 @@
             overflow-y: auto;
         }
         
-        /* تقسيم الأعمال الإدارية */
         .admin-works-section {
             margin-bottom: 30px;
         }
@@ -205,7 +213,6 @@
             font-size: 18px;
         }
         
-        /* بحث داخلي */
         .internal-search {
             background: #f8f9fa;
             padding: 15px;
@@ -652,7 +659,6 @@
     function canDelete(){ return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
     function isAdmin(){ return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
 
-    // تنبيهات (قبل الموعد بيوم)
     function checkEnforcementReminders() {
         let today = new Date();
         today.setHours(0,0,0,0);
@@ -685,7 +691,6 @@
         });
     }
 
-    // بحث داخلي في قضايا المكتب
     function searchActiveCases() {
         activeSearchTerm = document.getElementById('activeSearchInput').value.trim().toLowerCase();
         renderActiveCases();
@@ -697,7 +702,6 @@
         renderActiveCases();
     }
 
-    // بحث داخلي في القضايا المنتهية
     function searchClosedCases() {
         closedSearchTerm = document.getElementById('closedSearchInput').value.trim().toLowerCase();
         renderClosedCases();
@@ -709,7 +713,6 @@
         renderClosedCases();
     }
 
-    // دوال الخبراء
     function renderExperts() {
         let container = document.getElementById('expertsList');
         if(!container) return;
@@ -818,7 +821,6 @@
         }
     };
 
-    // الأرشيف
     function renderArchive() {
         let container = document.getElementById('archiveCategories');
         if(!container) return;
@@ -839,7 +841,6 @@
         event.target.classList.add('active');
     };
 
-    // بحث عام
     window.performSearch = function() {
         let searchType = document.getElementById('searchType').value;
         let resultsDiv = document.getElementById('searchResults');
@@ -1183,19 +1184,16 @@
         if(judgment) {
             let idx = activeCases.findIndex(c => c.id == caseId);
             if(idx !== -1) {
-                // إضافة القضية إلى closedCases مع الاحتفاظ بالدائرة
                 let closedCase = { ...activeCases[idx], judgment, closedAt: new Date().toISOString() };
                 closedCases.push(closedCase);
                 activeCases.splice(idx,1);
                 saveActiveCases(); saveClosedCases();
                 showNotification('تم إنهاء القضية ونقلها للقضايا المنتهية والأرشيف حسب الدائرة');
-                // تحديث الأرشيف
                 renderArchive();
             }
         }
     };
     
-    // عرض قضايا المكتب مع البحث الداخلي
     function renderActiveCases() {
         let container = document.getElementById('activeCasesList');
         if(!container) return;
@@ -1214,7 +1212,6 @@
         }).join('');
     }
     
-    // عرض القضايا المنتهية مع البحث الداخلي
     function renderClosedCases() {
         let container = document.getElementById('closedCasesList');
         if(!container) return;
@@ -1302,13 +1299,11 @@
         }
     };
     
-    // سجل الأحكام - البحث في المنتهية أولاً ثم المكتب
     function renderJudgmentRecords() {
         let container = document.getElementById('judgmentRecordsList');
         if(!container) return;
         if(!judgmentRecords.length) { container.innerHTML = '<p>لا توجد سجلات أحكام</p>'; return; }
         container.innerHTML = judgmentRecords.map(r => {
-            // البحث في القضايا المنتهية أولاً، ثم المكتب
             let caseData = closedCases.find(c => c.id == r.caseId) || activeCases.find(c => c.id == r.caseId);
             let clientName = caseData ? (clients.find(cl => cl.id == caseData.clientId)?.name || 'غير محدد') : 'غير محدد';
             let opponentName = caseData ? caseData.opponentName : 'غير محدد';
@@ -1320,7 +1315,6 @@
     window.returnCaseFromJudgment = function(recordId) {
         let record = judgmentRecords.find(r => r.id == recordId);
         if(record && record.newSessionDate) {
-            // البحث في القضايا المنتهية أولاً
             let caseData = closedCases.find(c => c.id == record.caseId);
             let isFromClosed = true;
             if (!caseData) {
@@ -1344,15 +1338,12 @@
                 createdAt: new Date().toISOString()
             };
             
-            // حذف السجل من judgmentRecords
             judgmentRecords = judgmentRecords.filter(r => r.id != recordId);
-            // إذا كانت القضية من المنتهية، احذفها من هناك
             if (isFromClosed) {
                 closedCases = closedCases.filter(c => c.id != record.caseId);
             } else {
                 activeCases = activeCases.filter(c => c.id != record.caseId);
             }
-            // إضافة القضية إلى activeCases
             activeCases.push(newCase);
             
             saveActiveCases();
@@ -1454,7 +1445,6 @@
         renderAdminWorks();
     }
     
-    // عرض الأعمال الإدارية مقسمة
     function renderAdminWorks() {
         let pendingContainer = document.getElementById('adminWorksPendingList');
         let completedContainer = document.getElementById('adminWorksCompletedList');
@@ -1622,7 +1612,7 @@
             if(canModify) actions += `<button class="btn-warning btn-sm change-pwd-btn" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
             if(canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
             if(!canModify && !canDel) actions = 'لا يمكن التعديل';
-            return `<td><td style="text-align:right">${emp.username}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
+            return `<tr><td style="text-align:right">${emp.username}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
         }).join('');
     }
     
@@ -1827,6 +1817,13 @@
     });
     
     setInterval(() => { renderPastSessions(); updateStats(); renderTomorrowSessions(); updateWelcomeMessage(); updateReports(); checkOverdueWorks(); renderAdvancedAgenda(); checkEnforcementReminders(); checkExpertReminders(); }, 60000);
+    
+    // تسجيل Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/law-office-app/sw.js')
+            .then(reg => console.log('✅ Service Worker registered:', reg))
+            .catch(err => console.log('❌ Service Worker error:', err));
+    }
     
     checkLoginStatus();
 </script>
