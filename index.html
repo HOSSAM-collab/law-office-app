@@ -241,7 +241,7 @@
         <button onclick="attemptLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
         <div id="loginError" class="error-msg">اسم المستخدم أو كلمة المرور غير صحيحة</div>
     </div>
-    <div class="login-footer">تصميم  </div>
+    <div class="login-footer">تصميم حسام الشويخ</div>
 </div>
 
 <div id="maintenanceScreen" class="maintenance-overlay" style="display: none;">
@@ -319,8 +319,9 @@
             <div class="form-group"><label>رقم القضية <span style="color:red">*</span></label><input type="text" id="caseNumber" required></div>
             <div class="form-group"><label>سنة القضية <span style="color:red">*</span></label><input type="text" id="caseYear" placeholder="مثال: 2025" required></div>
             <div class="form-group"><label>المحكمة <span style="color:red">*</span></label><div class="court-options" id="courtOptions"></div><input type="text" id="caseCourt" placeholder="أو اكتب اسم المحكمة" style="display:none;"></div>
+            
             <div class="form-group"><label>الدائرة <span style="color:red">*</span></label>
-                <select id="caseCircuit" required>
+                <select id="caseCircuit" required onchange="toggleOtherCircuit()">
                     <option value="">اختر الدائرة</option>
                     <option value="مدني">مدني</option>
                     <option value="مدني كلي">مدني كلي</option>
@@ -329,8 +330,11 @@
                     <option value="صحة توقيع">صحة توقيع</option>
                     <option value="أسرة المراغة">أسرة المراغة</option>
                     <option value="أسرة سوهاج">أسرة سوهاج</option>
+                    <option value="أخرى">أخرى +</option>
                 </select>
+                <input type="text" id="otherCircuit" placeholder="اكتب اسم الدائرة" style="display:none; margin-top:10px;">
             </div>
+            
             <div class="form-group"><label>تاريخ الجلسة الأولى <span style="color:red">*</span></label><input type="datetime-local" id="firstSessionDate" required></div>
             <div class="form-group"><label>الموكل <span style="color:red">*</span></label><select id="caseClient" required><option value="">اختر موكل</option></select></div>
             <div class="form-group"><label>صفة الموكل <span style="color:red">*</span></label>
@@ -411,7 +415,7 @@
             <div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div>
             <button type="submit">➕ إضافة موكل</button>
         </form>
-        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></tr></div>
     </div>
 
     <!-- الأعمال الإدارية (مقسمة لقيد التنفيذ ومنتهية) -->
@@ -455,6 +459,20 @@
 <div id="notificationToast" class="notification-toast"></div>
 
 <script>
+    // دالة إظهار/إخفاء حقل الدائرة الأخرى
+    function toggleOtherCircuit() {
+        let select = document.getElementById('caseCircuit');
+        let otherInput = document.getElementById('otherCircuit');
+        if (select.value === 'أخرى') {
+            otherInput.style.display = 'block';
+            otherInput.required = true;
+        } else {
+            otherInput.style.display = 'none';
+            otherInput.required = false;
+            otherInput.value = '';
+        }
+    }
+
     const firebaseConfig = {
         apiKey: "AIzaSyB9oDokvH17g5eVqFTGjYay2U-fFVlLt8",
         authDomain: "lawfirmsystem-75836.firebaseapp.com",
@@ -1784,13 +1802,25 @@
         let caseNumber = document.getElementById('caseNumber').value;
         let caseYear = document.getElementById('caseYear').value;
         let caseCourt = document.getElementById('caseCourt').value;
+        
+        // معالجة الدائرة (أو الأخرى)
         let caseCircuit = document.getElementById('caseCircuit').value;
+        if (caseCircuit === 'أخرى') {
+            caseCircuit = document.getElementById('otherCircuit').value;
+            if (!caseCircuit) {
+                alert('يرجى إدخال اسم الدائرة');
+                return;
+            }
+        }
+        
         let opponentName = document.getElementById('opponentName').value;
         let opponentRole = document.getElementById('opponentRole').value;
+        
         if(!clientId || !firstDate || !clientRole || !caseNumber || !caseYear || !caseCourt || !caseCircuit || !opponentName || !opponentRole) {
             alert('يرجى ملء جميع الحقول المطلوبة');
             return;
         }
+        
         activeCases.push({
             id: Date.now().toString(),
             number: caseNumber, year: caseYear, court: caseCourt, circuit: caseCircuit,
@@ -1805,6 +1835,9 @@
         saveActiveCases();
         e.target.reset();
         document.getElementById('caseCourt').value = '';
+        document.getElementById('otherCircuit').style.display = 'none';
+        document.getElementById('otherCircuit').value = '';
+        document.getElementById('caseCircuit').value = '';
         showNotification('تم إضافة القضية');
     });
     
