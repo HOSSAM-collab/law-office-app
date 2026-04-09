@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>نظام إدارة قضايا - مكتب الخواجا للمحاماة</title>
+    
+    <!-- PWA -->
     <link rel="manifest" href="/law-office-app/manifest.json">
     <link rel="apple-touch-icon" href="/law-office-app/icons/icon-192.png">
     <meta name="theme-color" content="#1a4a5f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="الخواجا">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -18,6 +21,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
+        
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
         .login-card { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 400px; text-align: center; }
         .login-card h2 { color: #1a4a5f; margin-bottom: 10px; }
@@ -26,16 +30,38 @@
         .login-card button:hover { background: #0b2b40; }
         .error-msg { color: #dc3545; margin-top: 10px; display: none; }
         .login-footer { margin-top: 20px; color: rgba(255,255,255,0.7); font-size: 14px; text-align: center; }
-        .maintenance-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); display: flex; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
-        .maintenance-card { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; text-align: center; }
+        
+        .maintenance-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+        }
+        .maintenance-card {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+        }
         .maintenance-card i { font-size: 60px; color: #ffc107; margin-bottom: 20px; }
         .maintenance-card h2 { color: #1a4a5f; margin-bottom: 15px; }
         .maintenance-card p { color: #666; margin-bottom: 20px; }
+        
         .header { background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); color: white; padding: 25px 30px; border-radius: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo h1 { font-size: 28px; font-weight: 800; }
         .logo p { font-size: 14px; opacity: 0.9; }
         .user-info { background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 50px; display: flex; align-items: center; gap: 15px; }
         .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-weight: bold; }
+        
         .search-section { background: white; padding: 20px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .search-title { font-size: 18px; font-weight: bold; color: #1a4a5f; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .search-box { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
@@ -46,20 +72,25 @@
         .search-results { margin-top: 20px; display: none; }
         .search-results.show { display: block; }
         .search-result-card { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-right: 4px solid #1a4a5f; }
+        
         .welcome-banner { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; padding: 15px 25px; border-radius: 16px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; border-right: 5px solid #28a745; }
         .sessions-count { background: #155724; color: white; padding: 8px 20px; border-radius: 40px; }
+        
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: white; padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-3px); }
         .stat-info h3 { font-size: 28px; font-weight: 800; color: #1a4a5f; }
         .stat-info p { color: #666; font-size: 14px; }
         .stat-icon { font-size: 40px; color: #1a4a5f; opacity: 0.6; }
+        
         .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; background: white; padding: 10px; border-radius: 60px; overflow-x: auto; }
         .tab-btn { padding: 12px 24px; border: none; background: transparent; font-size: 16px; font-weight: 600; cursor: pointer; border-radius: 40px; color: #555; transition: all 0.3s; white-space: nowrap; }
         .tab-btn.active { background: #1a4a5f; color: white; }
+        
         .panel { display: none; background: white; border-radius: 20px; padding: 25px; animation: fadeIn 0.3s ease; }
         .panel.active-panel { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
+        
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
         input, select, textarea { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; }
@@ -72,35 +103,47 @@
         .btn-sm { padding: 6px 12px; font-size: 13px; margin: 3px; }
         .btn-primary { background: #17a2b8; }
         .btn-primary:hover { background: #138496; }
+        
         .table-responsive { overflow-x: auto; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; color: #1a4a5f; }
+        
         .session-card { background: #f8f9fa; padding: 20px; border-radius: 16px; margin-bottom: 20px; border-right: 5px solid #1a4a5f; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .session-card h4 { font-size: 20px; margin-bottom: 15px; color: #1a4a5f; }
         .session-card .info-row { display: flex; flex-wrap: wrap; gap: 15px; margin: 15px 0; }
         .session-card .info-badge { background: white; padding: 8px 15px; border-radius: 25px; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
         .past-session-card { background: #fff3cd; padding: 20px; border-radius: 16px; margin-bottom: 20px; border-right: 5px solid #ffc107; }
+        
         .delete-btn { color: #dc3545; background: transparent; border: none; cursor: pointer; font-size: 16px; }
         .delete-btn:hover { background: #dc3545; color: white; padding: 5px 10px; border-radius: 8px; }
+        
         .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; }
         .role-admin { background: #1a4a5f; color: white; }
         .role-lawyer { background: #28a745; color: white; }
         .role-super { background: #dc3545; color: white; }
+        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; justify-content: center; align-items: center; }
         .modal-content { background: white; border-radius: 20px; padding: 25px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
         .close-modal { background: #dc3545; margin-top: 20px; }
+        
         @media (max-width: 768px) { .tab-btn { padding: 8px 16px; font-size: 13px; } .panel { padding: 15px; } th, td { font-size: 12px; } }
+        
         .notification-toast { position: fixed; bottom: 20px; left: 20px; background: #1a4a5f; color: white; padding: 12px 20px; border-radius: 12px; display: none; z-index: 1000; }
         .main-content { display: none; }
+        
         .court-options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .court-btn { background: #e9ecef; color: #333; padding: 8px 16px; border-radius: 25px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
         .court-btn:hover { background: #1a4a5f; color: white; }
         .court-btn.selected { background: #1a4a5f; color: white; }
+        
         .report-simple { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
         .report-simple h4 { color: #1a4a5f; margin-bottom: 10px; }
+        
         .change-pwd-btn { background: #ffc107; color: #333; margin-top: 5px; }
         .admin-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        
         .admin-work-card, .judgment-record-card, .enforcement-card, .expert-card {
             background: #f8f9fa;
             padding: 20px;
@@ -112,32 +155,92 @@
         .status-pending { background: #ffc107; color: #333; }
         .status-completed { background: #28a745; color: white; }
         .status-overdue { background: #dc3545; color: white; }
+        
         .year-months { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
         .year-btn, .month-btn { background: #e9ecef; padding: 8px 20px; border-radius: 25px; cursor: pointer; transition: all 0.2s; }
         .year-btn:hover, .month-btn:hover, .year-btn.active, .month-btn.active { background: #1a4a5f; color: white; }
+        
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 15px; }
         .day-card { background: #f8f9fa; padding: 12px 8px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; border-right: 3px solid transparent; }
         .day-card:hover { background: #1a4a5f; color: white; transform: scale(1.05); }
         .day-card.has-session { background: #d4edda; border-right-color: #28a745; }
         .day-card.today { background: #ffc107; color: #333; font-weight: bold; }
+        
         .week-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 10px; text-align: center; font-weight: bold; }
         .week-day-name { background: #1a4a5f; color: white; padding: 8px; border-radius: 8px; }
+        
         .maintenance-control { background: #f8f9fa; padding: 15px; border-radius: 16px; margin-bottom: 20px; border-right: 4px solid #ffc107; }
         .maintenance-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
         .status-maintenance-on { background: #dc3545; color: white; }
         .status-maintenance-off { background: #28a745; color: white; }
+        
         .info-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
         .info-badge { background: #e9ecef; padding: 5px 12px; border-radius: 20px; font-size: 13px; }
-        .archive-categories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px; }
-        .archive-cat-btn { background: #e9ecef; padding: 8px 20px; border-radius: 25px; cursor: pointer; transition: all 0.2s; border: 1px solid #ddd; }
-        .archive-cat-btn:hover, .archive-cat-btn.active { background: #1a4a5f; color: white; border-color: #1a4a5f; }
-        .archive-cases-list { max-height: 500px; overflow-y: auto; }
-        .admin-works-section { margin-bottom: 30px; }
-        .admin-works-title { background: #1a4a5f; color: white; padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; font-size: 18px; }
-        .internal-search { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
-        .internal-search input { flex: 1; min-width: 200px; }
-        .opponent-section { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-top: 10px; }
-        .opponent-section-title { font-weight: bold; margin-bottom: 10px; color: #1a4a5f; }
+        
+        .archive-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
+        }
+        .archive-cat-btn {
+            background: #e9ecef;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #ddd;
+        }
+        .archive-cat-btn:hover, .archive-cat-btn.active {
+            background: #1a4a5f;
+            color: white;
+            border-color: #1a4a5f;
+        }
+        .archive-cases-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .admin-works-section {
+            margin-bottom: 30px;
+        }
+        .admin-works-title {
+            background: #1a4a5f;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .internal-search {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .internal-search input {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .opponent-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+        .opponent-section-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1a4a5f;
+        }
     </style>
 </head>
 <body>
@@ -152,7 +255,7 @@
         <button onclick="attemptLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
         <div id="loginError" class="error-msg">اسم المستخدم أو كلمة المرور غير صحيحة</div>
     </div>
-    <div class="login-footer">تصميم حسام الشويخ</div>
+    <div class="login-footer">تصميم </div>
 </div>
 
 <div id="maintenanceScreen" class="maintenance-overlay" style="display: none;">
@@ -348,7 +451,7 @@
             <div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div>
             <button type="submit">➕ إضافة موكل</button>
         </form>
-        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></tr></div>
+        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></td></div>
     </div>
 
     <!-- Admin Works -->
@@ -425,7 +528,7 @@
     const database = firebase.database();
 
     // Global variables
-    let fixedAdmins = []; // will be loaded from Firebase
+    let fixedAdmins = [];
     let activeCases = [], closedCases = [], clients = [], employees = [], currentUser = null, customCourts = [];
     let adminWorks = [], judgmentRecords = [], enforcements = [], experts = [];
     let isMaintenanceMode = false;
@@ -454,7 +557,6 @@
         database.ref('enforcements').on('value', (s) => { enforcements = s.val() ? Object.values(s.val()) : []; renderEnforcements(); checkEnforcementReminders(); });
         database.ref('experts').on('value', (s) => { experts = s.val() ? Object.values(s.val()) : []; renderExperts(); checkExpertReminders(); });
 
-        // Load fixedAdmins from Firebase or create default
         database.ref('fixedAdmins').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -1238,7 +1340,7 @@
                 let expertDate = new Date(e.expertDate); expertDate.setHours(0,0,0,0);
                 isTomorrow = expertDate.getTime() === tomorrow.getTime();
             }
-            return `<div class="expert-card" style="${isPast?'opacity:0.7;':''} ${isTomorrow?'border-right-color:#ffc107;':''}"><h4>👨‍⚖️ خبير - ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole||'-'})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole||'-'})</span></div><div class="info-row"><span class="info-badge"><i class="fas fa-calendar"></i> موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}${isTomorrow?' <span style="color:#ffc107;">(غداً!)</span>':''}</span><span class="info-badge"><i class="fas fa-tasks"></i> المطلوب: ${e.request||'لا يوجد'}</span></div><div class="info-row"><span class="info-badge"><i class="fas fa-sticky-note"></i> ملاحظات: ${e.notes||'لا توجد'}</span></div><div class="admin-actions"><button onclick="editExpert('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button><button onclick="deleteExpert('${e.id}')" class="delete-btn">??️ حذف</button><button onclick="returnExpertToCase('${e.id}')" class="btn-primary btn-sm">🔄 إرجاع لقضية</button><button onclick="completeExpert('${e.id}')" class="btn-success btn-sm">✅ إكمال الخبير</button></div></div>`;
+            return `<div class="expert-card" style="${isPast?'opacity:0.7;':''} ${isTomorrow?'border-right-color:#ffc107;':''}"><h4>👨‍⚖️ خبير - ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole||'-'})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole||'-'})</span></div><div class="info-row"><span class="info-badge"><i class="fas fa-calendar"></i> موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}${isTomorrow?' <span style="color:#ffc107;">(غداً!)</span>':''}</span><span class="info-badge"><i class="fas fa-tasks"></i> المطلوب: ${e.request||'لا يوجد'}</span></div><div class="info-row"><span class="info-badge"><i class="fas fa-sticky-note"></i> ملاحظات: ${e.notes||'لا توجد'}</span></div><div class="admin-actions"><button onclick="editExpert('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button><button onclick="deleteExpert('${e.id}')" class="delete-btn">🗑️ حذف</button><button onclick="returnExpertToCase('${e.id}')" class="btn-primary btn-sm">🔄 إرجاع لقضية</button><button onclick="completeExpert('${e.id}')" class="btn-success btn-sm">✅ إكمال الخبير</button></div></div>`;
         }).join('');
     }
     window.addExpert = function() {
@@ -1352,11 +1454,11 @@
             if(canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
             if(!canModify && !canDel) actions = 'لا يمكن التعديل';
             let passwordDisplay = (currentUser && currentUser.superAdmin === true) ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
-            return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
+            return `<td><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
         }).join('');
     }
 
-    // Change password function (updates Firebase, old password invalid)
+    // Change password function
     window.changePassword = function(empId) {
         let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
         if(!newPassword || newPassword.length===0){ showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); return; }
@@ -1386,7 +1488,7 @@
     window.deleteEmployee = function(id) {
         if(id==="admin_hesham"){ showNotification('لا يمكن حذف المدير الأساسي'); return; }
         if(id==="admin_george"){ showNotification('لا يمكن حذف هذا المستخدم'); return; }
-        if(confirm('هل أنت متأكد من حذف هذا الموظف？')){ employees = employees.filter(e=>e.id!=id); saveEmployees(); showNotification('تم حذف الموظف'); renderEmployeesTable(); }
+        if(confirm('هل أنت متأكد من حذف هذا الموظف؟')){ employees = employees.filter(e=>e.id!=id); saveEmployees(); showNotification('تم حذف الموظف'); renderEmployeesTable(); }
     };
 
     // Tabs and roles
@@ -1467,47 +1569,68 @@
         checkMaintenance();
     }
 
-    window.attemptLogin = function() {
+    window.attemptLogin = async function() {
         let username = document.getElementById('loginUsername').value.trim();
         let password = document.getElementById('loginPassword').value;
-        let fixedAdmin = fixedAdmins.find(e => e.username === username && e.password === password);
-        if(fixedAdmin) {
+
+        // جلب أحدث بيانات الأدمنين الثابتين من Firebase
+        let fixedAdminsSnapshot = await database.ref('fixedAdmins').once('value');
+        let fixedAdminsData = fixedAdminsSnapshot.val();
+        let fixedAdminsList = fixedAdminsData ? Object.values(fixedAdminsData) : [];
+
+        // إذا لم يكن هناك أدمنين، نضيفهم
+        if (fixedAdminsList.length === 0) {
+            fixedAdminsList = [
+                { id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, hidden: true, superAdmin: true },
+                { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }
+            ];
+            const adminsObj = {};
+            fixedAdminsList.forEach(admin => { adminsObj[admin.id] = admin; });
+            await database.ref('fixedAdmins').set(adminsObj);
+        }
+
+        // البحث في الأدمنين الثابتين
+        let fixedAdmin = fixedAdminsList.find(e => e.username === username && e.password === password);
+        if (fixedAdmin) {
             currentUser = fixedAdmin;
-            sessionStorage.setItem('sessionActive','true');
+            sessionStorage.setItem('sessionActive', 'true');
             localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
             document.getElementById('currentUserName').innerText = currentUser.username;
             document.getElementById('currentUserRole').innerHTML = currentUser.role;
-            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin?'role-super':'role-admin'}`;
+            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
             loadDataFromFirebase();
             setTimeout(() => { updateWelcomeMessage(); if(currentUser && currentUser.superAdmin===true && document.getElementById('employeesPanel')) addMaintenanceControls(); }, 500);
             showNotification(`مرحباً بك ${username}`);
             checkMaintenance();
             return;
         }
-        database.ref('employees').once('value', (snapshot) => {
-            const data = snapshot.val();
-            employees = data ? Object.values(data) : [];
-            let user = employees.find(e => e.username === username && e.password === password);
-            if(user){
-                currentUser = user;
-                sessionStorage.setItem('sessionActive','true');
-                localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-                document.getElementById('currentUserName').innerText = currentUser.username;
-                document.getElementById('currentUserRole').innerHTML = currentUser.role;
-                document.getElementById('currentUserRole').className = `role-badge ${currentUser.role==='مدير'?'role-admin':'role-lawyer'}`;
-                loadDataFromFirebase();
-                setTimeout(() => updateWelcomeMessage(), 500);
-                showNotification(`مرحباً بك ${username}`);
-                checkMaintenance();
-            } else {
-                document.getElementById('loginError').style.display = 'block';
-                showNotification('❌ اسم المستخدم أو كلمة المرور غير صحيحة. تأكد من البيانات.');
-            }
-        }).catch(err => { showNotification('حدث خطأ في الاتصال بقاعدة البيانات'); });
+
+        // جلب أحدث بيانات الموظفين من Firebase
+        let employeesSnapshot = await database.ref('employees').once('value');
+        let employeesData = employeesSnapshot.val();
+        let employeesList = employeesData ? Object.values(employeesData) : [];
+
+        // البحث في الموظفين
+        let user = employeesList.find(e => e.username === username && e.password === password);
+        if (user) {
+            currentUser = user;
+            sessionStorage.setItem('sessionActive', 'true');
+            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('currentUserName').innerText = currentUser.username;
+            document.getElementById('currentUserRole').innerHTML = currentUser.role;
+            document.getElementById('currentUserRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
+            loadDataFromFirebase();
+            setTimeout(() => updateWelcomeMessage(), 500);
+            showNotification(`مرحباً بك ${username}`);
+            checkMaintenance();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+            showNotification('❌ اسم المستخدم أو كلمة المرور غير صحيحة');
+        }
     };
 
     window.logout = function() {
