@@ -537,7 +537,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    const fixedAdmins = [
+    let fixedAdmins = [
         { id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, hidden: true, superAdmin: true },
         { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }
     ];
@@ -2034,39 +2034,36 @@
         let user = employees.find(e => e.username === username && e.password === password);
 
         if (user) {
-            currentUser = user;
-            sessionStorage.setItem('sessionActive', 'true');
-            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            document.getElementById('currentUserName').innerText = currentUser.username;
-            document.getElementById('currentUserRole').innerHTML = currentUser.role;
-            document.getElementById('currentUserRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
-            loadDataFromFirebase();
-            setTimeout(() => updateWelcomeMessage(), 500);
-            showNotification(`مرحباً بك ${username}`);
-            checkMaintenance();
-        } else {
-            document.getElementById('loginError').style.display = 'block';
-            showNotification('❌ اسم المستخدم أو كلمة المرور غير صحيحة. تأكد من البيانات.');
-            console.log("محاولة فاشلة:", username, password);
-            console.log("الموظفين الموجودين في Firebase:", employees);
-        }
-    }).catch(error => {
-        console.error("خطأ في جلب الموظفين:", error);
-        showNotification("حدث خطأ في الاتصال بقاعدة البيانات، حاول مرة أخرى.");
-    });
-};
-    
-    window.logout = function() {
-        currentUser = null;
+            function checkLoginStatus() {
+    // التأكد من أن الجلسة نشطة فقط أثناء تصفح المستخدم
+    sessionStorage.setItem('sessionActive', 'true');
+    window.addEventListener('beforeunload', function() {
         sessionStorage.removeItem('sessionActive');
         localStorage.removeItem('law_currentUser');
+    });
+
+    let savedUser = localStorage.getItem('law_currentUser');
+    if (savedUser && sessionStorage.getItem('sessionActive')) {
+        currentUser = JSON.parse(savedUser);
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('currentUserName').innerText = currentUser.username;
+        document.getElementById('currentUserRole').innerHTML = currentUser.role;
+        document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
+        loadDataFromFirebase();
+        setTimeout(() => {
+            updateWelcomeMessage();
+            if (currentUser && currentUser.superAdmin === true && document.getElementById('employeesPanel')) {
+                addMaintenanceControls();
+            }
+        }, 500);
+    } else {
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('mainContent').style.display = 'none';
-        showNotification('تم تسجيل الخروج');
-        checkMaintenance();
-    };
+        localStorage.removeItem('law_currentUser');
+    }
+    checkMaintenance();
+}
     
     document.getElementById('newCaseForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
