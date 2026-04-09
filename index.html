@@ -1997,29 +1997,43 @@
     }
     
     window.attemptLogin = function() {
-        let username = document.getElementById('loginUsername').value.trim();
-        let password = document.getElementById('loginPassword').value;
-        let fixedAdmin = fixedAdmins.find(e => e.username === username && e.password === password);
-        if(fixedAdmin) {
-            currentUser = fixedAdmin;
-            sessionStorage.setItem('sessionActive', 'true');
-            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            document.getElementById('currentUserName').innerText = currentUser.username;
-            document.getElementById('currentUserRole').innerHTML = currentUser.role;
-            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
-            loadDataFromFirebase();
-            setTimeout(() => {
-                updateWelcomeMessage();
-                if (currentUser && currentUser.superAdmin === true && document.getElementById('employeesPanel')) addMaintenanceControls();
-            }, 500);
-            showNotification(`مرحباً بك ${username}`);
-            checkMaintenance();
-            return;
+    let username = document.getElementById('loginUsername').value.trim();
+    let password = document.getElementById('loginPassword').value;
+
+    // 1. البحث في الأدمنين الثابتين (حسام وجورج)
+    let fixedAdmin = fixedAdmins.find(e => e.username === username && e.password === password);
+    if (fixedAdmin) {
+        currentUser = fixedAdmin;
+        sessionStorage.setItem('sessionActive', 'true');
+        localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('currentUserName').innerText = currentUser.username;
+        document.getElementById('currentUserRole').innerHTML = currentUser.role;
+        document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
+        loadDataFromFirebase();
+        setTimeout(() => {
+            updateWelcomeMessage();
+            if (currentUser && currentUser.superAdmin === true && document.getElementById('employeesPanel')) addMaintenanceControls();
+        }, 500);
+        showNotification(`مرحباً بك ${username}`);
+        checkMaintenance();
+        return;
+    }
+
+    // 2. البحث في الموظفين العاديين (جلب أحدث البيانات من Firebase)
+    database.ref('employees').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            employees = Object.values(data);
+        } else {
+            employees = [];
         }
+
+        // البحث عن المستخدم في قائمة الموظفين المحدثة
         let user = employees.find(e => e.username === username && e.password === password);
-        if(user) {
+
+        if (user) {
             currentUser = user;
             sessionStorage.setItem('sessionActive', 'true');
             localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
@@ -2034,9 +2048,15 @@
             checkMaintenance();
         } else {
             document.getElementById('loginError').style.display = 'block';
-            showNotification('اسم المستخدم أو كلمة المرور غير صحيحة');
+            showNotification('❌ اسم المستخدم أو كلمة المرور غير صحيحة. تأكد من البيانات.');
+            console.log("محاولة فاشلة:", username, password);
+            console.log("الموظفين الموجودين في Firebase:", employees);
         }
-    };
+    }).catch(error => {
+        console.error("خطأ في جلب الموظفين:", error);
+        showNotification("حدث خطأ في الاتصال بقاعدة البيانات، حاول مرة أخرى.");
+    });
+};
     
     window.logout = function() {
         currentUser = null;
