@@ -191,10 +191,12 @@
             border-radius: 25px;
             cursor: pointer;
             transition: all 0.2s;
+            border: 1px solid #ddd;
         }
         .archive-cat-btn:hover, .archive-cat-btn.active {
             background: #1a4a5f;
             color: white;
+            border-color: #1a4a5f;
         }
         .archive-cases-list {
             max-height: 500px;
@@ -485,7 +487,11 @@
     <div id="expertsPanel" class="panel"><h3>👨‍⚖️ الخبراء</h3><button onclick="addExpert()" class="btn-success">➕ إضافة خبير جديد</button><div id="expertsList" style="margin-top:20px;"></div></div>
 
     <!-- الأرشيف -->
-    <div id="archivePanel" class="panel"><h3>📚 الأرشيف</h3><div id="archiveCategories"></div><div id="archiveCasesList" class="archive-cases-list"></div></div>
+    <div id="archivePanel" class="panel">
+        <h3>📚 الأرشيف</h3>
+        <div id="archiveCategories"></div>
+        <div id="archiveCasesList" class="archive-cases-list"></div>
+    </div>
 
     <!-- التقارير -->
     <div id="reportsPanel" class="panel">
@@ -625,7 +631,12 @@
 
     function addMaintenanceControls() {
         let employeesPanel = document.getElementById('employeesPanel');
-        if (!employeesPanel || document.getElementById('maintenanceControlSection')) return;
+        if (!employeesPanel) return;
+        
+        // إزالة القديم إذا وجد
+        let oldSection = document.getElementById('maintenanceControlSection');
+        if(oldSection) oldSection.remove();
+        
         let controlHtml = `
             <div id="maintenanceControlSection" class="maintenance-control">
                 <h4><i class="fas fa-tools"></i> التحكم في الموقع - وضع الصيانة</h4>
@@ -640,13 +651,20 @@
                 </div>
                 <div id="maintenanceTimerDiv" style="margin-top: 10px; font-size: 13px;"></div>
             </div>`;
-        let employeesTable = employeesPanel.querySelector('.table-responsive');
-        if (employeesTable) employeesTable.insertAdjacentHTML('beforebegin', controlHtml);
-        else employeesPanel.insertAdjacentHTML('afterbegin', controlHtml);
+        
+        // إضافة قبل الفورم
+        let employeeForm = employeesPanel.querySelector('#employeeForm');
+        if(employeeForm) {
+            employeeForm.insertAdjacentHTML('beforebegin', controlHtml);
+        } else {
+            employeesPanel.insertAdjacentHTML('afterbegin', controlHtml);
+        }
+        
         document.getElementById('toggleMaintenanceBtn')?.addEventListener('click', () => {
             if (isMaintenanceMode) disableMaintenance();
             else { let duration = parseInt(document.getElementById('maintenanceDuration').value); enableMaintenance(duration > 0 ? duration : null); }
         });
+        
         setInterval(() => {
             let timerDiv = document.getElementById('maintenanceTimerDiv');
             if (timerDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) {
@@ -721,7 +739,6 @@
     function canDelete(){ return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
     function isAdmin(){ return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
 
-    // تنبيهات الخبراء وتوكيلات التنفيذ
     function checkEnforcementReminders() {
         let today = new Date();
         today.setHours(0,0,0,0);
@@ -800,8 +817,8 @@
                 <div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole || '-'})</span>
                 <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole || '-'})</span></div>
                 <div class="info-row"><span class="info-badge"><i class="fas fa-calendar"></i> موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}${isTomorrow ? ' <span style="color:#ffc107;">(غداً!)</span>' : ''}</span>
-                <span class="info-badge"><i class="fas fa-sticky-note"></i> ملاحظات: ${e.notes || 'لا توجد'}</span></div>
-                <div class="info-row"><span class="info-badge"><i class="fas fa-tasks"></i> المطلوب: ${e.request || 'لا يوجد'}</span></div>
+                <span class="info-badge"><i class="fas fa-tasks"></i> المطلوب: ${e.request || 'لا يوجد'}</span></div>
+                <div class="info-row"><span class="info-badge"><i class="fas fa-sticky-note"></i> ملاحظات: ${e.notes || 'لا توجد'}</span></div>
                 <div class="admin-actions">
                     <button onclick="editExpert('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button>
                     <button onclick="deleteExpert('${e.id}')" class="delete-btn">🗑️ حذف</button>
@@ -973,7 +990,9 @@
     function renderArchive() {
         let container = document.getElementById('archiveCategories');
         if(!container) return;
-        let categoriesHtml = `<div class="archive-categories">${archiveCategories.map(cat => `<span class="archive-cat-btn" onclick="filterArchive('${cat.circuit}')">${cat.name}</span>`).join('')}</div>`;
+        let categoriesHtml = `<div class="archive-categories">` + 
+            archiveCategories.map(cat => `<span class="archive-cat-btn" data-circuit="${cat.circuit}" onclick="filterArchive('${cat.circuit}')">${cat.name}</span>`).join('') + 
+            `</div>`;
         container.innerHTML = categoriesHtml;
         filterArchive('مدني');
     }
@@ -981,13 +1000,34 @@
     window.filterArchive = function(circuit) {
         let filteredCases = closedCases.filter(c => c.circuit === circuit);
         let container = document.getElementById('archiveCasesList');
-        if(!filteredCases.length) { container.innerHTML = '<p>لا توجد قضايا منتهية في هذا التصنيف</p>'; return; }
+        if(!filteredCases.length) { 
+            container.innerHTML = '<p style="text-align:center; padding:20px;">📂 لا توجد قضايا منتهية في هذا التصنيف</p>'; 
+            return; 
+        }
         container.innerHTML = filteredCases.map(c => {
             let clientName = clients.find(cl => cl.id == c.clientId)?.name || 'غير محدد';
-            return `<div class="session-card"><h4>✅ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span></div><p><strong>موضوع القضية:</strong> ${c.subject || 'غير محدد'}</p><p><strong>الحكم:</strong> ${c.judgment}</p><p><strong>تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString()}</p></div>`;
+            let opponent2Html = c.opponent2Name ? `<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${c.opponent2Name} (${c.opponent2Role || '-'})</span>` : '';
+            return `<div class="session-card">
+                        <h4>✅ ${c.number} (${c.year}) - ${c.court}</h4>
+                        <div class="info-row">
+                            <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span>
+                            <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span>
+                            ${opponent2Html}
+                            <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit}</span>
+                        </div>
+                        <p><strong>موضوع القضية:</strong> ${c.subject || 'غير محدد'}</p>
+                        <p><strong>الحكم:</strong> ${c.judgment}</p>
+                        <p><strong>تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString('ar-EG')}</p>
+                        ${canDelete() ? `<button onclick="deleteClosedCase('${c.id}')" class="delete-btn" style="margin-top:10px;">🗑️ حذف القضية</button>` : ''}
+                    </div>`;
         }).join('');
-        document.querySelectorAll('.archive-cat-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+        
+        document.querySelectorAll('.archive-cat-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if(btn.getAttribute('data-circuit') === circuit) {
+                btn.classList.add('active');
+            }
+        });
     };
 
     window.performSearch = function() {
@@ -1758,34 +1798,60 @@
         if(!tbody) return;
         let allEmployees = [...employees, ...fixedAdmins];
         let visibleEmployees = allEmployees.filter(emp => isVisibleToCurrentUser(emp));
+        
         tbody.innerHTML = visibleEmployees.map(emp => {
             let canModify = canModifyEmployee(emp);
             let canDel = canDeleteEmployee(emp);
             let actions = '';
-            if(canModify) actions += `<button class="btn-warning btn-sm change-pwd-btn" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
-            if(canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
-            if(!canModify && !canDel) actions = 'لا يمكن التعديل';
-            return `<td><td style="text-align:right">${emp.username}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
+            
+            if(canModify) {
+                actions += `<button class="btn-warning btn-sm change-pwd-btn" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
+            }
+            if(canDel) {
+                actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
+            }
+            if(!canModify && !canDel) {
+                actions = 'لا يمكن التعديل';
+            }
+            
+            // إظهار كلمة المرور للمدير فقط (حسام)
+            let passwordDisplay = (currentUser && currentUser.superAdmin === true) ? `<span style="font-size:11px; color:#666;"> (${emp.password})</span>` : '';
+            
+            return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
         }).join('');
     }
     
     window.changePassword = function(empId) {
         let newPassword = prompt('أدخل كلمة المرور الجديدة:');
         if(newPassword && newPassword.length > 0) {
-            if(empId === "admin_hesham") { showNotification('لا يمكن تغيير كلمة سر المدير الأساسي'); return; }
+            if(empId === "admin_hesham") {
+                showNotification('لا يمكن تغيير كلمة سر المدير الأساسي');
+                return;
+            }
+            
             let emp = [...employees, ...fixedAdmins].find(e => e.id == empId);
             if(emp) {
                 if(currentUser.id === "admin_george" && emp.isFixed && emp.id !== currentUser.id) {
                     showNotification('غير مسموح لك بتغيير كلمة سر هذا المستخدم');
                     return;
                 }
+                
                 if(emp.isFixed) {
                     emp.password = newPassword;
-                    showNotification(`تم تغيير كلمة السر لـ ${emp.username}`);
-                    if(emp.id === currentUser?.id) setTimeout(() => { logout(); showNotification('تم تغيير كلمة السر، يرجى تسجيل الدخول مجدداً'); }, 1500);
+                    showNotification(`تم تغيير كلمة السر لـ ${emp.username} إلى: ${newPassword}`);
+                    if(emp.id === currentUser?.id) {
+                        setTimeout(() => { 
+                            logout(); 
+                            showNotification('تم تغيير كلمة السر، يرجى تسجيل الدخول مجدداً'); 
+                        }, 1500);
+                    }
                 } else {
                     let idx = employees.findIndex(e => e.id == empId);
-                    if(idx !== -1) { employees[idx].password = newPassword; saveEmployees(); showNotification(`تم تغيير كلمة السر لـ ${employees[idx].username}`); }
+                    if(idx !== -1) { 
+                        employees[idx].password = newPassword; 
+                        saveEmployees(); 
+                        showNotification(`تم تغيير كلمة السر لـ ${employees[idx].username} إلى: ${newPassword}`); 
+                    }
                 }
                 renderEmployeesTable();
             }
@@ -1843,25 +1909,66 @@
         if(document.getElementById('newCasePanel')) document.getElementById('newCasePanel').classList.add('active-panel');
         
         if(isAdminUser && !document.getElementById('employeesPanel')) {
-            let employeesPanelHtml = `<div id="employeesPanel" class="panel"><h3>👨‍💼 إدارة الموظفين</h3><form id="employeeForm"><div class="form-group"><label>اسم المستخدم</label><input type="text" id="empUsername" required></div><div class="form-group"><label>كلمة المرور</label><input type="password" id="empPassword" required></div><div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="مدير">مدير</option><option value="محامي">محامي</option></select></div><button type="submit">➕ إضافة موظف</button></form><div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div></div>`;
+            let employeesPanelHtml = `
+                <div id="employeesPanel" class="panel">
+                    <h3>👨‍💼 إدارة الموظفين</h3>
+                    <form id="employeeForm">
+                        <div class="form-group"><label>اسم المستخدم <span style="color:red">*</span></label><input type="text" id="empUsername" required placeholder="مثال: ahmed123" autocomplete="off"></div>
+                        <div class="form-group"><label>كلمة المرور <span style="color:red">*</span></label><input type="text" id="empPassword" required placeholder="كلمة المرور" autocomplete="off"></div>
+                        <div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div>
+                        <button type="submit">➕ إضافة موظف</button>
+                    </form>
+                    <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+                </div>
+            `;
             document.querySelector('.container').insertAdjacentHTML('beforeend', employeesPanelHtml);
             renderEmployeesTable();
+            
             document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
                 e.preventDefault();
-                if(!canModifyEmployee({})){ showNotification('غير مسموح لك بإضافة موظفين'); return; }
-                employees.push({ id: Date.now().toString(), username: document.getElementById('empUsername').value, password: document.getElementById('empPassword').value, role: document.getElementById('empRole').value });
+                if(!currentUser || (currentUser.role !== 'مدير' && !currentUser.superAdmin)) {
+                    showNotification('غير مسموح لك بإضافة موظفين');
+                    return;
+                }
+                
+                let empUsername = document.getElementById('empUsername').value.trim();
+                let empPassword = document.getElementById('empPassword').value;
+                let empRole = document.getElementById('empRole').value;
+                
+                if(!empUsername || !empPassword) {
+                    showNotification('يرجى إدخال اسم المستخدم وكلمة المرور');
+                    return;
+                }
+                
+                // التأكد من عدم وجود اسم مستخدم مكرر
+                let allExisting = [...employees, ...fixedAdmins];
+                let existingEmp = allExisting.find(e => e.username === empUsername);
+                if(existingEmp) {
+                    showNotification('اسم المستخدم موجود بالفعل');
+                    return;
+                }
+                
+                let newEmployee = { 
+                    id: Date.now().toString(), 
+                    username: empUsername, 
+                    password: empPassword, 
+                    role: empRole 
+                };
+                
+                employees.push(newEmployee);
                 saveEmployees();
-                e.target.reset();
-                showNotification('تم إضافة الموظف');
                 renderEmployeesTable();
+                
+                showNotification(`✅ تم إضافة الموظف ${empUsername} بنجاح\n📝 كلمة المرور: ${empPassword}`);
+                e.target.reset();
             });
+            
             if (currentUser && currentUser.superAdmin === true) addMaintenanceControls();
         }
         if (isAdminUser && currentUser && currentUser.superAdmin === true && document.getElementById('employeesPanel') && !document.getElementById('maintenanceControlSection')) addMaintenanceControls();
     }
     
     function checkLoginStatus() {
-        // التأكد من تسجيل الخروج عند إغلاق المتصفح
         sessionStorage.setItem('sessionActive', 'true');
         window.addEventListener('beforeunload', function() {
             sessionStorage.removeItem('sessionActive');
@@ -1927,6 +2034,7 @@
             checkMaintenance();
         } else {
             document.getElementById('loginError').style.display = 'block';
+            showNotification('اسم المستخدم أو كلمة المرور غير صحيحة');
         }
     };
     
@@ -2000,7 +2108,6 @@
     
     setInterval(() => { renderPastSessions(); updateStats(); renderTomorrowSessions(); updateWelcomeMessage(); updateReports(); checkOverdueWorks(); renderAdvancedAgenda(); checkEnforcementReminders(); checkExpertReminders(); }, 60000);
     
-    // تسجيل Service Worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/law-office-app/sw.js')
             .then(reg => console.log('✅ Service Worker registered:', reg))
