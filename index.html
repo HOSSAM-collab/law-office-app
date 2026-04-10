@@ -547,14 +547,14 @@
         { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }
     ];
 
-    // دالة جلب اسم الموكل
+    // ========== دالة جلب اسم الموكل (السبب الرئيسي للمشكلة) ==========
     function getClientName(clientId) {
         if (!clientId) return 'غير محدد';
         let client = clients.find(cl => cl.id == clientId);
         return client ? client.name : 'غير محدد';
     }
 
-    // صلاحيات المستخدمين
+    // ========== صلاحيات المستخدمين ==========
     function isVisibleToCurrentUser(employee) {
         if (!currentUser) return false;
         if (currentUser.superAdmin === true) return true;
@@ -922,7 +922,6 @@
         container.innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div></div>`).join('');
     }
 
-    // Advanced Agenda
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
     function renderAdvancedAgenda() {
@@ -967,41 +966,14 @@
         daysHtml += '</div>';
         document.getElementById('monthDaysContainer').innerHTML = daysHtml;
     }
-    
-    // دالة عرض الجلسات في اليوم (الأجندة) - معدلة
     window.showDaySessions = function(year, month, day) {
         let date = new Date(year, month, day);
-        let sessions = activeCases.filter(c => {
-            let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
-            return sessionDate && sessionDate.toDateString() === date.toDateString();
-        }).map(s => ({
-            ...s, 
-            clientName: getClientName(s.clientId), 
-            sessionDate: s.nextSessionDate ? new Date(s.nextSessionDate) : new Date(s.firstSessionDate)
-        }));
-        
-        if(sessions.length === 0) {
-            document.getElementById('modalBody').innerHTML = '<p>لا توجد جلسات في هذا اليوم</p>';
-        } else {
-            document.getElementById('modalBody').innerHTML = sessions.map(s => `
-                <div class="session-card" style="margin-bottom:15px;">
-                    <h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4>
-                    <div class="info-row">
-                        <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span>
-                        <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span>
-                        ${s.opponent2Name ? `<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${s.opponent2Name} (${s.opponent2Role || '-'})</span>` : ''}
-                        <span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${s.sessionDate.toLocaleTimeString('ar-EG')}</span>
-                    </div>
-                    <p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p>
-                    <p><strong>القرار:</strong> ${s.decision || 'لا يوجد'}</p>
-                    <button onclick="viewCaseDetails('${s.id}')" class="btn-sm btn-primary">عرض التفاصيل</button>
-                </div>
-            `).join('');
-        }
+        let sessions = activeCases.filter(c => { let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null); return sessionDate && sessionDate.toDateString() === date.toDateString(); }).map(s => ({...s, clientName: getClientName(s.clientId), sessionDate: s.nextSessionDate?new Date(s.nextSessionDate):new Date(s.firstSessionDate)}));
+        let modalBody = sessions.length ? sessions.map(s=>`<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-calendar"></i> الجلسة القادمة: ${s.sessionDate.toLocaleString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>القرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewCaseDetails('${s.id}')" class="btn-sm btn-info">عرض التفاصيل</button></div>`).join('') : '<p>لا توجد جلسات في هذا اليوم</p>';
         document.getElementById('modalTitle').innerHTML = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}`;
+        document.getElementById('modalBody').innerHTML = modalBody;
         document.getElementById('detailsModal').style.display = 'flex';
     };
-    
     window.viewCaseDetails = function(caseId) {
         let c = activeCases.find(c=>c.id==caseId);
         if(c){
@@ -1058,41 +1030,19 @@
         }).join('');
     }
 
-    // دالة updateAndConvert معدلة
     window.updateAndConvert = (caseId, sessionType) => {
         let decision = document.getElementById(`decision_${caseId}_${sessionType}`).value;
         let newDate = document.getElementById(`newDate_${caseId}_${sessionType}`).value;
-        
-        if(!decision) { 
-            showNotification('يرجى إدخال قرار الجلسة'); 
-            return; 
-        }
-        
-        let idx = activeCases.findIndex(c => c.id == caseId);
-        if(idx !== -1){
-            if(sessionType === 'first') { 
-                activeCases[idx].firstSessionDecision = decision; 
-                activeCases[idx].firstSessionProcessed = true; 
-            } else { 
-                activeCases[idx].nextSessionDecision = decision; 
-                activeCases[idx].nextSessionProcessed = true; 
-            }
-            
-            if(newDate) { 
-                activeCases[idx].nextSessionDate = newDate; 
-                activeCases[idx].nextSessionDecision = ''; 
-                activeCases[idx].nextSessionProcessed = false; 
-                showNotification('تم حفظ القرار وتحويل القضية لجلسة جديدة'); 
-            } else { 
-                showNotification('تم حفظ القرار'); 
-            }
+        if(!decision) { showNotification('يرجى إدخال قرار الجلسة'); return; }
+        let idx = activeCases.findIndex(c=>c.id==caseId);
+        if(idx!==-1){
+            if(sessionType==='first') { activeCases[idx].firstSessionDecision = decision; activeCases[idx].firstSessionProcessed = true; }
+            else { activeCases[idx].nextSessionDecision = decision; activeCases[idx].nextSessionProcessed = true; }
+            if(newDate) { activeCases[idx].nextSessionDate = newDate; activeCases[idx].nextSessionDecision = ''; activeCases[idx].nextSessionProcessed = false; showNotification('تم حفظ القرار وتحويل القضية لجلسة جديدة'); }
+            else showNotification('تم حفظ القرار');
             saveActiveCases();
-            renderActiveCases();
-            renderTomorrowSessions();
-            renderAdvancedAgenda();
         }
     };
-    
     window.closeCaseFromPast = (caseId, sessionType) => {
         let judgment = prompt('أدخل منطوق الحكم النهائي للقضية:');
         if(judgment){
@@ -1107,7 +1057,6 @@
             }
         }
     };
-    
     window.sendToAdminWork = function(caseId, sessionType) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
@@ -1117,14 +1066,12 @@
         document.getElementById('modalBody').innerHTML = modalBody;
         document.getElementById('detailsModal').style.display = 'flex';
     };
-    
     window.saveAdminWorkFromPast = function(caseId) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
         let work = { id: Date.now().toString(), caseId: caseId, caseNumber: caseData.number, caseYear: caseData.year, type: document.getElementById('workType').value, dueDate: document.getElementById('workDueDate').value, notes: document.getElementById('workNotes').value, status: 'pending', createdAt: new Date().toISOString() };
         adminWorks.push(work); saveAdminWorks(); showNotification('تم حفظ العمل الإداري بنجاح'); closeModal(); renderAdminWorks();
     };
-    
     window.sendToJudgmentRecord = function(caseId, sessionType) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
@@ -1134,14 +1081,12 @@
         document.getElementById('modalBody').innerHTML = modalBody;
         document.getElementById('detailsModal').style.display = 'flex';
     };
-    
     window.saveJudgmentRecordFromPast = function(caseId) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
         let record = { id: Date.now().toString(), caseId: caseId, caseNumber: caseData.number, caseYear: caseData.year, type: document.getElementById('judgmentType').value, newSessionDate: document.getElementById('newSessionDate').value, notes: document.getElementById('judgmentNotes').value, status: 'pending', createdAt: new Date().toISOString() };
         judgmentRecords.push(record); saveJudgmentRecords(); showNotification('تم حفظ سجل الحكم بنجاح'); closeModal(); renderJudgmentRecords();
     };
-    
     window.sendToExpertFromPast = function(caseId) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
@@ -1150,7 +1095,6 @@
         document.getElementById('modalBody').innerHTML = modalBody;
         document.getElementById('detailsModal').style.display = 'flex';
     };
-    
     window.saveExpertFromPast = function(caseId) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
@@ -1172,7 +1116,6 @@
             return `<div class="session-card"><h4>⚖️ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span>${c.opponent2Name?`<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${c.opponent2Name} (${c.opponent2Role||'-'})</span>`:''}<span class="info-badge"><i class="fas fa-calendar"></i> الجلسة القادمة: ${nextSession}</span><span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit||'غير محددة'}</span></div><p><strong>موضوع القضية:</strong> ${c.subject||'غير محدد'}</p><p><strong>القرار:</strong> ${c.decision||'لا يوجد'}</p><div class="admin-actions"><button onclick="editCase('${c.id}')" class="btn-warning btn-sm">✏️ تعديل القضية</button><button onclick="showCloseCaseOptions('${c.id}')" class="btn-danger btn-sm">🏁 إنهاء القضية</button>${canDelete()?`<button onclick="deleteActiveCase('${c.id}')" class="delete-btn">🗑️ حذف</button>`:''}</div></div>`;
         }).join('');
     }
-    
     function renderClosedCases() {
         let container = document.getElementById('closedCasesList');
         if(!container) return;
@@ -1184,7 +1127,6 @@
             return `<div class="session-card"><h4>✅ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span>${c.opponent2Name?`<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${c.opponent2Name} (${c.opponent2Role||'-'})</span>`:''}<span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit||'غير محددة'}</span></div><p><strong>موضوع القضية:</strong> ${c.subject||'غير محدد'}</p><p><strong>الحكم:</strong> ${c.judgment}</p><p><strong>تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString()}</p>${canDelete()?`<button onclick="deleteClosedCase('${c.id}')" class="delete-btn">🗑️ حذف</button>`:''}</div>`;
         }).join('');
     }
-    
     window.showCloseCaseOptions = function(caseId) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
@@ -1193,7 +1135,6 @@
         document.getElementById('modalBody').innerHTML = modalBody;
         document.getElementById('detailsModal').style.display = 'flex';
     };
-    
     window.closeCaseWithWork = function(caseId, type) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
@@ -1207,21 +1148,18 @@
             document.getElementById('modalBody').innerHTML = judgmentHtml;
         }
     };
-    
     window.saveAdminWork = function(caseId) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
         let work = { id: Date.now().toString(), caseId: caseId, caseNumber: caseData.number, caseYear: caseData.year, type: document.getElementById('workType').value, dueDate: document.getElementById('workDueDate').value, notes: document.getElementById('workNotes').value, status: 'pending', createdAt: new Date().toISOString() };
         adminWorks.push(work); saveAdminWorks(); showNotification('تم حفظ العمل الإداري بنجاح'); closeModal(); renderAdminWorks(); checkOverdueWorks();
     };
-    
     window.saveJudgmentRecord = function(caseId) {
         let caseData = activeCases.find(c=>c.id==caseId);
         if(!caseData) return;
         let record = { id: Date.now().toString(), caseId: caseId, caseNumber: caseData.number, caseYear: caseData.year, type: document.getElementById('judgmentType').value, newSessionDate: document.getElementById('newSessionDate').value, notes: document.getElementById('judgmentNotes').value, status: 'pending', createdAt: new Date().toISOString() };
         judgmentRecords.push(record); saveJudgmentRecords(); showNotification('تم حفظ سجل الحكم بنجاح'); closeModal(); renderJudgmentRecords();
     };
-    
     window.closeCaseDirectly = function(caseId) {
         let judgment = prompt('أدخل منطوق الحكم النهائي للقضية:');
         if(judgment){
@@ -1237,7 +1175,6 @@
             }
         }
     };
-    
     window.editCase = function(id) {
         let c = activeCases.find(c=>c.id==id);
         if(!c) return;
@@ -1249,7 +1186,6 @@
         if(newCourt) c.court = newCourt;
         saveActiveCases(); showNotification('تم تعديل القضية');
     };
-    
     window.deleteActiveCase = function(id) { if(confirm('هل أنت متأكد؟')){ activeCases = activeCases.filter(c=>c.id!=id); saveActiveCases(); showNotification('تم الحذف'); } };
     window.deleteClosedCase = function(id) { if(confirm('هل أنت متأكد من حذف القضية المنتهية؟')){ closedCases = closedCases.filter(c=>c.id!=id); saveClosedCases(); showNotification('تم الحذف'); renderArchive(); } };
 
@@ -1359,7 +1295,7 @@
         if(idx!==-1){ judgmentRecords[idx].type = document.getElementById('editJudgmentType').value; judgmentRecords[idx].newSessionDate = document.getElementById('editNewSessionDate').value; judgmentRecords[idx].notes = document.getElementById('editJudgmentNotes').value; saveJudgmentRecords(); showNotification('تم تحديث سجل الحكم'); closeModal(); renderJudgmentRecords(); }
     };
 
-    // Enforcements (اختصاراً - نفس الكود السابق)
+    // Enforcements
     function renderEnforcements() {
         let container = document.getElementById('enforcementsList');
         if(!container) return;
@@ -1568,7 +1504,9 @@
     function renderEmployeesTable() {
         let tbody = document.querySelector('#employeesTable tbody');
         if(!tbody) return;
+        
         let allEmployees = [...fixedAdmins, ...employees];
+        
         let visible = allEmployees.filter(emp => {
             if (currentUser && currentUser.superAdmin === true) return true;
             if (emp.id === "admin_george" && currentUser && currentUser.id === "admin_hesham") return true;
@@ -1577,6 +1515,7 @@
             if (!emp.isFixed) return true;
             return false;
         });
+        
         tbody.innerHTML = visible.map(emp => {
             let canModify = canModifyEmployee(emp);
             let canDel = canDeleteEmployee(emp);
@@ -1585,4 +1524,26 @@
             if(canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
             if(!canModify && !canDel) actions = 'لا يمكن التعديل';
             let passwordDisplay = (currentUser && currentUser.superAdmin === true) ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
-            return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}
+            return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
+        }).join('');
+    }
+
+    window.changePassword = function(empId) {
+        let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
+        if(!newPassword || newPassword.length===0){ showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); return; }
+        let emp = [...fixedAdmins, ...employees].find(e=>e.id==empId);
+        if(!emp){ showNotification('❌ المستخدم غير موجود'); return; }
+        if(currentUser.id==="admin_george" && emp.isFixed && emp.id!==currentUser.id){ showNotification('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم'); return; }
+        if(emp.id==="admin_hesham" && currentUser.id!=="admin_hesham"){ showNotification('❌ لا يمكن تغيير كلمة سر المدير الأساسي إلا بواسطة حسام نفسه'); return; }
+        emp.password = newPassword;
+        if(emp.isFixed){
+            const ref = database.ref('fixedAdmins');
+            ref.once('value', snap => {
+                let data = snap.val();
+                if(data && data[emp.id]){ data[emp.id].password = newPassword; ref.set(data).then(()=>{ showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`); let idx = fixedAdmins.findIndex(e=>e.id==empId); if(idx!==-1) fixedAdmins[idx].password = newPassword; renderEmployeesTable(); }).catch(err=>showNotification('❌ خطأ في حفظ كلمة السر الجديدة')); }
+            });
+        } else {
+            const ref = database.ref('employees');
+            ref.once('value', snap => {
+                let data = snap.val();
+                if(data && data[emp.id]){ data[emp.id].password = newPassword; ref.set(data).then(()=>{ showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`); let idx = employees.findIndex(e=>e.id==empId); if(idx!==-1) employees[idx].password = newPassword; renderEmployeesTable(); }).catch(err=>showNotification('❌ خطأ في حفظ كلمة السر الجديدة')); }
