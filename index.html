@@ -450,7 +450,7 @@
             <div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div>
             <button type="submit">➕ إضافة موكل</button>
         </form>
-        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></tr></div>
     </div>
 
     <!-- Admin Works -->
@@ -547,7 +547,6 @@
         { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }
     ];
 
-    // ========== دالة جلب اسم الموكل (السبب الرئيسي للمشكلة) ==========
     function getClientName(clientId) {
         if (!clientId) return 'غير محدد';
         let client = clients.find(cl => cl.id == clientId);
@@ -557,28 +556,56 @@
     // ========== صلاحيات المستخدمين ==========
     function isVisibleToCurrentUser(employee) {
         if (!currentUser) return false;
+        
+        // حسام (سوبر أدمن) يشوف كل حاجة
         if (currentUser.superAdmin === true) return true;
+        
+        // لو الموظف هو حسام (hidden) -> لا يظهر لأي حد غير نفسه
+        if (employee.id === "admin_hesham") return false;
+        
+        // جورج يظهر لحسام بس
+        if (employee.id === "admin_george" && currentUser.id !== "admin_hesham") return false;
+        
+        // الموظف العادي يظهر للكل
+        if (!employee.isFixed) return true;
+        
         return false;
     }
 
     function canModifyEmployee(employee) {
         if (!currentUser) return false;
+        
+        // منع تعديل حسام نفسه
         if (employee.id === "admin_hesham") return false;
+        
+        // حسام (سوبر أدمن) يقدر يعدل على كل حاجة (بما فيهم جورج)
         if (currentUser.superAdmin === true) return true;
+        
+        // جورج يقدر يعدل الموظفين العاديين ونفسه
         if (currentUser.id === "admin_george") {
             if (!employee.isFixed) return true;
             if (employee.id === currentUser.id) return true;
             return false;
         }
+        
         return false;
     }
 
     function canDeleteEmployee(employee) {
         if (!currentUser) return false;
+        
+        // منع حذف حسام خالص
         if (employee.id === "admin_hesham") return false;
+        
+        // منع حذف جورج
         if (employee.id === "admin_george") return false;
+        
+        // حسام يقدر يمسح الموظفين العاديين
         if (currentUser.superAdmin === true) return true;
+        
+        // جورج يقدر يمسح الموظفين العاديين
         if (currentUser.id === "admin_george" && !employee.isFixed) return true;
+        
         return false;
     }
 
@@ -1504,18 +1531,8 @@
     function renderEmployeesTable() {
         let tbody = document.querySelector('#employeesTable tbody');
         if(!tbody) return;
-        
         let allEmployees = [...fixedAdmins, ...employees];
-        
-        let visible = allEmployees.filter(emp => {
-            if (currentUser && currentUser.superAdmin === true) return true;
-            if (emp.id === "admin_george" && currentUser && currentUser.id === "admin_hesham") return true;
-            if (emp.id === "admin_george") return false;
-            if (emp.id === "admin_hesham") return false;
-            if (!emp.isFixed) return true;
-            return false;
-        });
-        
+        let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp));
         tbody.innerHTML = visible.map(emp => {
             let canModify = canModifyEmployee(emp);
             let canDel = canDeleteEmployee(emp);
@@ -1524,7 +1541,7 @@
             if(canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
             if(!canModify && !canDel) actions = 'لا يمكن التعديل';
             let passwordDisplay = (currentUser && currentUser.superAdmin === true) ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
-            return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
+            return `<td><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}</td></tr>`;
         }).join('');
     }
 
@@ -1547,3 +1564,222 @@
             ref.once('value', snap => {
                 let data = snap.val();
                 if(data && data[emp.id]){ data[emp.id].password = newPassword; ref.set(data).then(()=>{ showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`); let idx = employees.findIndex(e=>e.id==empId); if(idx!==-1) employees[idx].password = newPassword; renderEmployeesTable(); }).catch(err=>showNotification('❌ خطأ في حفظ كلمة السر الجديدة')); }
+            });
+        }
+        if(emp.id === currentUser?.id){
+            showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة');
+            setTimeout(()=>{ logout(); }, 2000);
+        }
+    };
+    window.deleteEmployee = function(id) {
+        if(id==="admin_hesham"){ showNotification('لا يمكن حذف المدير الأساسي'); return; }
+        if(id==="admin_george"){ showNotification('لا يمكن حذف هذا المستخدم'); return; }
+        if(confirm('هل أنت متأكد من حذف هذا الموظف؟')){ employees = employees.filter(e=>e.id!=id); saveEmployees(); showNotification('تم حذف الموظف'); renderEmployeesTable(); }
+    };
+
+    function renderTabsBasedOnRole() {
+        let tabsContainer = document.getElementById('tabsContainer');
+        let isAdminUser = isAdmin();
+        let tabsHtml = `
+            <button class="tab-btn" data-tab="newCase">➕ قضية جديدة</button>
+            <button class="tab-btn" data-tab="activeCases">📂 قضايا المكتب</button>
+            <button class="tab-btn" data-tab="tomorrowSessions">📅 جلسات الغد</button>
+            <button class="tab-btn" data-tab="advancedAgenda">📅 الأجندة</button>
+            <button class="tab-btn" data-tab="pastSessions">📜 ماتم في الجلسات</button>
+            <button class="tab-btn" data-tab="closedCases">📦 قضايا منتهية</button>
+            <button class="tab-btn" data-tab="clients">👥 الموكلين</button>
+            <button class="tab-btn" data-tab="adminWorks">📋 أعمال إدارية</button>
+            <button class="tab-btn" data-tab="judgmentRecords">⚖️ سجل الأحكام</button>
+            <button class="tab-btn" data-tab="enforcements">📄 توكيلات تنفيذ</button>
+            <button class="tab-btn" data-tab="experts">👨‍⚖️ الخبراء</button>
+            <button class="tab-btn" data-tab="archive">📚 الأرشيف</button>
+            <button class="tab-btn" data-tab="reports">📊 التقارير</button>
+        `;
+        if(isAdminUser) tabsHtml += `<button class="tab-btn" data-tab="employees">👨‍💼 الموظفين</button>`;
+        tabsContainer.innerHTML = tabsHtml;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active-panel'));
+                let panelId = btn.getAttribute('data-tab') + 'Panel';
+                if(document.getElementById(panelId)) document.getElementById(panelId).classList.add('active-panel');
+            });
+        });
+        if(document.querySelector('.tab-btn')) document.querySelector('.tab-btn').classList.add('active');
+        if(document.getElementById('newCasePanel')) document.getElementById('newCasePanel').classList.add('active-panel');
+
+        if(isAdminUser && !document.getElementById('employeesPanel')){
+            let empPanelHtml = `<div id="employeesPanel" class="panel"><h3>👨‍💼 إدارة الموظفين</h3><form id="employeeForm"><div class="form-group"><label>اسم المستخدم <span style="color:red">*</span></label><input type="text" id="empUsername" required placeholder="مثال: ahmed123" autocomplete="off"></div><div class="form-group"><label>كلمة المرور <span style="color:red">*</span></label><input type="text" id="empPassword" required placeholder="كلمة المرور" autocomplete="off"></div><div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div><button type="submit">➕ إضافة موظف</button></form><div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th></td></thead><tbody></tbody></table></div></div>`;
+            document.querySelector('.container').insertAdjacentHTML('beforeend', empPanelHtml);
+            renderEmployeesTable();
+            document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if(!currentUser || (currentUser.role!=='مدير' && !currentUser.superAdmin)){ showNotification('غير مسموح لك بإضافة موظفين'); return; }
+                let uname = document.getElementById('empUsername').value.trim();
+                let pwd = document.getElementById('empPassword').value;
+                let role = document.getElementById('empRole').value;
+                if(!uname || !pwd){ showNotification('يرجى إدخال اسم المستخدم وكلمة المرور'); return; }
+                let allExisting = [...employees, ...fixedAdmins];
+                if(allExisting.find(e=>e.username===uname)){ showNotification('اسم المستخدم موجود بالفعل'); return; }
+                let newEmp = { id: Date.now().toString(), username: uname, password: pwd, role: role };
+                employees.push(newEmp); saveEmployees(); renderEmployeesTable();
+                showNotification(`✅ تم إضافة الموظف ${uname} بنجاح\n📝 كلمة المرور: ${pwd}`);
+                e.target.reset();
+            });
+            if(currentUser && currentUser.superAdmin===true) addMaintenanceControls();
+        }
+        if(isAdminUser && currentUser && currentUser.superAdmin===true && document.getElementById('employeesPanel') && !document.getElementById('maintenanceControlSection')) addMaintenanceControls();
+    }
+
+    function checkLoginStatus() {
+        let savedUser = localStorage.getItem('law_currentUser');
+        if(savedUser) {
+            currentUser = JSON.parse(savedUser);
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('currentUserName').innerText = currentUser.username;
+            document.getElementById('currentUserRole').innerHTML = currentUser.role;
+            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
+            loadDataFromFirebase();
+            setTimeout(() => { updateWelcomeMessage(); if(currentUser && currentUser.superAdmin===true && document.getElementById('employeesPanel')) addMaintenanceControls(); }, 500);
+            setSessionTimeout();
+            bindSessionEvents();
+        } else {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'none';
+            localStorage.removeItem('law_currentUser');
+        }
+        checkMaintenance();
+    }
+
+    window.attemptLogin = async function() {
+        let username = document.getElementById('loginUsername').value.trim();
+        let password = document.getElementById('loginPassword').value;
+
+        let fixedAdminsSnapshot = await database.ref('fixedAdmins').once('value');
+        let fixedAdminsData = fixedAdminsSnapshot.val();
+        let fixedAdminsList = fixedAdminsData ? Object.values(fixedAdminsData) : [];
+
+        if (fixedAdminsList.length === 0) {
+            fixedAdminsList = [
+                { id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, hidden: true, superAdmin: true },
+                { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }
+            ];
+            const adminsObj = {};
+            fixedAdminsList.forEach(admin => { adminsObj[admin.id] = admin; });
+            await database.ref('fixedAdmins').set(adminsObj);
+        }
+
+        let fixedAdmin = fixedAdminsList.find(e => e.username === username && e.password === password);
+        if (fixedAdmin) {
+            currentUser = fixedAdmin;
+            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('currentUserName').innerText = currentUser.username;
+            document.getElementById('currentUserRole').innerHTML = currentUser.role;
+            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
+            loadDataFromFirebase();
+            setTimeout(() => { updateWelcomeMessage(); if(currentUser && currentUser.superAdmin===true && document.getElementById('employeesPanel')) addMaintenanceControls(); }, 500);
+            showNotification(`مرحباً بك ${username}`);
+            checkMaintenance();
+            setSessionTimeout();
+            bindSessionEvents();
+            return;
+        }
+
+        let employeesSnapshot = await database.ref('employees').once('value');
+        let employeesData = employeesSnapshot.val();
+        let employeesList = employeesData ? Object.values(employeesData) : [];
+
+        let user = employeesList.find(e => e.username === username && e.password === password);
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('currentUserName').innerText = currentUser.username;
+            document.getElementById('currentUserRole').innerHTML = currentUser.role;
+            document.getElementById('currentUserRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
+            loadDataFromFirebase();
+            setTimeout(() => updateWelcomeMessage(), 500);
+            showNotification(`مرحباً بك ${username}`);
+            checkMaintenance();
+            setSessionTimeout();
+            bindSessionEvents();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+            showNotification('❌ اسم المستخدم أو كلمة المرور غير صحيحة');
+        }
+    };
+
+    window.logout = function() {
+        currentUser = null;
+        localStorage.removeItem('law_currentUser');
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('mainContent').style.display = 'none';
+        showNotification('تم تسجيل الخروج');
+        checkMaintenance();
+        if (sessionTimeout) clearTimeout(sessionTimeout);
+    };
+
+    document.getElementById('newCaseForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        let clientId = document.getElementById('caseClient').value;
+        let firstDate = document.getElementById('firstSessionDate').value;
+        let clientRole = document.getElementById('clientRole').value;
+        let caseNumber = document.getElementById('caseNumber').value;
+        let caseYear = document.getElementById('caseYear').value;
+        let caseCourt = document.getElementById('caseCourt').value;
+        let caseSubject = document.getElementById('caseSubject').value;
+        let caseCircuit = document.getElementById('caseCircuit').value;
+        if(caseCircuit === 'أخرى'){ caseCircuit = document.getElementById('otherCircuit').value; if(!caseCircuit){ alert('يرجى إدخال اسم الدائرة'); return; } }
+        let opponentName = document.getElementById('opponentName').value;
+        let opponentRole = document.getElementById('opponentRole').value;
+        let opponent2Name = document.getElementById('opponent2Name').value;
+        let opponent2Role = document.getElementById('opponent2Role').value;
+        if(!clientId || !firstDate || !clientRole || !caseNumber || !caseYear || !caseCourt || !caseCircuit || !opponentName || !opponentRole || !caseSubject){ alert('يرجى ملء جميع الحقول المطلوبة'); return; }
+        activeCases.push({
+            id: Date.now().toString(),
+            number: caseNumber, year: caseYear, court: caseCourt, circuit: caseCircuit, subject: caseSubject,
+            clientId: clientId, clientRole: clientRole,
+            opponentName: opponentName, opponentRole: opponentRole,
+            opponent2Name: opponent2Name, opponent2Role: opponent2Role,
+            decision: document.getElementById('caseDecision').value,
+            firstSessionDate: firstDate,
+            firstSessionDecision: '', firstSessionProcessed: false,
+            nextSessionDate: '', nextSessionDecision: '', nextSessionProcessed: false,
+            createdAt: new Date().toISOString()
+        });
+        saveActiveCases();
+        e.target.reset();
+        document.getElementById('caseCourt').value = '';
+        document.getElementById('otherCircuit').style.display = 'none';
+        document.getElementById('otherCircuit').value = '';
+        document.getElementById('caseCircuit').value = '';
+        showNotification('تم إضافة القضية');
+        resetSessionTimer();
+    });
+
+    document.getElementById('clientForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clients.push({ id: Date.now().toString(), name: document.getElementById('clientName').value, nationalId: document.getElementById('clientNationalId').value, phone: document.getElementById('clientPhone').value });
+        saveClients();
+        e.target.reset();
+        showNotification('تم إضافة الموكل');
+        resetSessionTimer();
+    });
+
+    setInterval(() => { renderPastSessions(); updateStats(); renderTomorrowSessions(); updateWelcomeMessage(); updateReports(); checkOverdueWorks(); renderAdvancedAgenda(); checkEnforcementReminders(); checkExpertReminders(); }, 60000);
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/law-office-app/sw.js')
+            .then(reg => console.log('✅ Service Worker registered:', reg))
+            .catch(err => console.log('❌ Service Worker error:', err));
+    }
+
+    checkLoginStatus();
+</script>
+</body>
+</html>
