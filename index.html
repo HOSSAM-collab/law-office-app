@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
-        /* جميع الـ Styles السابقة مع إضافة الـ Maintenance Screen */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; }
         .dashboard-container { display: flex; min-height: 100vh; }
@@ -532,6 +531,47 @@
         return false;
     }
     
+    // ========== ربط الأزرار الجانبية ==========
+    function bindSidebarButtons() {
+        document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+            item.removeEventListener('click', () => {});
+            item.addEventListener('click', () => {
+                let tabId = item.getAttribute('data-tab');
+                if (tabId) {
+                    switchToTab(tabId);
+                }
+            });
+        });
+    }
+    
+    // ========== التبديل بين التبويبات ==========
+    window.switchToTab = function(tabId) {
+        // إزالة الـ active من كل الأزرار
+        document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        // إضافة active للزر المختار
+        let selectedItem = document.querySelector(`.sidebar-menu-item[data-tab="${tabId}"]`);
+        if (selectedItem) selectedItem.classList.add('active');
+        
+        // إخفاء كل البانلات
+        document.querySelectorAll('.panel').forEach(panel => {
+            panel.classList.remove('active-panel');
+        });
+        
+        // إظهار البانل المطلوب
+        let panelId = tabId + 'Panel';
+        let targetPanel = document.getElementById(panelId);
+        if (targetPanel) {
+            targetPanel.classList.add('active-panel');
+        } else if (tabId === 'dashboard') {
+            document.getElementById('dashboardPanel').classList.add('active-panel');
+        }
+        
+        // حفظ آخر تبويب
+        localStorage.setItem('lastOpenTab', tabId);
+    };
+    
     // ========== وضع الصيانة ==========
     function toggleMaintenance() {
         let status = document.getElementById('maintenanceStatusSelect').value;
@@ -569,7 +609,6 @@
                 document.getElementById('maintenanceScreen').style.display = 'none';
             }
             
-            // تحديث واجهة الصيانة لحسام
             if (currentUser?.superAdmin === true) {
                 let select = document.getElementById('maintenanceStatusSelect');
                 if (select) select.value = isActive ? 'on' : 'off';
@@ -1164,16 +1203,6 @@
         renderActiveCases();
     }
     
-    // ========== التبديل بين التبويبات ==========
-    window.switchToTab = function(tabId) {
-        document.querySelectorAll('.sidebar-menu-item').forEach(item => item.classList.remove('active'));
-        document.querySelector(`.sidebar-menu-item[data-tab="${tabId}"]`)?.classList.add('active');
-        document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active-panel'));
-        let panelId = tabId + 'Panel';
-        document.getElementById(panelId)?.classList.add('active-panel');
-        localStorage.setItem('lastOpenTab', tabId);
-    };
-    
     function renderTabsBasedOnRole() {
         let isSuperAdmin = currentUser?.superAdmin === true;
         let maintenanceItem = document.getElementById('maintenanceMenuItem');
@@ -1181,6 +1210,8 @@
         
         let employeesItem = document.getElementById('employeesTabItem');
         if (employeesItem) employeesItem.style.display = (currentUser?.role === 'مدير' || isSuperAdmin) ? 'flex' : 'none';
+        
+        bindSidebarButtons();
         
         let lastTab = localStorage.getItem('lastOpenTab');
         if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
