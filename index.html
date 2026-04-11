@@ -120,9 +120,17 @@
         .year-btn, .month-btn { background: #e9ecef; padding: 8px 20px; border-radius: 25px; cursor: pointer; }
         .year-btn.active, .month-btn.active { background: #1a4a5f; color: white; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 15px; }
-        .day-card { background: #f8f9fa; padding: 12px 8px; border-radius: 12px; text-align: center; cursor: pointer; }
-        .day-card.has-session { background: #d4edda; }
-        .day-card.today { background: #ffc107; font-weight: bold; }
+        .day-card {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .day-card:hover { background: #1a4a5f; color: white; transform: scale(1.05); }
+        .day-card.has-session { background: #d4edda; border-right: 3px solid #28a745; }
+        .day-card.today { background: #ffc107; color: #333; font-weight: bold; }
         .week-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 10px; text-align: center; }
         .week-day-name { background: #1a4a5f; color: white; padding: 8px; border-radius: 8px; }
         .modal {
@@ -225,6 +233,7 @@
         .status-pending { background: #ffc107; color: #333; }
         .status-completed { background: #28a745; color: white; }
         .status-overdue { background: #dc3545; color: white; }
+        .admin-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar-header h2, .sidebar-header p, .sidebar-menu-item span { display: none; }
@@ -512,9 +521,26 @@
         setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
     
+    // ========== دالة الحصول على اسم الموكل مع fallback ==========
     function getClientName(clientId) {
+        if (!clientId) return 'غير محدد';
+        
         let client = clients.find(c => c.id == clientId);
-        return client ? client.name : 'غير محدد';
+        if (client && client.name) return client.name;
+        
+        try {
+            let cachedClients = JSON.parse(localStorage.getItem('law_clients_backup') || '[]');
+            let cached = cachedClients.find(c => c.id == clientId);
+            if (cached && cached.name) return cached.name;
+        } catch(e) {}
+        
+        return 'غير محدد';
+    }
+    
+    function backupClientsToLocal() {
+        if (clients.length > 0) {
+            localStorage.setItem('law_clients_backup', JSON.stringify(clients));
+        }
     }
     
     // ========== دوال الصلاحيات ==========
@@ -528,6 +554,26 @@
         if (employee.id === "admin_george" && currentUser.id !== "admin_hesham") return false;
         if (currentUser.superAdmin === true) return true;
         if (currentUser.id === "admin_george" && !employee.isFixed) return true;
+        return false;
+    }
+    
+    // ========== دالة تعديل الموظف (تغيير كلمة السر) ==========
+    function canModifyEmployee(employee) {
+        if (!currentUser) return false;
+        
+        // منع تعديل حسام نفسه نهائياً
+        if (employee.id === "admin_hesham") return false;
+        
+        // حسام (سوبر أدمن) يقدر يعدل على كل حاجة
+        if (currentUser.superAdmin === true) return true;
+        
+        // جورج يقدر يعدل على الموظفين العاديين ونفسه
+        if (currentUser.id === "admin_george") {
+            if (!employee.isFixed) return true;  // الموظفين العاديين
+            if (employee.id === currentUser.id) return true;  // نفسه
+            return false;
+        }
+        
         return false;
     }
     
@@ -546,20 +592,16 @@
     
     // ========== التبديل بين التبويبات ==========
     window.switchToTab = function(tabId) {
-        // إزالة الـ active من كل الأزرار
         document.querySelectorAll('.sidebar-menu-item').forEach(item => {
             item.classList.remove('active');
         });
-        // إضافة active للزر المختار
         let selectedItem = document.querySelector(`.sidebar-menu-item[data-tab="${tabId}"]`);
         if (selectedItem) selectedItem.classList.add('active');
         
-        // إخفاء كل البانلات
         document.querySelectorAll('.panel').forEach(panel => {
             panel.classList.remove('active-panel');
         });
         
-        // إظهار البانل المطلوب
         let panelId = tabId + 'Panel';
         let targetPanel = document.getElementById(panelId);
         if (targetPanel) {
@@ -568,7 +610,6 @@
             document.getElementById('dashboardPanel').classList.add('active-panel');
         }
         
-        // حفظ آخر تبويب
         localStorage.setItem('lastOpenTab', tabId);
     };
     
@@ -940,26 +981,85 @@
         }
     }
     
+    // ========== عرض الموظفين (مع صلاحية تغيير كلمة السر لجورج) ==========
     function renderEmployees() {
         let container = document.getElementById('employeesList');
         if (!container) return;
+        
         let allEmployees = [...fixedAdmins, ...employees];
         let visible = allEmployees.filter(emp => {
-            if (currentUser?.superAdmin !== true && emp.id === "admin_hesham") return false;
-            if (currentUser?.superAdmin !== true && emp.id === "admin_george" && currentUser?.id !== "admin_hesham") return false;
+            // حسام مش ظاهر لأي حد
+            if (emp.id === "admin_hesham") return false;
+            // جورج يظهر لحسام بس أو لنفسه
+            if (emp.id === "admin_george" && currentUser?.superAdmin !== true && currentUser?.id !== "admin_george") return false;
             return true;
         });
-        container.innerHTML = visible.map(emp => `
-            <div class="session-card">
-                <h4>👤 ${emp.username}</h4>
-                <div class="info-row">
-                    <span class="info-badge">الصلاحية: ${emp.role}</span>
-                    ${currentUser?.superAdmin === true ? `<span class="info-badge">كلمة المرور: ${emp.password}</span>` : ''}
+        
+        container.innerHTML = visible.map(emp => {
+            let canModify = canModifyEmployee(emp);
+            let canDel = canDeleteEmployee(emp);
+            
+            return `
+                <div class="session-card">
+                    <h4>👤 ${emp.username}</h4>
+                    <div class="info-row">
+                        <span class="info-badge">الصلاحية: ${emp.role}</span>
+                        ${currentUser?.superAdmin === true ? `<span class="info-badge">🔐 ${emp.password}</span>` : ''}
+                    </div>
+                    <div class="admin-actions">
+                        ${canModify ? `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button>` : ''}
+                        ${canDel ? `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>` : ''}
+                    </div>
                 </div>
-                ${canDeleteEmployee(emp) ? `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>` : ''}
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
+    
+    // ========== تغيير كلمة السر ==========
+    window.changePassword = function(empId) {
+        let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
+        if (!newPassword || newPassword.length === 0) {
+            showToast('❌ لم يتم إدخال كلمة مرور جديدة');
+            return;
+        }
+        
+        let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
+        if (!emp) {
+            showToast('❌ المستخدم غير موجود');
+            return;
+        }
+        
+        // منع تغيير كلمة سر حسام من أي حد تاني
+        if (emp.id === "admin_hesham" && currentUser.id !== "admin_hesham") {
+            showToast('❌ لا يمكن تغيير كلمة سر المدير الأساسي');
+            return;
+        }
+        
+        // جورج يقدر يغير كلمة سر نفسه والموظفين العاديين فقط
+        if (currentUser.id === "admin_george" && emp.isFixed && emp.id !== currentUser.id) {
+            showToast('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم');
+            return;
+        }
+        
+        emp.password = newPassword;
+        
+        if (emp.isFixed) {
+            database.ref('fixedAdmins/' + emp.id).update({ password: newPassword })
+                .then(() => showToast(`✅ تم تغيير كلمة السر لـ ${emp.username}`))
+                .catch(() => showToast('❌ خطأ في حفظ كلمة السر'));
+        } else {
+            database.ref('employees/' + emp.id).update({ password: newPassword })
+                .then(() => showToast(`✅ تم تغيير كلمة السر لـ ${emp.username}`))
+                .catch(() => showToast('❌ خطأ في حفظ كلمة السر'));
+        }
+        
+        renderEmployees();
+        
+        if (emp.id === currentUser?.id) {
+            showToast('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج');
+            setTimeout(() => { logout(); }, 2000);
+        }
+    };
     
     window.deleteEmployee = function(id) {
         if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
@@ -1057,6 +1157,7 @@
         `).join('');
     }
     
+    // ========== الأجندة مع عدد الجلسات ==========
     function renderAdvancedAgenda() {
         let container = document.getElementById('advancedAgendaList');
         if (!container) return;
@@ -1069,16 +1170,26 @@
         let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         
         let html = '<div class="week-days-grid">' + weekDays.map(d => `<div class="week-day-name">${d}</div>`).join('') + '</div><div class="days-grid">';
+        
         for (let i = 0; i < firstDayIndex; i++) html += '<div></div>';
+        
         for (let d = 1; d <= daysInMonth; d++) {
             let date = new Date(currentYear, currentMonth, d);
-            let hasSession = activeCases.some(c => {
+            
+            // حساب عدد الجلسات في هذا اليوم
+            let sessionCount = activeCases.filter(c => {
                 let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
                 return sessionDate && sessionDate.toDateString() === date.toDateString();
-            });
+            }).length;
+            
+            let hasSession = sessionCount > 0;
             let isToday = date.toDateString() === today.toDateString();
-            html += `<div class="day-card ${hasSession ? 'has-session' : ''} ${isToday ? 'today' : ''}" onclick="showDaySessions(${currentYear}, ${currentMonth}, ${d})">${d}</div>`;
+            
+            html += `<div class="day-card ${hasSession ? 'has-session' : ''} ${isToday ? 'today' : ''}" onclick="showDaySessions(${currentYear}, ${currentMonth}, ${d})">
+                ${d}${sessionCount > 0 ? `<br><small style="font-size:10px;">${sessionCount} جلسة</small>` : ''}
+            </div>`;
         }
+        
         html += '</div>';
         container.innerHTML = html;
     }
@@ -1171,6 +1282,28 @@
         document.getElementById('weeklyReport').innerHTML = weeklyHtml;
     }
     
+    function updateDashboardCounts() {
+        let tomorrowCount = getTomorrowSessions().length;
+        let expertsCount = experts.filter(e => new Date(e.expertDate) >= new Date()).length;
+        let enforcementsCount = enforcements.filter(e => new Date(e.date) >= new Date()).length;
+        
+        document.getElementById('dashboardTomorrowCount').innerText = tomorrowCount;
+        document.getElementById('dashboardExpertsCount').innerText = expertsCount;
+        document.getElementById('dashboardEnforcementsCount').innerText = enforcementsCount;
+        document.getElementById('dashboardActiveCount').innerText = activeCases.length;
+        
+        let welcomeMsg = document.getElementById('welcomeMessage');
+        if (tomorrowCount > 0) {
+            welcomeMsg.innerHTML = `📋 لديك غداً ${tomorrowCount} جلسة${tomorrowCount > 1 ? 'ات' : ''}`;
+        } else if (expertsCount > 0) {
+            welcomeMsg.innerHTML = `👨‍⚖️ لديك ${expertsCount} موعد خبير قادم`;
+        } else if (enforcementsCount > 0) {
+            welcomeMsg.innerHTML = `📄 لديك ${enforcementsCount} توكيل تنفيذ قادم`;
+        } else {
+            welcomeMsg.innerHTML = `لا توجد مواعيد قادمة`;
+        }
+    }
+    
     window.exportToExcel = function() {
         let data = activeCases.map(c => ({
             'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الموكل': getClientName(c.clientId),
@@ -1223,13 +1356,28 @@
     
     // ========== Firebase Listeners ==========
     function loadData() {
-        database.ref('activeCases').on('value', (s) => { activeCases = s.val() ? Object.values(s.val()) : []; renderActiveCases(); renderTomorrowSessions(); renderPastSessions(); renderAdvancedAgenda(); updateReports(); });
+        database.ref('activeCases').on('value', (s) => { activeCases = s.val() ? Object.values(s.val()) : []; renderActiveCases(); renderTomorrowSessions(); renderPastSessions(); renderAdvancedAgenda(); updateReports(); updateDashboardCounts(); });
         database.ref('closedCases').on('value', (s) => { closedCases = s.val() ? Object.values(s.val()) : []; renderArchive(); updateReports(); });
-        database.ref('clients').on('value', (s) => { clients = s.val() ? Object.values(s.val()) : []; populateSelects(); renderClients(); updateReports(); });
+        database.ref('clients').on('value', (s) => { 
+            clients = s.val() ? Object.values(s.val()) : []; 
+            backupClientsToLocal();
+            renderActiveCases();
+            renderTomorrowSessions();
+            renderPastSessions();
+            renderClosedCases();
+            renderArchive();
+            renderExperts();
+            renderEnforcements();
+            renderJudgmentRecords();
+            updateReports();
+            updateDashboardCounts();
+            populateSelects();
+            renderClients();
+        });
         database.ref('employees').on('value', (s) => { employees = s.val() ? Object.values(s.val()) : []; renderEmployees(); renderTabsBasedOnRole(); });
         database.ref('customCourts').on('value', (s) => { customCourts = s.val() ? Object.values(s.val()) : []; updateCourtOptions(); });
-        database.ref('experts').on('value', (s) => { experts = s.val() ? Object.values(s.val()) : []; renderExperts(); });
-        database.ref('enforcements').on('value', (s) => { enforcements = s.val() ? Object.values(s.val()) : []; renderEnforcements(); });
+        database.ref('experts').on('value', (s) => { experts = s.val() ? Object.values(s.val()) : []; renderExperts(); updateDashboardCounts(); });
+        database.ref('enforcements').on('value', (s) => { enforcements = s.val() ? Object.values(s.val()) : []; renderEnforcements(); updateDashboardCounts(); });
         database.ref('adminWorks').on('value', (s) => { adminWorks = s.val() ? Object.values(s.val()) : []; renderAdminWorks(); });
         database.ref('judgmentRecords').on('value', (s) => { judgmentRecords = s.val() ? Object.values(s.val()) : []; renderJudgmentRecords(); });
         
@@ -1249,64 +1397,6 @@
             renderTabsBasedOnRole();
         });
     }
-    
-    // ========== تسجيل الدخول ==========
-    window.attemptLogin = async function() {
-        let username = document.getElementById('loginUsername').value.trim();
-        let password = document.getElementById('loginPassword').value;
-        
-        let fixedSnapshot = await database.ref('fixedAdmins').once('value');
-        let fixedList = fixedSnapshot.val() ? Object.values(fixedSnapshot.val()) : [];
-        let fixedAdmin = fixedList.find(e => e.username === username && e.password === password);
-        if (fixedAdmin) {
-            currentUser = fixedAdmin;
-            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'block';
-            document.getElementById('currentUserName').innerText = currentUser.username;
-            document.getElementById('welcomeUserName').innerText = currentUser.username;
-            document.getElementById('currentUserRole').innerHTML = currentUser.role;
-            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
-            loadData();
-            loadMaintenanceStatus();
-            renderTabsBasedOnRole();
-            showToast(`مرحباً بك ${username}`);
-            return;
-        }
-        
-        let empSnapshot = await database.ref('employees').once('value');
-        let empList = empSnapshot.val() ? Object.values(empSnapshot.val()) : [];
-        let user = empList.find(e => e.username === username && e.password === password);
-        if (user) {
-            currentUser = user;
-            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'block';
-            document.getElementById('currentUserName').innerText = currentUser.username;
-            document.getElementById('welcomeUserName').innerText = currentUser.username;
-            document.getElementById('currentUserRole').innerHTML = currentUser.role;
-            document.getElementById('currentUserRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
-            loadData();
-            loadMaintenanceStatus();
-            renderTabsBasedOnRole();
-            showToast(`مرحباً بك ${username}`);
-        } else {
-            document.getElementById('loginError').style.display = 'block';
-        }
-    };
-    
-    window.logout = function() {
-        currentUser = null;
-        localStorage.removeItem('law_currentUser');
-        localStorage.removeItem('lastOpenTab');
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('dashboardContent').style.display = 'none';
-        showToast('تم تسجيل الخروج');
-    };
-    
-    window.closeModal = function() {
-        document.getElementById('detailsModal').style.display = 'none';
-    };
     
     // ========== إضافة قضية جديدة ==========
     document.getElementById('newCaseForm')?.addEventListener('submit', (e) => {
@@ -1373,6 +1463,64 @@
         e.target.reset();
         showToast('تم إضافة الموظف');
     });
+    
+    // ========== تسجيل الدخول ==========
+    window.attemptLogin = async function() {
+        let username = document.getElementById('loginUsername').value.trim();
+        let password = document.getElementById('loginPassword').value;
+        
+        let fixedSnapshot = await database.ref('fixedAdmins').once('value');
+        let fixedList = fixedSnapshot.val() ? Object.values(fixedSnapshot.val()) : [];
+        let fixedAdmin = fixedList.find(e => e.username === username && e.password === password);
+        if (fixedAdmin) {
+            currentUser = fixedAdmin;
+            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('currentUserName').innerText = currentUser.username;
+            document.getElementById('welcomeUserName').innerText = currentUser.username;
+            document.getElementById('currentUserRole').innerHTML = currentUser.role;
+            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
+            loadData();
+            loadMaintenanceStatus();
+            renderTabsBasedOnRole();
+            showToast(`مرحباً بك ${username}`);
+            return;
+        }
+        
+        let empSnapshot = await database.ref('employees').once('value');
+        let empList = empSnapshot.val() ? Object.values(empSnapshot.val()) : [];
+        let user = empList.find(e => e.username === username && e.password === password);
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('currentUserName').innerText = currentUser.username;
+            document.getElementById('welcomeUserName').innerText = currentUser.username;
+            document.getElementById('currentUserRole').innerHTML = currentUser.role;
+            document.getElementById('currentUserRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
+            loadData();
+            loadMaintenanceStatus();
+            renderTabsBasedOnRole();
+            showToast(`مرحباً بك ${username}`);
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    };
+    
+    window.logout = function() {
+        currentUser = null;
+        localStorage.removeItem('law_currentUser');
+        localStorage.removeItem('lastOpenTab');
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('dashboardContent').style.display = 'none';
+        showToast('تم تسجيل الخروج');
+    };
+    
+    window.closeModal = function() {
+        document.getElementById('detailsModal').style.display = 'none';
+    };
     
     // التحقق من تسجيل الدخول
     let savedUser = localStorage.getItem('law_currentUser');
