@@ -580,16 +580,28 @@
         }
     }
 
-    // ========== صلاحيات المستخدمين ==========
+    // ========== صلاحيات المستخدمين (المعدلة) ==========
     function isVisibleToCurrentUser(employee) {
         if (!currentUser) return false;
+        
+        // حسام (سوبر أدمن) يشوف كل حاجة
         if (currentUser.superAdmin === true) return true;
+        
+        // حسام نفسه لا يظهر لأي حد
         if (employee.id === "admin_hesham") return false;
+        
+        // جورج: يظهر فقط لحسام ولنفسه
         if (employee.id === "admin_george") {
+            // لو المستخدم الحالي هو حسام -> يشوف جورج
+            if (currentUser.superAdmin === true) return true;
+            // لو المستخدم الحالي هو جورج نفسه -> يشوف نفسه
             if (currentUser.id === "admin_george") return true;
             return false;
         }
+        
+        // الموظف العادي يظهر للكل (عدا حسام)
         if (!employee.isFixed) return true;
+        
         return false;
     }
 
@@ -666,7 +678,7 @@
             renderEnforcements();
             renderJudgmentRecords();
         });
-        database.ref('employees').on('value', (s) => { employees = s.val() ? Object.values(s.val()) : []; renderTabsBasedOnRole(); });
+        database.ref('employees').on('value', (s) => { employees = s.val() ? Object.values(s.val()) : []; renderTabsBasedOnRole(); renderEmployeesTable(); });
         database.ref('customCourts').on('value', (s) => { customCourts = s.val() ? Object.values(s.val()) : []; updateCourtOptions(); });
         database.ref('adminWorks').on('value', (s) => { adminWorks = s.val() ? Object.values(s.val()) : []; renderAdminWorks(); checkOverdueWorks(); });
         database.ref('judgmentRecords').on('value', (s) => { judgmentRecords = s.val() ? Object.values(s.val()) : []; renderJudgmentRecords(); });
@@ -689,6 +701,7 @@
                 fixedAdmins.push(...defaultAdmins);
             }
             renderTabsBasedOnRole();
+            renderEmployeesTable();
         });
         loadMaintenanceStatus();
     }
@@ -741,7 +754,6 @@
     // ========== تصدير Excel ==========
     window.exportToExcel = function() {
         try {
-            // تجهيز بيانات قضايا المكتب
             let activeData = activeCases.map(c => ({
                 'رقم القضية': c.number,
                 'السنة': c.year,
@@ -757,7 +769,6 @@
                 'القرار': c.decision || ''
             }));
 
-            // تجهيز بيانات القضايا المنتهية
             let closedData = closedCases.map(c => ({
                 'رقم القضية': c.number,
                 'السنة': c.year,
@@ -772,7 +783,6 @@
                 'تاريخ الإنهاء': c.closedAt ? new Date(c.closedAt).toLocaleDateString('ar-EG') : ''
             }));
 
-            // تجهيز بيانات الموكلين
             let clientsData = clients.map(cl => ({
                 'اسم الموكل': cl.name,
                 'الرقم القومي': cl.nationalId || '',
@@ -780,7 +790,6 @@
                 'عدد القضايا': activeCases.filter(c => c.clientId == cl.id).length + closedCases.filter(c => c.clientId == cl.id).length
             }));
 
-            // تجهيز بيانات الجلسات القادمة
             let tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             tomorrow.setHours(0, 0, 0, 0);
@@ -799,7 +808,6 @@
                 'وقت الجلسة': (s.nextSessionDate ? new Date(s.nextSessionDate) : new Date(s.firstSessionDate)).toLocaleString('ar-EG')
             }));
 
-            // إنشاء ورقة عمل لكل جدول
             let wb = XLSX.utils.book_new();
             
             if (activeData.length) {
@@ -822,7 +830,6 @@
                 XLSX.utils.book_append_sheet(wb, wsSessions, 'جلسات الغد');
             }
 
-            // تصدير الملف
             XLSX.writeFile(wb, `مكتب_الخواجا_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
             showNotification('تم تصدير البيانات بنجاح');
         } catch(e) {
@@ -1942,7 +1949,6 @@
         let container = document.getElementById('archiveCategories');
         if(!container) return;
         
-        // إظهار زر إضافة دائرة جديدة فقط لحسام
         let addBtn = document.getElementById('addCircuitBtn');
         if (addBtn) {
             addBtn.style.display = (currentUser && currentUser.superAdmin === true) ? 'inline-block' : 'none';
@@ -1993,7 +1999,7 @@
         if(select) select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
     }
 
-    // ========== الموظفين (جدول الإدارة) ==========
+    // ========== الموظفين (جدول الإدارة) - المعدل ==========
     function renderEmployeesTable() {
         let tbody = document.querySelector('#employeesTable tbody');
         if(!tbody) return;
