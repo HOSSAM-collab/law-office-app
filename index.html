@@ -745,7 +745,16 @@
                 </div>
                 
                 <div id="closedCasesPanel" class="panel"><h3>📦 القضايا المنتهية</h3><div id="closedCasesList"></div></div>
-                <div id="clientsPanel" class="panel"><h3>👥 الموكلين</h3><form id="clientForm"><div class="form-group"><label>الاسم</label><input type="text" id="clientName" required></div><div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div><button type="submit">➕ إضافة موكل</button></form><div id="clientsList"></div></div>
+                
+                <div id="clientsPanel" class="panel">
+                    <h3>👥 الموكلين</h3>
+                    <form id="clientForm">
+                        <div class="form-group"><label>الاسم</label><input type="text" id="clientName" required></div>
+                        <div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div>
+                        <button type="submit">➕ إضافة موكل</button>
+                    </form>
+                    <div id="clientsList"></div>
+                </div>
                 
                 <div id="adminWorksPanel" class="panel">
                     <h3>📋 الأعمال الإدارية</h3>
@@ -759,7 +768,18 @@
                 <div id="expertsPanel" class="panel"><h3>👨‍⚖️ الخبراء</h3><button onclick="showAddExpert()" class="btn-success">➕ إضافة خبير</button><div id="expertsList"></div></div>
                 <div id="archivePanel" class="panel"><h3>📚 الأرشيف</h3><div id="archiveCategories"></div><div id="archiveCasesList"></div></div>
                 <div id="reportsPanel" class="panel"><h3>📊 التقارير <button onclick="exportToExcel()" class="btn-sm btn-success">📊 تصدير Excel</button></h3><div class="report-simple"><h4>📈 إحصائيات</h4><p>قضايا المكتب: <strong id="reportTotalActive">0</strong></p><p>قضايا منتهية: <strong id="reportTotalClosed">0</strong></p><p>الموكلين: <strong id="reportTotalClients">0</strong></p></div><div id="weeklyReport"></div></div>
-                <div id="employeesPanel" class="panel"><h3>👨‍💼 الموظفين - النشاط</h3><form id="employeeForm"><div class="form-group"><label>الاسم</label><input type="text" id="empUsername" required></div><div class="form-group"><label>كلمة المرور</label><input type="text" id="empPassword" required></div><div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div><button type="submit">➕ إضافة موظف</button></form><div id="employeesList"></div></div>
+                
+                <div id="employeesPanel" class="panel">
+                    <h3>👨‍💼 الموظفين - النشاط</h3>
+                    <form id="employeeForm">
+                        <div class="form-group"><label>الاسم</label><input type="text" id="empUsername" required></div>
+                        <div class="form-group"><label>كلمة المرور</label><input type="text" id="empPassword" required></div>
+                        <div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div>
+                        <button type="submit">➕ إضافة موظف</button>
+                    </form>
+                    <div id="employeesList"></div>
+                </div>
+                
                 <div id="maintenancePanel" class="panel">
                     <h3>🛠 التحكم في وضع الصيانة</h3>
                     <div class="form-group">
@@ -1152,11 +1172,12 @@
     // ========== ماتم في الجلسات (المعدلة) ==========
     function getPastSessionsCount() {
         let now = new Date();
-        return activeCases.filter(c => {
-            let hasPastFirst = c.firstSessionDate && new Date(c.firstSessionDate) <= now && !c.firstSessionProcessed;
-            let hasPastNext = c.nextSessionDate && new Date(c.nextSessionDate) <= now && !c.nextSessionProcessed;
-            return hasPastFirst || hasPastNext;
-        }).length;
+        let count = 0;
+        activeCases.forEach(c => {
+            if (c.firstSessionDate && new Date(c.firstSessionDate) <= now && !c.firstSessionProcessed) count++;
+            if (c.nextSessionDate && new Date(c.nextSessionDate) <= now && !c.nextSessionProcessed) count++;
+        });
+        return count;
     }
     
     function renderPastSessions() {
@@ -1171,22 +1192,28 @@
         
         activeCases.forEach(c => {
             // جلسة أولى - لو تاريخها أقل من أو يساوي النهارده ومتسجلش قرارها
-            if (c.firstSessionDate && new Date(c.firstSessionDate) <= now && !c.firstSessionProcessed) {
-                pastSessions.push({
-                    ...c,
-                    sessionType: 'first',
-                    sessionDate: new Date(c.firstSessionDate),
-                    decision: c.firstSessionDecision || ''
-                });
+            if (c.firstSessionDate) {
+                let sessionDate = new Date(c.firstSessionDate);
+                if (sessionDate <= now && !c.firstSessionProcessed) {
+                    pastSessions.push({
+                        ...c,
+                        sessionType: 'first',
+                        sessionDate: sessionDate,
+                        decision: c.firstSessionDecision || ''
+                    });
+                }
             }
-            // جلسة تانية (مؤجلة) - لو تاريخها أقل من أو يساوي النهارده ومتسجلش قرارها
-            if (c.nextSessionDate && new Date(c.nextSessionDate) <= now && !c.nextSessionProcessed) {
-                pastSessions.push({
-                    ...c,
-                    sessionType: 'next',
-                    sessionDate: new Date(c.nextSessionDate),
-                    decision: c.nextSessionDecision || ''
-                });
+            // جلسة تانية - لو تاريخها أقل من أو يساوي النهارده ومتسجلش قرارها
+            if (c.nextSessionDate) {
+                let sessionDate = new Date(c.nextSessionDate);
+                if (sessionDate <= now && !c.nextSessionProcessed) {
+                    pastSessions.push({
+                        ...c,
+                        sessionType: 'next',
+                        sessionDate: sessionDate,
+                        decision: c.nextSessionDecision || ''
+                    });
+                }
             }
         });
         
@@ -1227,7 +1254,7 @@
         }).join('');
     }
     
-    // دالة جلسة جديدة (تتشال من ماتم وتحط جلسة جديدة في قضايا المكتب)
+    // دالة جلسة جديدة
     window.openNewSession = function(caseId, sessionType) {
         let caseIndex = activeCases.findIndex(c => c.id == caseId);
         if (caseIndex === -1) return;
@@ -1238,7 +1265,6 @@
         let decision = prompt('أدخل قرار الجلسة الحالية:', '');
         if (!decision) return;
         
-        // تسجيل قرار الجلسة الحالية
         if (sessionType === 'first') {
             activeCases[caseIndex].firstSessionDecision = decision;
             activeCases[caseIndex].firstSessionProcessed = true;
@@ -1247,14 +1273,12 @@
             activeCases[caseIndex].nextSessionProcessed = true;
         }
         
-        // إضافة جلسة جديدة
         activeCases[caseIndex].nextSessionDate = newDate;
         activeCases[caseIndex].nextSessionProcessed = false;
         
         database.ref('activeCases').set(activeCases);
         showToast(`✅ تم تسجيل القرار: "${decision}" وتم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
         
-        // تحديث الشاشة (القضية هتتشال من ماتم لأن firstSessionProcessed بقت true)
         renderActiveCases();
         renderPastSessions();
         renderAdvancedAgenda();
@@ -1262,7 +1286,7 @@
         updateDashboardCounts();
     };
     
-    // دالة إنهاء القضية (تتشال من ماتم وتتحول لقضايا منتهية)
+    // دالة إنهاء القضية
     window.closeCaseFromPast = function(caseId, sessionType) {
         let caseIndex = activeCases.findIndex(c => c.id == caseId);
         if (caseIndex === -1) return;
@@ -1272,7 +1296,6 @@
         
         let decision = prompt('أدخل قرار الجلسة النهائي:', '');
         
-        // تسجيل القرار
         if (sessionType === 'first') {
             activeCases[caseIndex].firstSessionDecision = decision;
             activeCases[caseIndex].firstSessionProcessed = true;
@@ -1281,7 +1304,6 @@
             activeCases[caseIndex].nextSessionProcessed = true;
         }
         
-        // نقل القضية للقضايا المنتهية
         let closedCase = { ...activeCases[caseIndex], judgment, closedAt: new Date().toISOString() };
         closedCases.push(closedCase);
         activeCases.splice(caseIndex, 1);
@@ -1297,7 +1319,7 @@
         updateDashboardCounts();
     };
     
-    // دالة أعمال إدارية (تتشال من ماتم وتتحول لأعمال إدارية)
+    // دالة أعمال إدارية
     window.sendToAdminWork = function(caseId) {
         let caseIndex = activeCases.findIndex(c => c.id == caseId);
         if (caseIndex === -1) return;
@@ -1308,7 +1330,6 @@
         
         if (!workType || !dueDate) return;
         
-        // تسجيل القرار
         let sessionType = activeCases[caseIndex].nextSessionProcessed ? 'next' : 'first';
         if (sessionType === 'first') {
             activeCases[caseIndex].firstSessionDecision = decision;
@@ -1318,7 +1339,6 @@
             activeCases[caseIndex].nextSessionProcessed = true;
         }
         
-        // إضافة العمل الإداري
         let work = {
             id: Date.now().toString(),
             caseId: caseId,
@@ -1342,7 +1362,7 @@
         updateDashboardCounts();
     };
     
-    // دالة سجل أحكام (تتشال من ماتم وتتحول لسجل أحكام)
+    // دالة سجل أحكام
     window.sendToJudgmentRecord = function(caseId) {
         let caseIndex = activeCases.findIndex(c => c.id == caseId);
         if (caseIndex === -1) return;
@@ -1352,7 +1372,6 @@
         
         if (!judgmentType) return;
         
-        // تسجيل القرار
         let sessionType = activeCases[caseIndex].nextSessionProcessed ? 'next' : 'first';
         if (sessionType === 'first') {
             activeCases[caseIndex].firstSessionDecision = decision;
@@ -1362,7 +1381,6 @@
             activeCases[caseIndex].nextSessionProcessed = true;
         }
         
-        // إضافة سجل الحكم
         let record = {
             id: Date.now().toString(),
             caseId: caseId,
@@ -1386,7 +1404,7 @@
         updateDashboardCounts();
     };
     
-    // دالة خبراء (تتشال من ماتم وتتحول لخبراء)
+    // دالة خبراء
     window.sendToExpertFromPast = function(caseId) {
         let caseIndex = activeCases.findIndex(c => c.id == caseId);
         if (caseIndex === -1) return;
@@ -1397,7 +1415,6 @@
         
         if (!expertDate) return;
         
-        // تسجيل القرار
         let sessionType = activeCases[caseIndex].nextSessionProcessed ? 'next' : 'first';
         if (sessionType === 'first') {
             activeCases[caseIndex].firstSessionDecision = decision;
@@ -1407,7 +1424,6 @@
             activeCases[caseIndex].nextSessionProcessed = true;
         }
         
-        // إضافة الخبير
         let expert = {
             id: Date.now().toString(),
             caseId: caseId,
@@ -1885,25 +1901,73 @@
         otherInput.style.display = select.value === 'أخرى' ? 'block' : 'none';
     }
     
+    // ========== دالة البحث عن الموكلين (المعدلة) ==========
     function populateSelects() {
         let select = document.getElementById('caseClient');
         let searchInput = document.getElementById('clientSearch');
+        
         if (!select) return;
+        
         function updateSelect(filterText = '') {
-            let filteredClients = clients.filter(c => c.name.toLowerCase().includes(filterText.toLowerCase()));
+            // بحث بأي جزء من الاسم (مش شرط من البداية)
+            let filteredClients = clients.filter(c => 
+                c.name.toLowerCase().includes(filterText.toLowerCase())
+            );
+            
             if (filteredClients.length === 0 && filterText !== '') {
-                select.innerHTML = '<option value="">لا يوجد موكلين بهذا الاسم</option>';
+                select.innerHTML = '<option value="">❌ لا يوجد موكلين بهذا الاسم</option>';
             } else {
-                select.innerHTML = '<option value="">اختر موكل</option>' + filteredClients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                select.innerHTML = '<option value="">-- اختر موكل --</option>' + 
+                    filteredClients.map(c => `<option value="${c.id}">${c.name} (📱 ${c.phone})</option>`).join('');
             }
         }
+        
+        // عرض كل الموكلين في البداية
         updateSelect();
+        
         if (searchInput) {
-            searchInput.addEventListener('input', function() { updateSelect(this.value); });
+            searchInput.addEventListener('input', function() {
+                updateSelect(this.value);
+            });
         }
     }
     
-    // ========== عرض الموظفين مع حالة النشاط ==========
+    // ========== عرض الموكلين ==========
+    function renderClients() {
+        let container = document.getElementById('clientsList');
+        if (!container) return;
+        
+        if (clients.length === 0) {
+            container.innerHTML = '<p>📭 لا توجد موكلين، قم بإضافة موكل أولاً</p>';
+            return;
+        }
+        
+        container.innerHTML = clients.map(cl => {
+            let totalCases = activeCases.filter(c => c.clientId == cl.id).length + closedCases.filter(c => c.clientId == cl.id).length;
+            return `
+                <div class="session-card">
+                    <h4>👤 ${cl.name}</h4>
+                    <div class="info-row">
+                        <span class="info-badge">📱 ${cl.phone}</span>
+                        <span class="info-badge">📋 عدد القضايا: ${totalCases}</span>
+                    </div>
+                    ${canDeleteEverywhere() ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteClient('${cl.id}')">🗑️ حذف</button>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+    
+    window.deleteClient = function(id) {
+        if (confirm('حذف الموكل سيؤثر على القضايا المرتبطة؟')) {
+            clients = clients.filter(c => c.id != id);
+            database.ref('clients').set(clients);
+            showToast('تم حذف الموكل');
+            renderClients();
+            populateSelects();
+        }
+    };
+    
+    // ========== عرض الموظفين ==========
     function renderEmployees() {
         let container = document.getElementById('employeesList');
         if (!container) return;
@@ -1994,34 +2058,6 @@
             database.ref('employees').set(employees);
             showToast('تم حذف الموظف');
             renderEmployees();
-        }
-    };
-    
-    function renderClients() {
-        let container = document.getElementById('clientsList');
-        if (!container) return;
-        if (clients.length === 0) {
-            container.innerHTML = '<p>لا توجد موكلين، قم بإضافة موكل أولاً</p>';
-            return;
-        }
-        container.innerHTML = clients.map(cl => `
-            <div class="session-card" onclick="openClientDetails('${cl.id}')">
-                <h4>👤 ${cl.name}</h4>
-                <div class="info-row">
-                    <span class="info-badge">📱 ${cl.phone}</span>
-                    <span class="info-badge">📋 عدد القضايا: ${activeCases.filter(c => c.clientId == cl.id).length + closedCases.filter(c => c.clientId == cl.id).length}</span>
-                </div>
-                ${canDeleteEverywhere() ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteClient('${cl.id}')">🗑️ حذف</button>` : ''}
-            </div>
-        `).join('');
-    }
-    
-    window.deleteClient = function(id) {
-        if (confirm('حذف الموكل سيؤثر على القضايا المرتبطة؟')) {
-            clients = clients.filter(c => c.id != id);
-            database.ref('clients').set(clients);
-            showToast('تم حذف الموكل');
-            renderClients();
         }
     };
     
