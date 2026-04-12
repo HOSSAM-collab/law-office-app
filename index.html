@@ -91,10 +91,6 @@
         .stat-info p { color: #666; font-size: 14px; }
         .stat-icon { font-size: 40px; color: #1a4a5f; opacity: 0.6; }
         
-        .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; background: white; padding: 10px; border-radius: 60px; overflow-x: auto; }
-        .tab-btn { padding: 12px 24px; border: none; background: transparent; font-size: 16px; font-weight: 600; cursor: pointer; border-radius: 40px; color: #555; transition: all 0.3s; white-space: nowrap; }
-        .tab-btn.active { background: #1a4a5f; color: white; }
-        
         .panel { display: none; background: white; border-radius: 20px; padding: 25px; animation: fadeIn 0.3s ease; }
         .panel.active-panel { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
@@ -404,7 +400,7 @@
                             <div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div>
                             <button type="submit">➕ إضافة موظف</button>
                         </form>
-                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>كلمة المرور</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
                     </div>
                     
                     <div id="maintenancePanel" class="panel">
@@ -455,6 +451,7 @@
     let maintenanceEndTime = null;
     let activeSearchTerm = '', closedSearchTerm = '';
     let sessionTimeout = null;
+    let maintenanceInterval = null;
 
     let archiveCategories = [
         { id: "مدني", name: "⚖️ مدني", circuit: "مدني" },
@@ -496,7 +493,46 @@
     }
 
     function isAdmin() { return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
-    function canDeleteEverywhere() { return currentUser && currentUser.superAdmin === true; }
+    function isSuperAdmin() { return currentUser && currentUser.superAdmin === true; }
+    function isGeorge() { return currentUser && currentUser.id === "admin_george"; }
+    function isHesham() { return currentUser && currentUser.id === "admin_hesham"; }
+    function canDeleteEverywhere() { return isSuperAdmin(); }
+    
+    // صلاحية رؤية الموظفين - حسام لا يظهر لأي حد غير نفسه
+    function isVisibleToCurrentUser(employee) {
+        if (!currentUser) return false;
+        // حسام لا يظهر لأي حد غير نفسه
+        if (employee.id === "admin_hesham") {
+            return isHesham();
+        }
+        // جورج يرى كل الموظفين ما عدا حسام (تم معالجته أعلاه)
+        if (employee.id === "admin_george") {
+            return true;
+        }
+        // باقي الموظفين يظهرون للجميع
+        return true;
+    }
+    
+    // صلاحية تعديل الموظفين
+    function canModifyEmployee(employee) {
+        if (!currentUser) return false;
+        // لا يمكن تعديل حسام أبداً
+        if (employee.id === "admin_hesham") return false;
+        // سوبر أدمن (حسام) يعدل أي حد
+        if (isSuperAdmin()) return true;
+        // جورج يعدل الموظفين العاديين فقط
+        if (isGeorge() && !employee.isFixed) return true;
+        return false;
+    }
+    
+    // صلاحية حذف الموظفين
+    function canDeleteEmployee(employee) {
+        if (!currentUser) return false;
+        // لا يمكن حذف حسام أو جورج
+        if (employee.id === "admin_hesham" || employee.id === "admin_george") return false;
+        // سوبر أدمن فقط يحذف
+        return isSuperAdmin();
+    }
 
     // Session timeout
     function setSessionTimeout() {
@@ -514,8 +550,8 @@
         });
     }
 
-    // Tab switching
-    function switchToTab(tabId) {
+    // Tab switching - مع حفظ آخر تاب مفتوح
+    function switchToTab(tabId, saveToStorage = true) {
         document.querySelectorAll('.sidebar-menu-item').forEach(item => {
             item.classList.remove('active');
             if (item.getAttribute('data-tab') === tabId) item.classList.add('active');
@@ -523,12 +559,15 @@
         document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active-panel'));
         let targetPanel = document.getElementById(tabId + 'Panel');
         if (targetPanel) targetPanel.classList.add('active-panel');
-        localStorage.setItem('lastOpenTab', tabId);
+        if (saveToStorage) localStorage.setItem('lastOpenTab', tabId);
     }
 
     function bindSidebarButtons() {
         document.querySelectorAll('.sidebar-menu-item').forEach(item => {
-            item.onclick = () => { let tabId = item.getAttribute('data-tab'); if (tabId) switchToTab(tabId); };
+            item.onclick = () => { 
+                let tabId = item.getAttribute('data-tab'); 
+                if (tabId) switchToTab(tabId, true); 
+            };
         });
     }
 
@@ -944,7 +983,7 @@
         let container = document.getElementById('archiveCategories');
         if (!container) return;
         let addBtn = document.getElementById('addCircuitBtn');
-        if (addBtn) addBtn.style.display = (currentUser && currentUser.superAdmin === true) ? 'inline-block' : 'none';
+        if (addBtn) addBtn.style.display = (isSuperAdmin()) ? 'inline-block' : 'none';
         container.innerHTML = `<div class="archive-categories">${archiveCategories.map(cat => `<span class="archive-cat-btn" data-circuit="${cat.circuit}" onclick="filterArchive('${cat.circuit}')">${cat.name}</span>`).join('')}</div>`;
         filterArchive('مدني');
     }
@@ -958,7 +997,7 @@
     }
 
     function addArchiveCircuit() {
-        if (!currentUser || !currentUser.superAdmin) { showNotification('غير مسموح لك بهذه العملية'); return; }
+        if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية'); return; }
         let newCircuit = prompt('أدخل اسم الدائرة الجديدة:');
         if (newCircuit && newCircuit.trim()) {
             let circuitName = newCircuit.trim();
@@ -987,14 +1026,22 @@
         if (select) select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     }
 
-    // Employees
+    // Employees - مع إخفاء حسام لأي حد غير نفسه
     function renderEmployeesTable() {
         let tbody = document.querySelector('#employeesTable tbody');
         if (!tbody) return;
         let allEmployees = [...fixedAdmins, ...employees];
-        tbody.innerHTML = allEmployees.map(emp => {
-            let passwordDisplay = (currentUser && currentUser.superAdmin === true) ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
-            return `<tr><td>${emp.username}${passwordDisplay}</td><td>${emp.role}</td><td><button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> ${(!emp.isFixed || canDeleteEverywhere()) && emp.id !== "admin_hesham" ? `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️</button>` : ''}</td></tr>`;
+        let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp));
+        tbody.innerHTML = visible.map(emp => {
+            let canModify = canModifyEmployee(emp);
+            let canDel = canDeleteEmployee(emp);
+            let actions = '';
+            if (canModify) actions += `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
+            if (canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
+            if (!canModify && !canDel) actions = 'لا يمكن التعديل';
+            // عرض كلمة المرور فقط للسوبر أدمن
+            let passwordDisplay = (isSuperAdmin()) ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
+            return `<tr><td>${emp.username}${passwordDisplay}</td><td>${emp.role}</td><td>${emp.password}</td><td>${actions}</td></tr>`;
         }).join('');
     }
 
@@ -1003,19 +1050,38 @@
         if (!newPassword) return;
         let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
         if (!emp) return;
+        
+        // التحقق من الصلاحية
+        if (emp.id === "admin_hesham" && !isHesham()) {
+            showNotification('❌ لا يمكن تغيير كلمة سر المدير الأساسي إلا بواسطة حسام نفسه');
+            return;
+        }
+        if (emp.id === "admin_george" && !isSuperAdmin() && !isGeorge()) {
+            showNotification('❌ غير مسموح لك بتغيير كلمة سر جورج');
+            return;
+        }
+        
         emp.password = newPassword;
-        if (emp.isFixed) database.ref('fixedAdmins/' + empId).update({ password: newPassword });
-        else database.ref('employees/' + empId).update({ password: newPassword });
+        if (emp.isFixed) {
+            database.ref('fixedAdmins/' + empId).update({ password: newPassword });
+        } else {
+            database.ref('employees/' + empId).update({ password: newPassword });
+        }
         showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}`);
-        if (emp.id === currentUser?.id) setTimeout(() => logout(), 2000);
+        if (emp.id === currentUser?.id) {
+            showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة');
+            setTimeout(() => logout(), 2000);
+        }
     }
 
     function deleteEmployee(id) {
         if (id === "admin_hesham") { showNotification('لا يمكن حذف المدير الأساسي'); return; }
+        if (id === "admin_george") { showNotification('لا يمكن حذف هذا المستخدم'); return; }
         if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
             employees = employees.filter(e => e.id != id);
             database.ref('employees').set(employees);
             showNotification('تم حذف الموظف');
+            renderEmployeesTable();
         }
     }
 
@@ -1039,7 +1105,8 @@
         let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
         document.getElementById('monthsContainer').innerHTML = months.map((m, i) => `<span class="month-btn ${i === currentMonth ? 'active' : ''}" onclick="selectMonth(${year},${i})">${m}</span>`).join('');
         document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelector(`.year-btn:contains('${year}')`)?.classList.add('active');
+        let yearBtn = Array.from(document.querySelectorAll('.year-btn')).find(btn => btn.innerText == year);
+        if (yearBtn) yearBtn.classList.add('active');
         showMonthDays(year, currentMonth);
     }
 
@@ -1047,7 +1114,8 @@
         currentYear = year;
         currentMonth = month;
         document.querySelectorAll('.month-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.month-btn')[month]?.classList.add('active');
+        let monthBtns = document.querySelectorAll('.month-btn');
+        if (monthBtns[month]) monthBtns[month].classList.add('active');
         showMonthDays(year, month);
     }
 
@@ -1098,6 +1166,28 @@
         document.getElementById('reportTotalActive').innerText = activeCases.length;
         document.getElementById('reportTotalClosed').innerText = closedCases.length;
         document.getElementById('reportTotalClients').innerText = clients.length;
+        
+        // Weekly report
+        let weekDays = ['السبت', 'الأحد', 'الإثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
+        let today = new Date();
+        let startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 6);
+        startOfWeek.setHours(0, 0, 0, 0);
+        let weeklyHtml = '';
+        for (let i = 0; i < 7; i++) {
+            let day = new Date(startOfWeek);
+            day.setDate(startOfWeek.getDate() + i);
+            day.setHours(0, 0, 0, 0);
+            let dayEnd = new Date(day);
+            dayEnd.setDate(dayEnd.getDate() + 1);
+            let count = activeCases.filter(c => {
+                let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
+                return sessionDate && sessionDate >= day && sessionDate < dayEnd;
+            }).length;
+            weeklyHtml += `<p><strong>${weekDays[i]} ${day.toLocaleDateString('ar-EG')}:</strong> ${count} جلسة${count > 1 ? 'ات' : ''}</p>`;
+        }
+        let weeklyDiv = document.getElementById('weeklyReport');
+        if (weeklyDiv) weeklyDiv.innerHTML = weeklyHtml;
     }
 
     function updateWelcomeMessage() {
@@ -1107,7 +1197,7 @@
 
     function initStatCards() {
         document.querySelectorAll('.stat-card').forEach(card => {
-            card.onclick = () => { let tabName = card.getAttribute('data-tab'); if (tabName) switchToTab(tabName); };
+            card.onclick = () => { let tabName = card.getAttribute('data-tab'); if (tabName) switchToTab(tabName, true); };
         });
     }
 
@@ -1121,17 +1211,17 @@
         } catch (e) { showNotification('حدث خطأ أثناء تصدير البيانات'); }
     }
 
-    // Maintenance
+    // Maintenance - فقط حسام (سوبر أدمن) يتحكم
     function enableMaintenance(durationHours = null) {
-        if (!currentUser || currentUser.superAdmin !== true) { showNotification('غير مسموح لك بهذه العملية'); return; }
+        if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; }
         let endTime = durationHours ? new Date(Date.now() + durationHours * 3600000).toISOString() : null;
-        database.ref('maintenance').set({ isActive: true, endTime });
-        showNotification(`تم تعطيل الموقع للصيانة`);
+        database.ref('maintenance').set({ isActive: true, endTime, startedBy: currentUser.username, startedAt: new Date().toISOString() });
+        showNotification(`تم تعطيل الموقع للصيانة${durationHours ? ` لمدة ${durationHours} ساعة` : ''}`);
     }
 
     function disableMaintenance() {
-        if (!currentUser || currentUser.superAdmin !== true) { showNotification('غير مسموح لك بهذه العملية'); return; }
-        database.ref('maintenance').set({ isActive: false, endTime: null });
+        if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; }
+        database.ref('maintenance').set({ isActive: false, endTime: null, endedBy: currentUser.username, endedAt: new Date().toISOString() });
         showNotification('تم تشغيل الموقع مرة أخرى');
     }
 
@@ -1139,12 +1229,15 @@
         let toggleBtn = document.getElementById('toggleMaintenanceBtn');
         let durationSelect = document.getElementById('maintenanceDuration');
         let statusSpan = document.getElementById('maintenanceStatusSpan');
+        let infoDiv = document.getElementById('maintenanceInfo');
+        
         if (toggleBtn) {
             toggleBtn.onclick = () => {
                 if (isMaintenanceMode) disableMaintenance();
                 else enableMaintenance(parseInt(durationSelect?.value) || null);
             };
         }
+        
         database.ref('maintenance').on('value', (snapshot) => {
             const data = snapshot.val();
             isMaintenanceMode = data?.isActive || false;
@@ -1160,18 +1253,50 @@
                     if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-completed">🟢 الموقع يعمل</span>';
                 }
             }
+            
+            if (infoDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) {
+                let remaining = new Date(maintenanceEndTime) - new Date();
+                let hours = Math.floor(remaining / 3600000);
+                let minutes = Math.floor((remaining % 3600000) / 60000);
+                infoDiv.innerHTML = `<small><i class="fas fa-clock"></i> تنتهي الصيانة بعد: ${hours} ساعة ${minutes} دقيقة</small>`;
+                if (maintenanceInterval) clearInterval(maintenanceInterval);
+                maintenanceInterval = setInterval(() => {
+                    if (isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) <= new Date()) {
+                        disableMaintenance();
+                        if (maintenanceInterval) clearInterval(maintenanceInterval);
+                    }
+                }, 60000);
+            } else if (infoDiv) {
+                infoDiv.innerHTML = '';
+                if (maintenanceInterval) clearInterval(maintenanceInterval);
+            }
             checkMaintenance();
         });
     }
 
     function checkMaintenance() {
-        if (currentUser && currentUser.superAdmin === true) {
+        // سوبر أدمن (حسام) يقدر يدخل حتى لو الصيانة شغالة
+        if (isSuperAdmin()) {
             document.getElementById('maintenanceScreen').style.display = 'none';
             return true;
         }
         if (isMaintenanceMode) {
-            if (maintenanceEndTime && new Date() > new Date(maintenanceEndTime)) { disableMaintenance(); return true; }
+            if (maintenanceEndTime && new Date() > new Date(maintenanceEndTime)) { 
+                disableMaintenance(); 
+                return true; 
+            }
             document.getElementById('maintenanceScreen').style.display = 'flex';
+            // تحديث المؤقت
+            let timerDiv = document.getElementById('maintenanceTimer');
+            if (timerDiv && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) {
+                let remaining = new Date(maintenanceEndTime) - new Date();
+                let hours = Math.floor(remaining / 3600000);
+                let minutes = Math.floor((remaining % 3600000) / 60000);
+                let seconds = Math.floor((remaining % 60000) / 1000);
+                timerDiv.innerHTML = `<p style="color:#dc3545;"><i class="fas fa-clock"></i> متبقي: ${hours} ساعة ${minutes} دقيقة ${seconds} ثانية</p>`;
+            } else if (timerDiv && isMaintenanceMode) {
+                timerDiv.innerHTML = '<p style="color:#dc3545;"><i class="fas fa-clock"></i> الصيانة مستمرة</p>';
+            }
             return false;
         }
         document.getElementById('maintenanceScreen').style.display = 'none';
@@ -1229,7 +1354,18 @@
             document.getElementById('currentUserRole').innerHTML = currentUser.role;
             document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
             loadDataFromFirebase();
-            setTimeout(() => { updateWelcomeMessage(); if (currentUser && currentUser.superAdmin) setupMaintenanceControls(); initStatCards(); renderArchive(); bindSidebarButtons(); }, 500);
+            setTimeout(() => { 
+                updateWelcomeMessage(); 
+                if (isSuperAdmin()) setupMaintenanceControls();
+                initStatCards(); 
+                renderArchive(); 
+                bindSidebarButtons();
+                // استعادة آخر تاب مفتوح بعد الريfresh
+                let lastTab = localStorage.getItem('lastOpenTab');
+                if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
+                    switchToTab(lastTab, false);
+                }
+            }, 500);
             setSessionTimeout();
             bindSessionEvents();
             checkMaintenance();
@@ -1250,7 +1386,17 @@
             document.getElementById('currentUserRole').innerHTML = currentUser.role;
             document.getElementById('currentUserRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
             loadDataFromFirebase();
-            setTimeout(() => { updateWelcomeMessage(); initStatCards(); renderArchive(); bindSidebarButtons(); }, 500);
+            setTimeout(() => { 
+                updateWelcomeMessage(); 
+                initStatCards(); 
+                renderArchive(); 
+                bindSidebarButtons();
+                // استعادة آخر تاب مفتوح بعد الريfresh
+                let lastTab = localStorage.getItem('lastOpenTab');
+                if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
+                    switchToTab(lastTab, false);
+                }
+            }, 500);
             setSessionTimeout();
             bindSessionEvents();
             checkMaintenance();
@@ -1263,11 +1409,12 @@
     function logout() {
         currentUser = null;
         localStorage.removeItem('law_currentUser');
-        localStorage.removeItem('lastOpenTab');
+        // لا نحذف lastOpenTab عشان يرجع لنفس المكان بعد الدخول تاني
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('dashboardContent').style.display = 'none';
         showNotification('تم تسجيل الخروج');
         if (sessionTimeout) clearTimeout(sessionTimeout);
+        if (maintenanceInterval) clearInterval(maintenanceInterval);
     }
 
     // Form Submissions
@@ -1306,7 +1453,7 @@
 
     document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        if (!currentUser || (currentUser.role !== 'مدير' && !currentUser.superAdmin)) { showNotification('غير مسموح لك بإضافة موظفين'); return; }
+        if (!isAdmin()) { showNotification('غير مسموح لك بإضافة موظفين'); return; }
         let uname = document.getElementById('empUsername').value.trim();
         let pwd = document.getElementById('empPassword').value;
         let role = document.getElementById('empRole').value;
@@ -1318,6 +1465,21 @@
         showNotification(`✅ تم إضافة الموظف ${uname} بنجاح`);
         e.target.reset();
     });
+
+    // تحديد ظهور تبويب الموظفين حسب الصلاحية
+    function renderTabsBasedOnRole() {
+        let employeesTabItem = document.getElementById('employeesTabItem');
+        let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
+        
+        if (employeesTabItem) {
+            employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
+        }
+        if (maintenanceMenuItem) {
+            maintenanceMenuItem.style.display = isSuperAdmin() ? 'flex' : 'none';
+        }
+        
+        bindSidebarButtons();
+    }
 
     // Initialize
     window.selectYear = selectYear;
