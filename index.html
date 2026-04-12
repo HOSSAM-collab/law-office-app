@@ -109,7 +109,6 @@
             padding: 20px;
         }
         
-        /* ========== باقي الـ Styles من الكود القديم ========== */
         .container { max-width: 1400px; margin: 0 auto; }
         
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
@@ -373,7 +372,7 @@
 
 <div id="dashboardContent" style="display: none;">
     <div class="dashboard-container">
-        <!-- ========== Sidebar (القائمة الجانبية) ========== -->
+        <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <i class="fas fa-gavel" style="font-size: 32px; margin-bottom: 10px;"></i>
@@ -381,77 +380,27 @@
                 <p>نظام إدارة القضايا</p>
             </div>
             <div class="sidebar-menu" id="sidebarMenu">
-                <div class="sidebar-menu-item" data-tab="dashboard">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>الرئيسية</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="newCase">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>قضية جديدة</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="activeCases">
-                    <i class="fas fa-balance-scale"></i>
-                    <span>قضايا المكتب</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="tomorrowSessions">
-                    <i class="fas fa-calendar-day"></i>
-                    <span>جلسات الغد</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="advancedAgenda">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span>الأجندة</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="pastSessions">
-                    <i class="fas fa-history"></i>
-                    <span>ماتم في الجلسات</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="closedCases">
-                    <i class="fas fa-check-circle"></i>
-                    <span>قضايا منتهية</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="clients">
-                    <i class="fas fa-users"></i>
-                    <span>الموكلين</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="adminWorks">
-                    <i class="fas fa-tasks"></i>
-                    <span>أعمال إدارية</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="judgmentRecords">
-                    <i class="fas fa-gavel"></i>
-                    <span>سجل الأحكام</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="enforcements">
-                    <i class="fas fa-file-signature"></i>
-                    <span>توكيلات تنفيذ</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="experts">
-                    <i class="fas fa-user-graduate"></i>
-                    <span>الخبراء</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="archive">
-                    <i class="fas fa-archive"></i>
-                    <span>الأرشيف</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="reports">
-                    <i class="fas fa-chart-line"></i>
-                    <span>التقارير</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="employees" id="employeesTabItem" style="display: none;">
-                    <i class="fas fa-user-tie"></i>
-                    <span>الموظفين</span>
-                </div>
-                <div class="sidebar-menu-item" data-tab="maintenance" id="maintenanceMenuItem" style="display: none;">
-                    <i class="fas fa-tools"></i>
-                    <span>وضع الصيانة</span>
-                </div>
+                <div class="sidebar-menu-item" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i><span>الرئيسية</span></div>
+                <div class="sidebar-menu-item" data-tab="newCase"><i class="fas fa-plus-circle"></i><span>قضية جديدة</span></div>
+                <div class="sidebar-menu-item" data-tab="activeCases"><i class="fas fa-balance-scale"></i><span>قضايا المكتب</span></div>
+                <div class="sidebar-menu-item" data-tab="tomorrowSessions"><i class="fas fa-calendar-day"></i><span>جلسات الغد</span></div>
+                <div class="sidebar-menu-item" data-tab="advancedAgenda"><i class="fas fa-calendar-alt"></i><span>الأجندة</span></div>
+                <div class="sidebar-menu-item" data-tab="pastSessions"><i class="fas fa-history"></i><span>ماتم في الجلسات</span></div>
+                <div class="sidebar-menu-item" data-tab="closedCases"><i class="fas fa-check-circle"></i><span>قضايا منتهية</span></div>
+                <div class="sidebar-menu-item" data-tab="clients"><i class="fas fa-users"></i><span>الموكلين</span></div>
+                <div class="sidebar-menu-item" data-tab="adminWorks"><i class="fas fa-tasks"></i><span>أعمال إدارية</span></div>
+                <div class="sidebar-menu-item" data-tab="judgmentRecords"><i class="fas fa-gavel"></i><span>سجل الأحكام</span></div>
+                <div class="sidebar-menu-item" data-tab="enforcements"><i class="fas fa-file-signature"></i><span>توكيلات تنفيذ</span></div>
+                <div class="sidebar-menu-item" data-tab="experts"><i class="fas fa-user-graduate"></i><span>الخبراء</span></div>
+                <div class="sidebar-menu-item" data-tab="archive"><i class="fas fa-archive"></i><span>الأرشيف</span></div>
+                <div class="sidebar-menu-item" data-tab="reports"><i class="fas fa-chart-line"></i><span>التقارير</span></div>
+                <div class="sidebar-menu-item" data-tab="employees" id="employeesTabItem" style="display: none;"><i class="fas fa-user-tie"></i><span>الموظفين</span></div>
+                <div class="sidebar-menu-item" data-tab="maintenance" id="maintenanceMenuItem" style="display: none;"><i class="fas fa-tools"></i><span>وضع الصيانة</span></div>
             </div>
-            <div class="sidebar-footer">
-                <i class="fas fa-copyright"></i> مكتب الخواجا للمحاماة
-            </div>
+            <div class="sidebar-footer"><i class="fas fa-copyright"></i> مكتب الخواجا للمحاماة</div>
         </div>
         
-        <!-- ========== Main Content (المحتوى الأصلي) ========== -->
+        <!-- Main Content -->
         <div class="main-content">
             <div class="container">
                 <div class="header">
@@ -514,7 +463,7 @@
                         <div style="text-align: center; padding: 20px;">
                             <i class="fas fa-gavel" style="font-size: 48px; color: #1a4a5f; margin-bottom: 15px;"></i>
                             <h3 style="color: #1a4a5f;">مكتب الخواجا للمحاماة</h3>
-                            <p style="color: #666;">نظام إدارة القضايا والجلسات - اختر أحد الخيارات من القائمة الجانبية</p>
+                            <p style="color: #666;">نظام إدارة القضايا والجلسات</p>
                         </div>
                     </div>
                     
@@ -847,9 +796,8 @@
         document.getElementById('detailsModal').style.display = 'none'; 
     };
 
-    // ========== تبديل التبويبات (من القائمة الجانبية) ==========
+    // ========== تبديل التبويبات ==========
     window.switchToTab = function(tabId) {
-        // تحديث القائمة الجانبية
         document.querySelectorAll('.sidebar-menu-item').forEach(item => {
             item.classList.remove('active');
             if (item.getAttribute('data-tab') === tabId) {
@@ -857,7 +805,6 @@
             }
         });
         
-        // تحديث البانلات
         document.querySelectorAll('.panel').forEach(panel => {
             panel.classList.remove('active-panel');
         });
@@ -870,11 +817,9 @@
             document.getElementById('dashboardPanel').classList.add('active-panel');
         }
         
-        // حفظ آخر تبويب في localStorage
         localStorage.setItem('lastOpenTab', tabId);
     };
 
-    // ربط أزرار القائمة الجانبية
     function bindSidebarButtons() {
         document.querySelectorAll('.sidebar-menu-item').forEach(item => {
             item.removeEventListener('click', () => {});
@@ -887,7 +832,6 @@
         });
     }
 
-    // تفعيل الكروت العلوية
     function initStatCards() {
         document.querySelectorAll('.stat-card').forEach(card => {
             card.addEventListener('click', () => {
@@ -899,7 +843,6 @@
         });
     }
 
-    // عرض التبويبات حسب الدور (لإظهار تبويب الموظفين للمدير)
     function renderTabsBasedOnRole() {
         let isAdminUser = isAdmin();
         let employeesTabItem = document.getElementById('employeesTabItem');
@@ -914,7 +857,6 @@
         
         bindSidebarButtons();
         
-        // فتح آخر تبويب كان مفتوح
         let lastTab = localStorage.getItem('lastOpenTab');
         if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
             switchToTab(lastTab);
@@ -922,7 +864,6 @@
             switchToTab('dashboard');
         }
         
-        // إضافة أزرار التحكم في الصيانة لو المستخدم حسام
         if (currentUser && currentUser.superAdmin === true) {
             setupMaintenanceControls();
         }
@@ -941,7 +882,6 @@
             };
         }
         
-        // تحديث واجهة الصيانة
         database.ref('maintenance').on('value', (snapshot) => {
             const data = snapshot.val();
             isMaintenanceMode = data?.isActive || false;
@@ -1488,162 +1428,270 @@
         document.getElementById('weeklyReport').innerHTML = weeklyHtml;
     }
 
-    // ========== ماتم في الجلسات ==========
+    // ========== ماتم في الجلسات (المعدل بالكامل) ==========
     function renderPastSessions() {
         let container = document.getElementById('pastSessionsList');
         if(!container) return;
+        
         let now = new Date();
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
         let pastSessions = [];
+        
         activeCases.forEach(c => {
-            if(c.firstSessionDate && !c.firstSessionProcessed && new Date(c.firstSessionDate) <= now) pastSessions.push({ caseId: c.id, type: 'first', caseNumber: c.number, caseYear: c.year, court: c.court, sessionDate: new Date(c.firstSessionDate), decision: c.firstSessionDecision || '', nextDate: c.nextSessionDate || '' });
-            if(c.nextSessionDate && !c.nextSessionProcessed && new Date(c.nextSessionDate) <= now) pastSessions.push({ caseId: c.id, type: 'next', caseNumber: c.number, caseYear: c.year, court: c.court, sessionDate: new Date(c.nextSessionDate), decision: c.nextSessionDecision || '', nextDate: c.nextSessionDate || '' });
+            // جلسة أولى - لو تاريخها أقل من أو يساوي النهارده ومتسجلش قرارها
+            if (c.firstSessionDate && new Date(c.firstSessionDate) <= now && !c.firstSessionProcessed) {
+                pastSessions.push({
+                    ...c,
+                    sessionType: 'first',
+                    sessionDate: new Date(c.firstSessionDate),
+                    decision: c.firstSessionDecision || ''
+                });
+            }
+            // جلسة تانية (مؤجلة) - لو تاريخها أقل من أو يساوي النهارده ومتسجلش قرارها
+            if (c.nextSessionDate && new Date(c.nextSessionDate) <= now && !c.nextSessionProcessed) {
+                pastSessions.push({
+                    ...c,
+                    sessionType: 'next',
+                    sessionDate: new Date(c.nextSessionDate),
+                    decision: c.nextSessionDecision || ''
+                });
+            }
         });
-        if(!pastSessions.length) { container.innerHTML = '<p>لا توجد جلسات سابقة</p>'; return; }
+        
+        // ترتيب من الأحدث إلى الأقدم
+        pastSessions.sort((a, b) => b.sessionDate - a.sessionDate);
+        
+        if (pastSessions.length === 0) {
+            container.innerHTML = '<p>📭 لا توجد جلسات سابقة تحتاج إلى تسجيل قرار</p>';
+            document.getElementById('dashboardPastSessionsCount').innerText = 0;
+            return;
+        }
+        
+        document.getElementById('dashboardPastSessionsCount').innerText = pastSessions.length;
+        
         container.innerHTML = pastSessions.map(s => {
-            let caseData = activeCases.find(c=>c.id==s.caseId);
-            let clientName = caseData ? getClientName(caseData.clientId) : 'غير محدد';
-            return `<div class="past-session-card" id="pastSession_${s.caseId}_${s.type}">
-                <h4>⚖️ قضية: ${s.caseNumber} (${s.caseYear}) - ${s.court}</h4>
-                <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole||'-'})</span>
-                    <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${caseData?.opponentName||'-'} (${caseData?.opponentRole||'-'})</span>
-                    <span class="info-badge"><i class="fas fa-calendar"></i> تاريخ الجلسة: ${s.sessionDate.toLocaleString('ar-EG')}</span>
+            let isToday = s.sessionDate.toDateString() === today.toDateString();
+            let isYesterday = s.sessionDate.toDateString() === new Date(new Date().setDate(new Date().getDate() - 1)).toDateString();
+            let badge = '';
+            if (isToday) badge = '<span style="background:#ffc107; color:#333; padding:2px 8px; border-radius:20px; font-size:11px; margin-right:10px;">اليوم</span>';
+            else if (isYesterday) badge = '<span style="background:#ff9800; color:white; padding:2px 8px; border-radius:20px; font-size:11px; margin-right:10px;">أمس</span>';
+            
+            return `
+                <div class="session-card" style="border-right-color: #ffc107;" id="pastSessionCard_${s.id}_${s.sessionType}">
+                    <h4>${badge} ⚖️ ${s.number} (${s.year}) - ${s.court}</h4>
+                    <div class="info-row">
+                        <span class="info-badge"><i class="fas fa-calendar"></i> تاريخ الجلسة: ${s.sessionDate.toLocaleString('ar-EG')}</span>
+                        <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${getClientName(s.clientId)} (${s.clientRole})</span>
+                        <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span>
+                    </div>
+                    <p><strong>موضوع القضية:</strong> ${s.subject || '-'}</p>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>📝 قرار الجلسة:</label>
+                        <input type="text" id="pastDecision_${s.id}_${s.sessionType}" class="form-control" placeholder="أدخل قرار الجلسة (مثال: تم التأجيل، تم الحكم، ...)" style="width:100%; margin-top:5px;">
+                    </div>
+                    <div class="admin-actions" style="margin-top: 15px;">
+                        <button class="btn-warning btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'new')">📅 جلسة جديدة</button>
+                        <button class="btn-danger btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'close')">🏁 إنهاء القضية</button>
+                        <button class="btn-primary btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'admin')">📋 أعمال إدارية</button>
+                        <button class="btn-primary btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'judgment')">⚖️ سجل أحكام</button>
+                        <button class="btn-primary btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'expert')">👨‍⚖️ خبراء</button>
+                    </div>
                 </div>
-                <div class="form-group"><label>قرار الجلسة</label><input type="text" id="decision_${s.caseId}_${s.type}" value="${s.decision||''}" placeholder="مثال: تم التأجيل"></div>
-                <div class="form-group"><label>تاريخ الجلسة الجديدة</label><input type="datetime-local" id="newDate_${s.caseId}_${s.type}" value="${s.nextDate ? new Date(s.nextDate).toISOString().slice(0,16) : ''}"></div>
-                <div class="admin-actions">
-                    <button class="btn-warning btn-sm" onclick="updateAndConvert('${s.caseId}','${s.type}')">✏️ حفظ القرار وتحويل لجلسة جديدة</button>
-                    <button class="btn-danger btn-sm" onclick="closeCaseFromPast('${s.caseId}','${s.type}')">🏁 إنهاء القضية</button>
-                    <button class="btn-primary btn-sm" onclick="sendToAdminWork('${s.caseId}','${s.type}')">📋 أعمال إدارية</button>
-                    <button class="btn-primary btn-sm" onclick="sendToJudgmentRecord('${s.caseId}','${s.type}')">⚖️ سجل أحكام</button>
-                    <button class="btn-primary btn-sm" onclick="sendToExpertFromPast('${s.caseId}')">👨‍⚖️ خبراء</button>
-                </div>
-            </div>`;
+            `;
         }).join('');
     }
 
-    window.updateAndConvert = (caseId, sessionType) => {
-        let decision = document.getElementById(`decision_${caseId}_${sessionType}`).value;
-        let newDate = document.getElementById(`newDate_${caseId}_${sessionType}`).value;
-        if(!decision) { showNotification('يرجى إدخال قرار الجلسة'); return; }
-        let idx = activeCases.findIndex(c=>c.id==caseId);
-        if(idx!==-1){
-            if(sessionType==='first') { 
-                activeCases[idx].firstSessionDecision = decision; 
-                activeCases[idx].firstSessionProcessed = true; 
-            } else { 
-                activeCases[idx].nextSessionDecision = decision; 
-                activeCases[idx].nextSessionProcessed = true; 
-            }
-            if(newDate) { 
-                activeCases[idx].nextSessionDate = newDate; 
-                activeCases[idx].nextSessionDecision = ''; 
-                activeCases[idx].nextSessionProcessed = false; 
-                showNotification('تم حفظ القرار وتحويل القضية لجلسة جديدة'); 
-            } else { 
-                showNotification('تم حفظ القرار'); 
-            }
-            saveActiveCases();
-            renderActiveCases();
-            renderPastSessions();
-            renderAdvancedAgenda();
+    // دالة معالجة الجلسات السابقة
+    window.processPastSession = function(caseId, sessionType, action) {
+        let caseIndex = activeCases.findIndex(c => c.id == caseId);
+        if (caseIndex === -1) {
+            showNotification('❌ القضية غير موجودة');
+            return;
         }
-    };
-
-    window.closeCaseFromPast = (caseId, sessionType) => {
-        chooseCircuitForClosedCase(caseId);
-    };
-
-    window.sendToAdminWork = function(caseId, sessionType) {
-        let caseData = activeCases.find(c=>c.id==caseId);
-        if(!caseData) return;
-        let workTypes = ['سحب حكم','صيغة تنفيذية','استلام مستندات'];
-        let modalBody = `
-            <h4>📋 إضافة عمل إداري للقضية ${caseData.number} (${caseData.year})</h4>
-            <div class="form-group"><label>اختر نوع العمل الإداري</label><select id="workType">${workTypes.map(w=>`<option value="${w}">${w}</option>`).join('')}</select></div>
-            <div class="form-group"><label>تاريخ المعاد</label><input type="datetime-local" id="workDueDate"></div>
-            <div class="form-group"><label>ملاحظات</label><textarea id="workNotes" rows="2"></textarea></div>
-            <button onclick="saveAdminWorkFromPast('${caseId}')" class="btn-success">حفظ</button>
-            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
-        `;
-        document.getElementById('modalTitle').innerHTML = '📋 عمل إداري';
-        document.getElementById('modalBody').innerHTML = modalBody;
-        document.getElementById('detailsModal').style.display = 'flex';
-    };
-
-    window.saveAdminWorkFromPast = function(caseId) {
-        let caseData = activeCases.find(c=>c.id==caseId);
-        if(!caseData) return;
-        let work = { id: Date.now().toString(), caseId: caseId, caseNumber: caseData.number, caseYear: caseData.year, type: document.getElementById('workType').value, dueDate: document.getElementById('workDueDate').value, notes: document.getElementById('workNotes').value, status: 'pending', createdAt: new Date().toISOString() };
-        adminWorks.push(work); saveAdminWorks(); showNotification('تم حفظ العمل الإداري بنجاح'); closeModal(); renderAdminWorks();
-    };
-
-    window.sendToJudgmentRecord = function(caseId, sessionType) {
-        let caseData = activeCases.find(c=>c.id==caseId);
-        if(!caseData) return;
-        let judgmentTypes = ['يلزم معارضة','يلزم استئناف','يلزم معارضة استئنافية','يلزم نقض'];
-        let modalBody = `
-            <h4>⚖️ إضافة سجل حكم للقضية ${caseData.number} (${caseData.year})</h4>
-            <div class="form-group"><label>اختر نوع الحكم</label><select id="judgmentType">${judgmentTypes.map(j=>`<option value="${j}">${j}</option>`).join('')}</select></div>
-            <div class="form-group"><label>تاريخ الجلسة الجديدة (في حالة الإرجاع)</label><input type="datetime-local" id="newSessionDate"></div>
-            <div class="form-group"><label>ملاحظات</label><textarea id="judgmentNotes" rows="2"></textarea></div>
-            <button onclick="saveJudgmentRecordFromPast('${caseId}')" class="btn-success">حفظ</button>
-            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
-        `;
-        document.getElementById('modalTitle').innerHTML = '⚖️ سجل حكم';
-        document.getElementById('modalBody').innerHTML = modalBody;
-        document.getElementById('detailsModal').style.display = 'flex';
-    };
-
-    window.saveJudgmentRecordFromPast = function(caseId) {
-        let caseData = activeCases.find(c=>c.id==caseId);
-        if(!caseData) return;
-        let record = { id: Date.now().toString(), caseId: caseId, caseNumber: caseData.number, caseYear: caseData.year, type: document.getElementById('judgmentType').value, newSessionDate: document.getElementById('newSessionDate').value, notes: document.getElementById('judgmentNotes').value, status: 'pending', createdAt: new Date().toISOString() };
-        judgmentRecords.push(record); saveJudgmentRecords(); showNotification('تم حفظ سجل الحكم بنجاح'); closeModal(); renderJudgmentRecords();
-    };
-
-    window.sendToExpertFromPast = function(caseId) {
-        let caseData = activeCases.find(c=>c.id==caseId);
-        if(!caseData) return;
-        let modalBody = `
-            <h4>👨‍⚖️ إرسال القضية للخبير</h4>
-            <p><strong>القضية: ${caseData.number} (${caseData.year})</strong></p>
-            <div class="form-group"><label>موعد الخبير</label><input type="datetime-local" id="expertDateFromPast"></div>
-            <div class="form-group"><label>المطلوب من الخبير</label><textarea id="expertRequestFromPast" rows="2" placeholder="مثال: المعاينة، التقدير، إعداد تقرير..."></textarea></div>
-            <div class="form-group"><label>المعاينات المطلوبة</label><textarea id="expertInspectionsFromPast" rows="2" placeholder="مثال: معاينة موقع، معاينة سيارة، معاينة عقار..."></textarea></div>
-            <div class="form-group"><label>ملاحظات</label><textarea id="expertNotesFromPast" rows="2"></textarea></div>
-            <button onclick="saveExpertFromPast('${caseId}')" class="btn-success">💾 حفظ وإرسال للخبير</button>
-            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
-        `;
-        document.getElementById('modalTitle').innerHTML = '👨‍⚖️ إرسال للخبير';
-        document.getElementById('modalBody').innerHTML = modalBody;
-        document.getElementById('detailsModal').style.display = 'flex';
-    };
-
-    window.saveExpertFromPast = function(caseId) {
-        let caseData = activeCases.find(c=>c.id==caseId);
-        if(!caseData) return;
-        let expertDate = document.getElementById('expertDateFromPast').value;
-        if(!expertDate) { showNotification('يرجى إدخال موعد الخبير'); return; }
-        let expert = { 
-            id: Date.now().toString(), 
-            caseId: caseId, 
-            caseNumber: caseData.number, 
-            caseYear: caseData.year, 
-            clientName: getClientName(caseData.clientId), 
-            opponentName: caseData.opponentName, 
-            expertDate: expertDate, 
-            request: document.getElementById('expertRequestFromPast').value, 
-            inspections: document.getElementById('expertInspectionsFromPast').value, 
-            notes: document.getElementById('expertNotesFromPast').value, 
-            status: 'pending', 
-            createdAt: new Date().toISOString() 
-        };
-        experts.push(expert); 
-        saveExperts(); 
-        showNotification('تم إرسال القضية للخبير بنجاح'); 
-        closeModal(); 
+        
+        let decisionInput = document.getElementById(`pastDecision_${caseId}_${sessionType}`);
+        let decision = decisionInput ? decisionInput.value : '';
+        
+        if (!decision) {
+            showNotification('❌ يرجى إدخال قرار الجلسة أولاً');
+            return;
+        }
+        
+        // تسجيل القرار
+        if (sessionType === 'first') {
+            activeCases[caseIndex].firstSessionDecision = decision;
+            activeCases[caseIndex].firstSessionProcessed = true;
+        } else {
+            activeCases[caseIndex].nextSessionDecision = decision;
+            activeCases[caseIndex].nextSessionProcessed = true;
+        }
+        
+        if (action === 'new') {
+            // جلسة جديدة
+            let newDate = prompt('أدخل تاريخ الجلسة الجديدة (YYYY-MM-DD HH:MM):', new Date().toISOString().slice(0,16));
+            if (!newDate) {
+                // لو ألغى، نرجع الحالة
+                if (sessionType === 'first') {
+                    activeCases[caseIndex].firstSessionProcessed = false;
+                } else {
+                    activeCases[caseIndex].nextSessionProcessed = false;
+                }
+                database.ref('activeCases').set(activeCases);
+                showNotification('❌ تم إلغاء العملية');
+                return;
+            }
+            
+            // تعديل بيانات القضية (اختياري)
+            let editCourt = confirm('هل تريد تعديل المحكمة أو الدائرة؟');
+            if (editCourt) {
+                let newCourt = prompt('أدخل المحكمة الجديدة:', activeCases[caseIndex].court);
+                let newCircuit = prompt('أدخل الدائرة الجديدة:', activeCases[caseIndex].circuit || '');
+                if (newCourt) activeCases[caseIndex].court = newCourt;
+                if (newCircuit) activeCases[caseIndex].circuit = newCircuit;
+            }
+            
+            activeCases[caseIndex].nextSessionDate = newDate;
+            activeCases[caseIndex].nextSessionProcessed = false;
+            activeCases[caseIndex].nextSessionDecision = '';
+            
+            database.ref('activeCases').set(activeCases);
+            showNotification(`✅ تم تسجيل القرار: "${decision}" وتم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
+            
+        } else if (action === 'close') {
+            // إنهاء القضية
+            let judgment = prompt('أدخل منطوق الحكم النهائي للقضية:');
+            if (!judgment) {
+                if (sessionType === 'first') {
+                    activeCases[caseIndex].firstSessionProcessed = false;
+                } else {
+                    activeCases[caseIndex].nextSessionProcessed = false;
+                }
+                database.ref('activeCases').set(activeCases);
+                showNotification('❌ تم إلغاء إنهاء القضية');
+                return;
+            }
+            
+            let closedCase = { ...activeCases[caseIndex], judgment, closedAt: new Date().toISOString() };
+            closedCases.push(closedCase);
+            activeCases.splice(caseIndex, 1);
+            
+            database.ref('activeCases').set(activeCases);
+            database.ref('closedCases').set(closedCases);
+            showNotification(`✅ تم إنهاء القضية ونقلها للقضايا المنتهية`);
+            
+        } else if (action === 'admin') {
+            // أعمال إدارية
+            let workType = prompt('أدخل نوع العمل الإداري (مثال: سحب حكم، صيغة تنفيذية، استلام مستندات):', 'سحب حكم');
+            let dueDate = prompt('أدخل تاريخ المعاد (YYYY-MM-DD):', new Date().toISOString().slice(0,10));
+            
+            if (!workType || !dueDate) {
+                if (sessionType === 'first') {
+                    activeCases[caseIndex].firstSessionProcessed = false;
+                } else {
+                    activeCases[caseIndex].nextSessionProcessed = false;
+                }
+                database.ref('activeCases').set(activeCases);
+                showNotification('❌ تم إلغاء إضافة العمل الإداري');
+                return;
+            }
+            
+            let work = {
+                id: Date.now().toString(),
+                caseId: caseId,
+                caseNumber: activeCases[caseIndex].number,
+                caseYear: activeCases[caseIndex].year,
+                type: workType,
+                dueDate: dueDate,
+                notes: '',
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            adminWorks.push(work);
+            
+            database.ref('activeCases').set(activeCases);
+            database.ref('adminWorks').set(adminWorks);
+            showNotification(`✅ تم إضافة العمل الإداري: ${workType}`);
+            
+        } else if (action === 'judgment') {
+            // سجل أحكام
+            let judgmentType = prompt('أدخل نوع الحكم (مثال: يلزم معارضة، يلزم استئناف، يلزم نقض):', 'يلزم معارضة');
+            
+            if (!judgmentType) {
+                if (sessionType === 'first') {
+                    activeCases[caseIndex].firstSessionProcessed = false;
+                } else {
+                    activeCases[caseIndex].nextSessionProcessed = false;
+                }
+                database.ref('activeCases').set(activeCases);
+                showNotification('❌ تم إلغاء إضافة سجل الحكم');
+                return;
+            }
+            
+            let record = {
+                id: Date.now().toString(),
+                caseId: caseId,
+                caseNumber: activeCases[caseIndex].number,
+                caseYear: activeCases[caseIndex].year,
+                type: judgmentType,
+                newSessionDate: '',
+                notes: '',
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            judgmentRecords.push(record);
+            
+            database.ref('activeCases').set(activeCases);
+            database.ref('judgmentRecords').set(judgmentRecords);
+            showNotification(`✅ تم إضافة سجل الحكم: ${judgmentType}`);
+            
+        } else if (action === 'expert') {
+            // خبراء
+            let expertDate = prompt('أدخل موعد الخبير:', new Date().toISOString().slice(0,16));
+            let request = prompt('أدخل المطلوب من الخبير:', '');
+            
+            if (!expertDate) {
+                if (sessionType === 'first') {
+                    activeCases[caseIndex].firstSessionProcessed = false;
+                } else {
+                    activeCases[caseIndex].nextSessionProcessed = false;
+                }
+                database.ref('activeCases').set(activeCases);
+                showNotification('❌ تم إلغاء إرسال القضية للخبير');
+                return;
+            }
+            
+            let expert = {
+                id: Date.now().toString(),
+                caseId: caseId,
+                caseNumber: activeCases[caseIndex].number,
+                caseYear: activeCases[caseIndex].year,
+                clientName: getClientName(activeCases[caseIndex].clientId),
+                opponentName: activeCases[caseIndex].opponentName,
+                expertDate: expertDate,
+                request: request || '',
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            experts.push(expert);
+            
+            database.ref('activeCases').set(activeCases);
+            database.ref('experts').set(experts);
+            showNotification(`✅ تم إرسال القضية للخبير في ${new Date(expertDate).toLocaleString('ar-EG')}`);
+        }
+        
+        // تحديث كل الشاشات
+        renderActiveCases();
+        renderPastSessions();
+        renderTomorrowSessions();
+        renderAdminWorks();
+        renderJudgmentRecords();
         renderExperts();
+        renderClosedCases();
+        renderArchive();
+        updateDashboardCounts();
+        updateStats();
     };
 
     // ========== عرض قضايا المكتب ==========
@@ -1770,6 +1818,417 @@
                     <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole||'-'})</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole||'-'})</span>
                 </div>
+                <p><strong>موضوع القضية:</strong> ${caseData?.subject||'غير محدد'}</p>
+                <p><strong>📅 تاريخ المعاد:</strong> ${w.dueDate ? new Date(w.dueDate).toLocaleString('ar-EG') : 'غير محدد'}</p>
+                <p><strong>📝 الملاحظات:</strong> ${w.notes||'لا توجد'}</p>
+                <p><strong>✅ تاريخ الإكمال:</strong> ${new Date(w.completedAt).toLocaleString('ar-EG')}</p>
+                <p><span class="work-status status-completed">مكتمل</span></p>
+            </div>`;
+        }).join('') : '<p>لا توجد أعمال إدارية منتهية</p>';
+        setInterval(checkOverdueWorks, 60000);
+    }
+    window.completeAdminWork = function(workId) {
+        let work = adminWorks.find(w=>w.id==workId);
+        if(work) { work.status = 'completed'; work.completedAt = new Date().toISOString(); saveAdminWorks(); showNotification('تم إكمال العمل الإداري'); renderAdminWorks(); checkAndMoveToClosed(work.caseId); }
+    };
+    window.editAdminWork = function(workId) {
+        let work = adminWorks.find(w=>w.id==workId);
+        if(!work) return;
+        let modalBody = `
+            <h4>✏️ تعديل العمل الإداري</h4>
+            <div class="form-group"><label>نوع العمل</label><input type="text" id="editWorkType" value="${work.type}"></div>
+            <div class="form-group"><label>تاريخ المعاد</label><input type="datetime-local" id="editWorkDueDate" value="${work.dueDate?work.dueDate.slice(0,16):''}"></div>
+            <div class="form-group"><label>ملاحظات</label><textarea id="editWorkNotes" rows="2">${work.notes||''}</textarea></div>
+            <button onclick="updateAdminWork('${workId}')" class="btn-success">💾 حفظ التعديلات</button>
+            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
+        `;
+        document.getElementById('modalTitle').innerHTML = '✏️ تعديل العمل الإداري';
+        document.getElementById('modalBody').innerHTML = modalBody;
+        document.getElementById('detailsModal').style.display = 'flex';
+    };
+    window.updateAdminWork = function(workId) {
+        let idx = adminWorks.findIndex(w=>w.id==workId);
+        if(idx!==-1) { adminWorks[idx].type = document.getElementById('editWorkType').value; adminWorks[idx].dueDate = document.getElementById('editWorkDueDate').value; adminWorks[idx].notes = document.getElementById('editWorkNotes').value; saveAdminWorks(); showNotification('تم تحديث العمل الإداري'); closeModal(); renderAdminWorks(); }
+    };
+    function checkAndMoveToClosed(caseId) {
+        let remaining = adminWorks.filter(w=>w.caseId==caseId && w.status!=='completed');
+        if(remaining.length===0){
+            let idx = activeCases.findIndex(c=>c.id==caseId);
+            if(idx!==-1){
+                chooseCircuitForClosedCase(caseId);
+            }
+        }
+    }
+
+    // ========== سجل الأحكام ==========
+    function renderJudgmentRecords() {
+        let container = document.getElementById('judgmentRecordsList');
+        if(!container) return;
+        if(!judgmentRecords.length) { container.innerHTML = '<p>لا توجد سجلات أحكام</p>'; return; }
+        container.innerHTML = judgmentRecords.map(r => {
+            let caseData = closedCases.find(c=>c.id==r.caseId) || activeCases.find(c=>c.id==r.caseId);
+            let clientName = caseData ? getClientName(caseData.clientId) : 'غير محدد';
+            let opponentName = caseData ? caseData.opponentName : 'غير محدد';
+            let caseStatus = closedCases.find(c=>c.id==r.caseId) ? '(منتهية)' : (activeCases.find(c=>c.id==r.caseId) ? '(متداولة)' : '(غير موجودة)');
+            return `<div class="judgment-record-card">
+                <h4>⚖️ ${r.type} ${caseStatus}</h4>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-balance-scale"></i> القضية: ${r.caseNumber} (${r.caseYear})</span>
+                    <span class="info-badge"><i class="fas fa-building"></i> المحكمة: ${caseData?.court||'غير محدد'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole||'-'})</span>
+                    <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole||'-'})</span>
+                </div>
+                <p><strong>موضوع القضية:</strong> ${caseData?.subject||'غير محدد'}</p>
+                <p><strong>📅 تاريخ الجلسة الجديدة:</strong> ${r.newSessionDate ? new Date(r.newSessionDate).toLocaleString('ar-EG') : 'غير محدد'}</p>
+                <p><strong>📝 ملاحظات:</strong> ${r.notes||'لا توجد'}</p>
+                <div class="admin-actions">
+                    ${r.newSessionDate?`<button onclick="returnCaseFromJudgment('${r.id}')" class="btn-warning btn-sm"><i class="fas fa-undo"></i> إرجاع لجلسة جديدة</button>`:''}
+                    <button onclick="editJudgmentRecord('${r.id}')" class="btn-primary btn-sm">✏️ تعديل</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    window.returnCaseFromJudgment = function(recordId) {
+        let record = judgmentRecords.find(r=>r.id==recordId);
+        if(record && record.newSessionDate){
+            let caseData = closedCases.find(c=>c.id==record.caseId);
+            let isFromClosed = true;
+            if(!caseData){ caseData = activeCases.find(c=>c.id==record.caseId); isFromClosed = false; }
+            if(!caseData){ showNotification('القضية غير موجودة'); return; }
+            let newDecision = prompt('أدخل قرار الجلسة الجديدة:', record.notes||'');
+            let newCase = { 
+                ...caseData, 
+                id: Date.now().toString(), 
+                nextSessionDate: record.newSessionDate, 
+                nextSessionDecision: '', 
+                nextSessionProcessed: false, 
+                firstSessionProcessed: true, 
+                decision: newDecision || caseData.decision, 
+                createdAt: new Date().toISOString() 
+            };
+            judgmentRecords = judgmentRecords.filter(r=>r.id!=recordId);
+            if(isFromClosed) closedCases = closedCases.filter(c=>c.id!=record.caseId);
+            else activeCases = activeCases.filter(c=>c.id!=record.caseId);
+            activeCases.push(newCase);
+            saveActiveCases(); saveClosedCases(); saveJudgmentRecords();
+            showNotification(`تم إرجاع القضية من ${isFromClosed?'المنتهية':'المكتب'} لجلسة جديدة`);
+            renderJudgmentRecords(); renderActiveCases(); renderClosedCases(); renderArchive();
+        } else { showNotification('لم يتم تحديد تاريخ جلسة جديدة'); }
+    };
+
+    window.editJudgmentRecord = function(recordId) {
+        let record = judgmentRecords.find(r=>r.id==recordId);
+        if(!record) return;
+        let modalBody = `
+            <h4>✏️ تعديل سجل الحكم</h4>
+            <div class="form-group"><label>نوع الحكم</label><input type="text" id="editJudgmentType" value="${record.type}"></div>
+            <div class="form-group"><label>تاريخ الجلسة الجديدة</label><input type="datetime-local" id="editNewSessionDate" value="${record.newSessionDate?record.newSessionDate.slice(0,16):''}"></div>
+            <div class="form-group"><label>ملاحظات</label><textarea id="editJudgmentNotes" rows="2">${record.notes||''}</textarea></div>
+            <button onclick="updateJudgmentRecord('${recordId}')" class="btn-success">💾 حفظ التعديلات</button>
+            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
+        `;
+        document.getElementById('modalTitle').innerHTML = '✏️ تعديل سجل الحكم';
+        document.getElementById('modalBody').innerHTML = modalBody;
+        document.getElementById('detailsModal').style.display = 'flex';
+    };
+    window.updateJudgmentRecord = function(recordId) {
+        let idx = judgmentRecords.findIndex(r=>r.id==recordId);
+        if(idx!==-1){ judgmentRecords[idx].type = document.getElementById('editJudgmentType').value; judgmentRecords[idx].newSessionDate = document.getElementById('editNewSessionDate').value; judgmentRecords[idx].notes = document.getElementById('editJudgmentNotes').value; saveJudgmentRecords(); showNotification('تم تحديث سجل الحكم'); closeModal(); renderJudgmentRecords(); }
+    };
+
+    // ========== توكيلات التنفيذ ==========
+    function renderEnforcements() {
+        let container = document.getElementById('enforcementsList');
+        if(!container) return;
+        if(!enforcements.length) { container.innerHTML = '<p>لا توجد توكيلات تنفيذ</p>'; return; }
+        container.innerHTML = enforcements.map(e => {
+            let isTomorrow = false;
+            if(e.date){
+                let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0);
+                let enforcementDate = new Date(e.date); enforcementDate.setHours(0,0,0,0);
+                isTomorrow = enforcementDate.getTime() === tomorrow.getTime();
+            }
+            return `<div class="enforcement-card" style="${isTomorrow?'border-right-color:#ffc107;':''}">
+                <h4>📄 توكيل تنفيذ - ${e.caseNumber} (${e.caseYear})</h4>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${e.clientName}</span>
+                    <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${e.opponentName}</span>
+                </div>
+                <p><strong><i class="fas fa-tasks"></i> المطلوب في التنفيذ:</strong> ${e.request}</p>
+                <p><strong><i class="fas fa-calendar"></i> تاريخ التنفيذ:</strong> ${new Date(e.date).toLocaleString('ar-EG')}${isTomorrow?' <span style="color:#ffc107;">(غداً!)</span>':''}</p>
+                <p><strong><i class="fas fa-history"></i> الإجراءات السابقة:</strong> ${e.previousActions||'لا توجد'}</p>
+                <p><strong><i class="fas fa-sticky-note"></i> ملاحظات:</strong> ${e.notes||'لا توجد'}</p>
+                <div class="admin-actions">
+                    <button onclick="editEnforcement('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button>
+                    <button onclick="deleteEnforcement('${e.id}')" class="delete-btn">🗑️ حذف</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+    window.addEnforcement = function() {
+        let modalBody = `
+            <h4>➕ إضافة توكيل تنفيذ جديد</h4>
+            <div class="form-group"><label>اختر القضية</label><select id="enforcementCase"><option value="">-- اختر قضية --</option>${activeCases.map(c=>`<option value="${c.id}">${c.number} (${c.year}) - ${getClientName(c.clientId)}</option>`).join('')}</select></div>
+            <div class="form-group"><label>الموكل</label><input type="text" id="enforcementClientName" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>الخصم</label><input type="text" id="enforcementOpponentName" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>رقم القضية</label><input type="text" id="enforcementCaseNumber" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>المطلوب في التنفيذ</label><textarea id="enforcementRequest" rows="3" placeholder="مثال: تنفيذ حكم رقم ... بتاريخ ..."></textarea></div>
+            <div class="form-group"><label>تاريخ التنفيذ</label><input type="datetime-local" id="enforcementDate"></div>
+            <div class="form-group"><label>الإجراءات السابقة</label><textarea id="enforcementPrevious" rows="3" placeholder="مثال: تم إعلان الحكم في ...، تم الطعن في ..."></textarea></div>
+            <div class="form-group"><label>ملاحظات إضافية</label><textarea id="enforcementNotes" rows="2"></textarea></div>
+            <button onclick="saveEnforcement()" class="btn-success">💾 حفظ التوكيل</button>
+            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
+        `;
+        document.getElementById('modalTitle').innerHTML = '➕ توكيل تنفيذ جديد';
+        document.getElementById('modalBody').innerHTML = modalBody;
+        document.getElementById('detailsModal').style.display = 'flex';
+        document.getElementById('enforcementCase').addEventListener('change', function() {
+            let caseId = this.value;
+            if(caseId){
+                let caseData = activeCases.find(c=>c.id==caseId);
+                if(caseData){
+                    document.getElementById('enforcementClientName').value = getClientName(caseData.clientId);
+                    document.getElementById('enforcementOpponentName').value = caseData.opponentName;
+                    document.getElementById('enforcementCaseNumber').value = `${caseData.number} (${caseData.year})`;
+                }
+            }
+        });
+    };
+    window.saveEnforcement = function() {
+        let caseId = document.getElementById('enforcementCase').value;
+        if(!caseId) { showNotification('يرجى اختيار قضية'); return; }
+        let caseData = activeCases.find(c=>c.id==caseId);
+        if(!caseData) return;
+        let request = document.getElementById('enforcementRequest').value;
+        if(!request) { showNotification('يرجى إدخال المطلوب في التنفيذ'); return; }
+        let enforcement = { id: Date.now().toString(), caseId: caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: document.getElementById('enforcementClientName').value, opponentName: caseData.opponentName, request: request, date: document.getElementById('enforcementDate').value || new Date().toISOString(), previousActions: document.getElementById('enforcementPrevious').value, notes: document.getElementById('enforcementNotes').value, createdAt: new Date().toISOString() };
+        enforcements.push(enforcement); saveEnforcements(); showNotification('تم إضافة توكيل التنفيذ بنجاح'); closeModal(); renderEnforcements();
+    };
+    window.editEnforcement = function(id) {
+        let e = enforcements.find(e=>e.id==id);
+        if(!e) return;
+        let modalBody = `
+            <h4>✏️ تعديل توكيل تنفيذ</h4>
+            <div class="form-group"><label>القضية</label><input type="text" value="${e.caseNumber} (${e.caseYear})" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>الموكل</label><input type="text" value="${e.clientName}" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>الخصم</label><input type="text" value="${e.opponentName}" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>المطلوب في التنفيذ</label><textarea id="editEnforcementRequest" rows="3">${e.request||''}</textarea></div>
+            <div class="form-group"><label>تاريخ التنفيذ</label><input type="datetime-local" id="editEnforcementDate" value="${e.date?e.date.slice(0,16):''}"></div>
+            <div class="form-group"><label>الإجراءات السابقة</label><textarea id="editEnforcementPrevious" rows="3">${e.previousActions||''}</textarea></div>
+            <div class="form-group"><label>ملاحظات</label><textarea id="editEnforcementNotes" rows="2">${e.notes||''}</textarea></div>
+            <button onclick="updateEnforcement('${id}')" class="btn-success">💾 حفظ التعديلات</button>
+            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
+        `;
+        document.getElementById('modalTitle').innerHTML = '✏️ تعديل توكيل تنفيذ';
+        document.getElementById('modalBody').innerHTML = modalBody;
+        document.getElementById('detailsModal').style.display = 'flex';
+    };
+    window.updateEnforcement = function(id) {
+        let idx = enforcements.findIndex(e=>e.id==id);
+        if(idx!==-1){ enforcements[idx].request = document.getElementById('editEnforcementRequest').value; enforcements[idx].date = document.getElementById('editEnforcementDate').value; enforcements[idx].previousActions = document.getElementById('editEnforcementPrevious').value; enforcements[idx].notes = document.getElementById('editEnforcementNotes').value; saveEnforcements(); showNotification('تم تحديث توكيل التنفيذ'); closeModal(); renderEnforcements(); }
+    };
+    window.deleteEnforcement = function(id) { if(confirm('هل أنت متأكد من حذف توكيل التنفيذ؟')){ enforcements = enforcements.filter(e=>e.id!=id); saveEnforcements(); showNotification('تم حذف توكيل التنفيذ'); renderEnforcements(); } };
+
+    // ========== الخبراء ==========
+    function renderExperts() {
+        let container = document.getElementById('expertsList');
+        if(!container) return;
+        if(!experts.length) { container.innerHTML = '<p>لا توجد مواعيد خبراء</p>'; return; }
+        container.innerHTML = experts.map(e => {
+            let caseData = activeCases.find(c=>c.id==e.caseId) || closedCases.find(c=>c.id==e.caseId);
+            let clientName = caseData ? getClientName(caseData.clientId) : 'غير محدد';
+            let opponentName = caseData ? caseData.opponentName : 'غير محدد';
+            let isPast = new Date(e.expertDate) < new Date();
+            let isTomorrow = false;
+            if(e.expertDate){
+                let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0);
+                let expertDate = new Date(e.expertDate); expertDate.setHours(0,0,0,0);
+                isTomorrow = expertDate.getTime() === tomorrow.getTime();
+            }
+            return `<div class="expert-card" style="${isPast?'opacity:0.7;':''} ${isTomorrow?'border-right-color:#ffc107;':''}">
+                <h4>👨‍⚖️ خبير - ${e.caseNumber} (${e.caseYear})</h4>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${caseData?.clientRole||'-'})</span>
+                    <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${opponentName} (${caseData?.opponentRole||'-'})</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-calendar"></i> موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}${isTomorrow?' <span style="color:#ffc107;">(غداً!)</span>':''}</span>
+                    <span class="info-badge"><i class="fas fa-tasks"></i> المطلوب: ${e.request||'لا يوجد'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-search"></i> المعاينات المطلوبة: ${e.inspections||'لا توجد'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-sticky-note"></i> ملاحظات: ${e.notes||'لا توجد'}</span>
+                </div>
+                <div class="admin-actions">
+                    <button onclick="editExpert('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button>
+                    <button onclick="deleteExpert('${e.id}')" class="delete-btn">🗑️ حذف</button>
+                    <button onclick="returnExpertToCase('${e.id}')" class="btn-primary btn-sm">🔄 إرجاع لقضية</button>
+                    <button onclick="completeExpert('${e.id}')" class="btn-success btn-sm">✅ إكمال الخبير</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+    window.addExpert = function() {
+        let modalBody = `
+            <h4>➕ إضافة موعد خبير جديد</h4>
+            <div class="form-group"><label>اختر القضية</label><select id="expertCase"><option value="">-- اختر قضية --</option>${activeCases.map(c=>`<option value="${c.id}">${c.number} (${c.year}) - ${getClientName(c.clientId)}</option>`).join('')}</select></div>
+            <div class="form-group"><label>الموكل</label><input type="text" id="expertClientName" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>الخصم</label><input type="text" id="expertOpponentName" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>رقم القضية</label><input type="text" id="expertCaseNumber" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>موعد الخبير</label><input type="datetime-local" id="expertDate"></div>
+            <div class="form-group"><label>المطلوب من الخبير</label><textarea id="expertRequest" rows="2" placeholder="مثال: المعاينة، التقدير، إعداد تقرير..."></textarea></div>
+            <div class="form-group"><label>المعاينات المطلوبة</label><textarea id="expertInspections" rows="2" placeholder="مثال: معاينة موقع، معاينة سيارة، معاينة عقار..."></textarea></div>
+            <div class="form-group"><label>ملاحظات</label><textarea id="expertNotes" rows="2"></textarea></div>
+            <button onclick="saveExpert()" class="btn-success">💾 حفظ</button>
+            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
+        `;
+        document.getElementById('modalTitle').innerHTML = '➕ موعد خبير جديد';
+        document.getElementById('modalBody').innerHTML = modalBody;
+        document.getElementById('detailsModal').style.display = 'flex';
+        document.getElementById('expertCase').addEventListener('change', function() {
+            let caseId = this.value;
+            if(caseId){
+                let caseData = activeCases.find(c=>c.id==caseId);
+                if(caseData){
+                    document.getElementById('expertClientName').value = getClientName(caseData.clientId);
+                    document.getElementById('expertOpponentName').value = caseData.opponentName;
+                    document.getElementById('expertCaseNumber').value = `${caseData.number} (${caseData.year})`;
+                }
+            }
+        });
+    };
+    window.saveExpert = function() {
+        let caseId = document.getElementById('expertCase').value;
+        if(!caseId) { showNotification('يرجى اختيار قضية'); return; }
+        let caseData = activeCases.find(c=>c.id==caseId);
+        if(!caseData) return;
+        let expertDate = document.getElementById('expertDate').value;
+        if(!expertDate) { showNotification('يرجى إدخال موعد الخبير'); return; }
+        let expert = { id: Date.now().toString(), caseId: caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: document.getElementById('expertClientName').value, opponentName: caseData.opponentName, expertDate: expertDate, request: document.getElementById('expertRequest').value, inspections: document.getElementById('expertInspections').value, notes: document.getElementById('expertNotes').value, status: 'pending', createdAt: new Date().toISOString() };
+        experts.push(expert); saveExperts(); showNotification('تم إضافة موعد الخبير بنجاح'); closeModal(); renderExperts();
+    };
+    window.editExpert = function(id) {
+        let e = experts.find(e=>e.id==id);
+        if(!e) return;
+        let modalBody = `
+            <h4>✏️ تعديل موعد خبير</h4>
+            <div class="form-group"><label>القضية</label><input type="text" value="${e.caseNumber} (${e.caseYear})" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>الموكل</label><input type="text" value="${e.clientName}" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>الخصم</label><input type="text" value="${e.opponentName}" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>موعد الخبير</label><input type="datetime-local" id="editExpertDate" value="${e.expertDate?e.expertDate.slice(0,16):''}"></div>
+            <div class="form-group"><label>المطلوب من الخبير</label><textarea id="editExpertRequest" rows="2">${e.request||''}</textarea></div>
+            <div class="form-group"><label>المعاينات المطلوبة</label><textarea id="editExpertInspections" rows="2">${e.inspections||''}</textarea></div>
+            <div class="form-group"><label>ملاحظات</label><textarea id="editExpertNotes" rows="2">${e.notes||''}</textarea></div>
+            <button onclick="updateExpert('${id}')" class="btn-success">💾 حفظ التعديلات</button>
+            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
+        `;
+        document.getElementById('modalTitle').innerHTML = '✏️ تعديل موعد خبير';
+        document.getElementById('modalBody').innerHTML = modalBody;
+        document.getElementById('detailsModal').style.display = 'flex';
+    };
+    window.updateExpert = function(id) {
+        let idx = experts.findIndex(e=>e.id==id);
+        if(idx!==-1){ experts[idx].expertDate = document.getElementById('editExpertDate').value; experts[idx].request = document.getElementById('editExpertRequest').value; experts[idx].inspections = document.getElementById('editExpertInspections').value; experts[idx].notes = document.getElementById('editExpertNotes').value; saveExperts(); showNotification('تم تحديث موعد الخبير'); closeModal(); renderExperts(); }
+    };
+    window.deleteExpert = function(id) { if(confirm('هل أنت متأكد من حذف موعد الخبير؟')){ experts = experts.filter(e=>e.id!=id); saveExperts(); showNotification('تم حذف موعد الخبير'); renderExperts(); } };
+    
+    window.returnExpertToCase = function(id) {
+        let expert = experts.find(e=>e.id==id);
+        if(!expert) return;
+        let newSessionDate = prompt('أدخل تاريخ الجلسة الجديدة (بعد انتهاء الخبير):', new Date().toISOString().slice(0,16));
+        if(newSessionDate){
+            let caseIdx = activeCases.findIndex(c=>c.id==expert.caseId);
+            if(caseIdx!==-1){
+                activeCases[caseIdx].nextSessionDate = newSessionDate;
+                activeCases[caseIdx].nextSessionProcessed = false;
+                saveActiveCases();
+                experts = experts.filter(e=>e.id!=id);
+                saveExperts();
+                showNotification('تم إرجاع القضية لجلسة جديدة بعد الخبير');
+                renderExperts(); renderActiveCases();
+            } else { showNotification('القضية غير موجودة في قضايا المكتب'); }
+        }
+    };
+    window.completeExpert = function(id) {
+        let expert = experts.find(e=>e.id==id);
+        if(expert){ expert.status = 'completed'; expert.completedAt = new Date().toISOString(); saveExperts(); showNotification('تم إكمال عمل الخبير'); renderExperts(); }
+    };
+
+    // ========== الأرشيف ==========
+    function renderArchive() {
+        let container = document.getElementById('archiveCategories');
+        if(!container) return;
+        
+        let addBtn = document.getElementById('addCircuitBtn');
+        if (addBtn) {
+            addBtn.style.display = (currentUser && currentUser.superAdmin === true) ? 'inline-block' : 'none';
+        }
+        
+        let categoriesHtml = `<div class="archive-categories">` + archiveCategories.map(cat => `<span class="archive-cat-btn" data-circuit="${cat.circuit}" onclick="filterArchive('${cat.circuit}')">${cat.name}</span>`).join('') + `</div>`;
+        container.innerHTML = categoriesHtml;
+        filterArchive('مدني');
+    }
+    window.filterArchive = function(circuit) {
+        let filtered = closedCases.filter(c => c.circuit === circuit);
+        let container = document.getElementById('archiveCasesList');
+        if(!filtered.length){ container.innerHTML = '<p style="text-align:center; padding:20px;">📂 لا توجد قضايا منتهية في هذا التصنيف</p>'; return; }
+        container.innerHTML = filtered.map(c => {
+            let clientName = getClientName(c.clientId);
+            let opponent2Html = c.opponent2Name ? `<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${c.opponent2Name} (${c.opponent2Role||'-'})</span>` : '';
+            let showDelete = canDeleteEverywhere() ? `<button onclick="deleteClosedCase('${c.id}')" class="delete-btn" style="margin-top:10px;">🗑️ حذف القضية</button>` : '';
+            return `<div class="session-card">
+                <h4>✅ ${c.number} (${c.year}) - ${c.court}</h4>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span>
+                    <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span>
+                    ${opponent2Html}
+                    <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit}</span>
+                </div>
+                <p><strong>موضوع القضية:</strong> ${c.subject||'غير محدد'}</p>
+                <p><strong>الحكم:</strong> ${c.judgment}</p>
+                <p><strong>تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString('ar-EG')}</p>
+                ${showDelete}
+            </div>`;
+        }).join('');
+        document.querySelectorAll('.archive-cat-btn').forEach(btn => { btn.classList.remove('active'); if(btn.getAttribute('data-circuit')===circuit) btn.classList.add('active'); });
+    };
+
+    // ========== الموكلين ==========
+    function renderClientsTable() {
+        let tbody = document.querySelector('#clientsTable tbody');
+        if(!tbody) return;
+        tbody.innerHTML = clients.map(cl => {
+            let total = activeCases.filter(c=>c.clientId==cl.id).length + closedCases.filter(c=>c.clientId==cl.id).length;
+            let showDelete = canDeleteEverywhere() ? `<button class="delete-btn" onclick="deleteClient('${cl.id}')">🗑️</button>` : 'لا يمكن الحذف';
+            return `<tr><td style="text-align:right">${cl.name}</td><td style="text-align:right">${cl.phone}</td><td style="text-align:right">${total}</td><td style="text-align:right">${showDelete}</td></tr>`;
+        }).join('');
+    }
+    window.deleteClient = function(id) { if(confirm('حذف الموكل سيؤثر على القضايا المرتبطة؟')){ clients = clients.filter(c=>c.id!=id); saveClients(); showNotification('تم حذف الموكل'); } };
+    function populateSelects() {
+        let select = document.getElementById('caseClient');
+        if(select) select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    // ========== الموظفين (جدول الإدارة) ==========
+    function renderEmployeesTable() {
+        let tbody = document.querySelector('#employeesTable tbody');
+        if(!tbody) return;
+        let allEmployees = [...fixedAdmins, ...employees];
+        let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp));
+        tbody.innerHTML = visible.map(emp => {
+            let canModify = canModifyEmployee(emp);
+            let canDel = canDeleteEmployee(emp);
+            let actions = '';
+            if(canModify) actions += `<button class="btn-warning btn-sm change-pwd-btn" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
+            if(canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
+            if(!canModify && !canDel) actions = 'لا يمكن التعديل';
+            let passwordDisplay = (currentUser && currentUser.superAdmin === true) ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
+            return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${actions}}}</div>
                 <p><strong>موضوع القضية:</strong> ${caseData?.subject||'غير محدد'}</p>
                 <p><strong>📅 تاريخ المعاد:</strong> ${w.dueDate ? new Date(w.dueDate).toLocaleString('ar-EG') : 'غير محدد'}</p>
                 <p><strong>📝 الملاحظات:</strong> ${w.notes||'لا توجد'}</p>
