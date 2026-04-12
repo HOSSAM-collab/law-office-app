@@ -2,549 +2,83 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مكتب الخواجا للمحاماة - نظام إدارة القضايا</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; }
-        
-        /* ========== Dashboard Layout ========== */
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        /* ========== Sidebar (على اليمين) ========== */
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #0b2b40 0%, #1a4a5f 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
-        }
-        
-        .sidebar-header {
-            padding: 25px 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-        }
-        
-        .sidebar-header h2 {
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-        
-        .sidebar-header p {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-        
-        .sidebar-menu {
-            flex: 1;
-            padding: 0 15px;
-        }
-        
-        .sidebar-menu-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 14px 18px;
-            margin-bottom: 8px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: rgba(255,255,255,0.8);
-            font-weight: 500;
-        }
-        
-        .sidebar-menu-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-        }
-        
-        .sidebar-menu-item.active {
-            background: #ffc107;
-            color: #1a4a5f;
-        }
-        
-        .sidebar-menu-item i {
-            width: 24px;
-            font-size: 18px;
-        }
-        
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 12px;
-            text-align: center;
-            opacity: 0.6;
-        }
-        
-        /* ========== Main Content ========== */
-        .main-content {
-            flex: 1;
-            margin-right: 280px;
-            padding: 20px;
-        }
-        
-        .top-bar {
-            background: white;
-            border-radius: 16px;
-            padding: 15px 25px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .welcome-area h3 {
-            color: #1a4a5f;
-            font-size: 20px;
-        }
-        
-        .welcome-area p {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .user-area {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            background: #f8f9fa;
-            padding: 8px 20px;
-            border-radius: 50px;
-        }
-        
-        .role-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        .role-admin { background: #1a4a5f; color: white; }
-        .role-lawyer { background: #28a745; color: white; }
-        .role-super { background: #dc3545; color: white; }
-        
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            cursor: pointer;
-        }
-        
-        .notification-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .notification-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            border-right: 5px solid #1a4a5f;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .notification-card:hover { transform: translateY(-3px); }
-        .notification-card.warning { border-right-color: #ffc107; }
-        .notification-card.danger { border-right-color: #dc3545; }
-        .notification-card.success { border-right-color: #28a745; }
-        .notification-card .count { font-size: 32px; font-weight: 800; color: #1a4a5f; }
-        
-        .agenda-preview {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .agenda-preview h4 {
-            color: #1a4a5f;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-        .agenda-days {
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-        }
-        .agenda-day-card {
-            min-width: 80px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .agenda-day-card:hover {
-            background: #1a4a5f;
-            color: white;
-            transform: scale(1.05);
-        }
-        .agenda-day-card.has-session {
-            background: #d4edda;
-            border-right: 3px solid #28a745;
-        }
-        .agenda-day-card.today {
-            background: #ffc107;
-            color: #333;
-            font-weight: bold;
-        }
-        .agenda-day-number { font-size: 20px; font-weight: bold; }
-        .agenda-day-name { font-size: 12px; }
-        .agenda-session-count { font-size: 10px; margin-top: 5px; }
-        
-        .panel { display: none; background: white; border-radius: 20px; padding: 25px; animation: fadeIn 0.3s ease; }
-        .panel.active-panel { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
-        
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; }
-        input, select, textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 12px; }
-        button { background: #1a4a5f; color: white; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; margin: 5px; }
-        button:hover { background: #0b2b40; }
-        .btn-danger { background: #dc3545; }
-        .btn-success { background: #28a745; }
-        .btn-warning { background: #ffc107; color: #333; }
-        .btn-sm { padding: 6px 12px; font-size: 13px; }
-        
-        .data-table { width: 100%; border-collapse: collapse; background: white; border-radius: 16px; overflow: hidden; }
-        .data-table th { background: #1a4a5f; color: white; padding: 15px; text-align: right; }
-        .data-table td { padding: 12px 15px; border-bottom: 1px solid #eee; }
-        .data-table tr:hover td { background: #f8f9fa; }
-        .case-row { cursor: pointer; }
-        
-        .session-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            border-right: 5px solid #1a4a5f;
-            cursor: pointer;
-        }
-        
-        .info-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        
-        .info-badge {
-            background: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .court-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .court-btn {
-            background: #e9ecef;
-            padding: 8px 16px;
-            border-radius: 25px;
-            cursor: pointer;
-        }
-        .court-btn.selected {
-            background: #1a4a5f;
-            color: white;
-        }
-        
-        .internal-search {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .internal-search input { flex: 1; }
-        
-        .archive-categories {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .archive-cat-btn {
-            background: #e9ecef;
-            padding: 8px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-        }
-        .archive-cat-btn.active {
-            background: #1a4a5f;
-            color: white;
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 3000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            width: 90%;
-            max-width: 900px;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-        
-        .toast-notification {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: #1a4a5f;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            display: none;
-            z-index: 4000;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 5000;
-            flex-direction: column;
-        }
-        .login-card {
-            background: white;
-            padding: 40px;
-            border-radius: 30px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-        .login-card input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 12px; }
-        .login-card button { width: 100%; padding: 12px; background: #1a4a5f; color: white; border: none; border-radius: 12px; cursor: pointer; }
-        .error-msg { color: #dc3545; margin-top: 10px; display: none; }
-        
-        .main-content-dashboard { display: none; }
-        
-        .maintenance-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 6000;
-            flex-direction: column;
-        }
-        .maintenance-card {
-            background: white;
-            padding: 40px;
-            border-radius: 30px;
-            width: 90%;
-            max-width: 450px;
-            text-align: center;
-        }
-        .maintenance-card i { font-size: 60px; color: #ffc107; margin-bottom: 20px; }
-        .maintenance-card h2 { color: #1a4a5f; margin-bottom: 15px; }
-        .maintenance-card p { color: #666; margin-bottom: 20px; }
-        
-        .delete-btn { color: #dc3545; background: transparent; border: none; cursor: pointer; font-size: 16px; }
-        .delete-btn:hover { background: #dc3545; color: white; padding: 5px 10px; border-radius: 8px; }
-        
-        .opponent-section {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 10px;
-        }
-        .opponent-section-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #1a4a5f;
-        }
-        
-        .report-simple {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        .report-simple h4 {
-            color: #1a4a5f;
-            margin-bottom: 10px;
-        }
-        
-        .admin-work-card, .judgment-record-card, .enforcement-card, .expert-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            border-right: 5px solid #1a4a5f;
-        }
-        
-        .work-status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-        }
-        .status-pending { background: #ffc107; color: #333; }
-        .status-completed { background: #28a745; color: white; }
-        .status-overdue { background: #dc3545; color: white; }
-        
-        .admin-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        
-        .year-months {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-        .year-btn, .month-btn {
-            background: #e9ecef;
-            padding: 8px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-        }
-        .year-btn.active, .month-btn.active {
-            background: #1a4a5f;
-            color: white;
-        }
-        
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-top: 15px;
-        }
-        .day-card {
-            background: #f8f9fa;
-            padding: 12px 8px;
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            border-right: 3px solid transparent;
-        }
-        .day-card.has-session {
-            background: #d4edda;
-            border-right-color: #28a745;
-        }
-        .day-card.today {
-            background: #ffc107;
-            font-weight: bold;
-        }
-        
-        .week-days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        .week-day-name {
-            background: #1a4a5f;
-            color: white;
-            padding: 8px;
-            border-radius: 8px;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar { width: 70px; }
-            .sidebar-header h2, .sidebar-header p, .sidebar-menu-item span { display: none; }
-            .sidebar-menu-item { justify-content: center; padding: 14px; }
-            .main-content { margin-right: 70px; }
-            .notification-cards { grid-template-columns: repeat(2, 1fr); }
-        }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif;}
+        body{background:#f0f2f5;}
+        .dashboard-container{display:flex;min-height:100vh;}
+        .sidebar{width:260px;background:#1a4a5f;color:white;position:fixed;right:0;top:0;bottom:0;overflow-y:auto;}
+        .sidebar-header{padding:20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.2);}
+        .sidebar-menu{padding:15px;}
+        .sidebar-menu-item{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:5px;border-radius:10px;cursor:pointer;transition:0.3s;}
+        .sidebar-menu-item:hover{background:rgba(255,255,255,0.1);}
+        .sidebar-menu-item.active{background:#ffc107;color:#1a4a5f;}
+        .sidebar-menu-item i{width:20px;}
+        .main-content{flex:1;margin-right:260px;padding:20px;}
+        .top-bar{background:white;padding:15px 20px;border-radius:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+        .user-area{display:flex;gap:15px;align-items:center;}
+        .logout-btn{background:#dc3545;color:white;border:none;padding:8px 16px;border-radius:25px;cursor:pointer;}
+        .role-badge{padding:4px 10px;border-radius:20px;font-size:12px;}
+        .role-super{background:#dc3545;}
+        .role-admin{background:#1a4a5f;}
+        .role-lawyer{background:#28a745;}
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px;}
+        .stat-card{background:white;padding:20px;border-radius:12px;text-align:center;cursor:pointer;}
+        .stat-card h3{font-size:28px;color:#1a4a5f;}
+        .panel{display:none;background:white;padding:20px;border-radius:12px;margin-top:20px;}
+        .panel.active-panel{display:block;}
+        .form-group{margin-bottom:15px;}
+        label{display:block;margin-bottom:5px;font-weight:bold;}
+        input,select,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;}
+        button{background:#1a4a5f;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;}
+        .btn-danger{background:#dc3545;}
+        .btn-warning{background:#ffc107;color:#333;}
+        .btn-sm{padding:5px 10px;font-size:12px;}
+        .session-card{background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:15px;border-right:4px solid #1a4a5f;cursor:pointer;}
+        .info-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+        .info-badge{background:#e9ecef;padding:4px 12px;border-radius:20px;font-size:12px;}
+        .login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0b2b40,#1a4a5f);display:flex;justify-content:center;align-items:center;z-index:1000;}
+        .login-card{background:white;padding:40px;border-radius:20px;width:350px;text-align:center;}
+        .login-card input{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:8px;}
+        .error-msg{color:#dc3545;margin-top:10px;display:none;}
+        .toast{position:fixed;bottom:20px;left:20px;background:#1a4a5f;color:white;padding:12px 20px;border-radius:8px;display:none;z-index:1000;}
+        .agenda-days{display:flex;gap:10px;overflow-x:auto;margin-top:15px;}
+        .agenda-day-card{min-width:70px;background:#f8f9fa;border-radius:10px;padding:10px;text-align:center;cursor:pointer;}
+        .agenda-day-card.has-session{background:#d4edda;}
+        .agenda-day-card.today{background:#ffc107;}
+        @media(max-width:768px){.sidebar{width:70px;}.sidebar-menu-item span{display:none;}.sidebar-menu-item{justify-content:center;}.main-content{margin-right:70px;}.stats{grid-template-columns:repeat(2,1fr);}}
     </style>
 </head>
 <body>
 
 <div id="loginScreen" class="login-overlay">
     <div class="login-card">
-        <i class="fas fa-gavel" style="font-size: 50px; color: #1a4a5f; margin-bottom: 15px;"></i>
+        <i class="fas fa-gavel" style="font-size:50px; color:#1a4a5f;"></i>
         <h2>مكتب الخواجا للمحاماة</h2>
-        <p>نظام إدارة القضايا</p>
         <input type="text" id="loginUsername" placeholder="اسم المستخدم">
         <input type="password" id="loginPassword" placeholder="كلمة المرور">
-        <button onclick="attemptLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
-        <div id="loginError" class="error-msg">اسم المستخدم أو كلمة المرور غير صحيحة</div>
+        <button onclick="login()">دخول</button>
+        <div id="loginError" class="error-msg">خطأ في اسم المستخدم أو كلمة المرور</div>
     </div>
 </div>
 
-<div id="maintenanceScreen" class="maintenance-screen">
-    <div class="maintenance-card">
-        <i class="fas fa-tools"></i>
-        <h2>⚠️ الموقع تحت الصيانة</h2>
-        <p>عذراً، الموقع مغلق حالياً للتحديث والصيانة.<br>يرجى المحاولة لاحقاً.</p>
-        <div id="maintenanceTimer"></div>
-    </div>
-</div>
-
-<div id="dashboardContent" class="main-content-dashboard">
+<div id="dashboard" style="display:none;">
     <div class="dashboard-container">
         <div class="sidebar">
             <div class="sidebar-header">
-                <i class="fas fa-gavel" style="font-size: 32px; margin-bottom: 10px;"></i>
-                <h2>مكتب الخواجا</h2>
-                <p>نظام إدارة القضايا</p>
+                <i class="fas fa-gavel" style="font-size:28px;"></i>
+                <h3>مكتب الخواجا</h3>
             </div>
-            <div class="sidebar-menu" id="sidebarMenu">
+            <div class="sidebar-menu">
                 <div class="sidebar-menu-item" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i><span>الرئيسية</span></div>
                 <div class="sidebar-menu-item" data-tab="newCase"><i class="fas fa-plus-circle"></i><span>قضية جديدة</span></div>
                 <div class="sidebar-menu-item" data-tab="activeCases"><i class="fas fa-balance-scale"></i><span>قضايا المكتب</span></div>
                 <div class="sidebar-menu-item" data-tab="tomorrowSessions"><i class="fas fa-calendar-day"></i><span>جلسات الغد</span></div>
-                <div class="sidebar-menu-item" data-tab="advancedAgenda"><i class="fas fa-calendar-alt"></i><span>الأجندة</span></div>
                 <div class="sidebar-menu-item" data-tab="pastSessions"><i class="fas fa-history"></i><span>ماتم في الجلسات</span></div>
                 <div class="sidebar-menu-item" data-tab="closedCases"><i class="fas fa-check-circle"></i><span>قضايا منتهية</span></div>
                 <div class="sidebar-menu-item" data-tab="clients"><i class="fas fa-users"></i><span>الموكلين</span></div>
@@ -553,244 +87,45 @@
                 <div class="sidebar-menu-item" data-tab="enforcements"><i class="fas fa-file-signature"></i><span>توكيلات تنفيذ</span></div>
                 <div class="sidebar-menu-item" data-tab="experts"><i class="fas fa-user-graduate"></i><span>الخبراء</span></div>
                 <div class="sidebar-menu-item" data-tab="archive"><i class="fas fa-archive"></i><span>الأرشيف</span></div>
-                <div class="sidebar-menu-item" data-tab="reports"><i class="fas fa-chart-line"></i><span>التقارير</span></div>
-                <div class="sidebar-menu-item" data-tab="employees" id="employeesTabItem" style="display: none;"><i class="fas fa-user-tie"></i><span>الموظفين</span></div>
-                <div class="sidebar-menu-item" data-tab="maintenance" id="maintenanceMenuItem" style="display: none;"><i class="fas fa-tools"></i><span>وضع الصيانة</span></div>
+                <div class="sidebar-menu-item" data-tab="employees" id="employeesTab"><i class="fas fa-user-tie"></i><span>الموظفين</span></div>
+                <div class="sidebar-menu-item" data-tab="maintenance" id="maintenanceTab" style="display:none;"><i class="fas fa-tools"></i><span>صيانة</span></div>
             </div>
-            <div class="sidebar-footer"><i class="fas fa-copyright"></i> مكتب الخواجا للمحاماة</div>
         </div>
         
         <div class="main-content">
             <div class="top-bar">
-                <div class="welcome-area">
-                    <h3>مرحباً بك، <span id="welcomeUserName"></span> 👋</h3>
-                    <p id="welcomeMessage"></p>
-                </div>
-                <div class="user-area">
-                    <i class="fas fa-user-shield"></i>
-                    <span id="currentUserName"></span>
-                    <span id="currentUserRole" class="role-badge"></span>
-                    <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
-                </div>
+                <div><span id="userName"></span> 👋 <span id="welcomeMsg"></span></div>
+                <div class="user-area"><span id="userRole" class="role-badge"></span><button class="logout-btn" onclick="logout()">خروج</button></div>
             </div>
             
-            <div class="notification-cards" id="notificationCards">
-                <div class="notification-card" onclick="switchToTab('tomorrowSessions')">
-                    <h4><i class="fas fa-calendar-day"></i> جلسات الغد</h4>
-                    <div class="count" id="dashboardTomorrowCount">0</div>
-                </div>
-                <div class="notification-card warning" onclick="switchToTab('pastSessions')">
-                    <h4><i class="fas fa-history"></i> ماتم في الجلسات</h4>
-                    <div class="count" id="dashboardPastSessionsCount">0</div>
-                </div>
-                <div class="notification-card danger" onclick="switchToTab('adminWorks')">
-                    <h4><i class="fas fa-tasks"></i> أعمال إدارية غداً</h4>
-                    <div class="count" id="dashboardAdminWorksCount">0</div>
-                </div>
-                <div class="notification-card" onclick="switchToTab('experts')">
-                    <h4><i class="fas fa-user-graduate"></i> خبراء غداً</h4>
-                    <div class="count" id="dashboardExpertsCount">0</div>
-                </div>
-                <div class="notification-card success" onclick="switchToTab('activeCases')">
-                    <h4><i class="fas fa-balance-scale"></i> قضايا المكتب</h4>
-                    <div class="count" id="dashboardActiveCount">0</div>
-                </div>
-                <div class="notification-card" onclick="switchToTab('employees')" id="employeesActivityCard" style="display: none;">
-                    <h4><i class="fas fa-users"></i> نشاط الموظفين</h4>
-                    <div class="count" id="activeEmployeesCount">0</div>
-                    <p style="font-size: 12px;">موظف نشط حالياً</p>
-                </div>
+            <div class="stats">
+                <div class="stat-card" onclick="switchTab('activeCases')"><h3 id="activeCount">0</h3><p>قضايا المكتب</p></div>
+                <div class="stat-card" onclick="switchTab('closedCases')"><h3 id="closedCount">0</h3><p>قضايا منتهية</p></div>
+                <div class="stat-card" onclick="switchTab('tomorrowSessions')"><h3 id="tomorrowCount">0</h3><p>جلسات الغد</p></div>
+                <div class="stat-card" onclick="switchTab('clients')"><h3 id="clientsCount">0</h3><p>الموكلين</p></div>
             </div>
             
-            <div class="agenda-preview" id="dashboardAgenda">
-                <h4><i class="fas fa-calendar-alt"></i> الأجندة (الأيام القادمة)</h4>
-                <div class="agenda-days" id="dashboardAgendaDays"></div>
-            </div>
+            <div class="agenda-days" id="miniAgenda"></div>
             
-            <div id="panelsContainer">
-                <div id="dashboardPanel" class="panel active-panel">
-                    <div style="text-align: center; padding: 20px;">
-                        <i class="fas fa-gavel" style="font-size: 48px; color: #1a4a5f; margin-bottom: 15px;"></i>
-                        <h3 style="color: #1a4a5f;">مكتب الخواجا للمحاماة</h3>
-                        <p style="color: #666;">نظام إدارة القضايا والجلسات</p>
-                    </div>
-                </div>
-                
-                <div id="newCasePanel" class="panel">
-                    <h3>➕ إضافة قضية جديدة</h3>
-                    <form id="newCaseForm">
-                        <div class="form-group"><label>رقم القضية <span style="color:red">*</span></label><input type="text" id="caseNumber" required></div>
-                        <div class="form-group"><label>سنة القضية <span style="color:red">*</span></label><input type="text" id="caseYear" required></div>
-                        <div class="form-group"><label>رقم الملف</label><input type="text" id="caseFileNumber" placeholder="مثال: 2842"></div>
-                        <div class="form-group"><label>موضوع القضية <span style="color:red">*</span></label><input type="text" id="caseSubject" required></div>
-                        <div class="form-group"><label>المحكمة <span style="color:red">*</span></label><div class="court-options" id="courtOptions"></div><input type="text" id="caseCourt" style="display:none;"></div>
-                        <div class="form-group"><label>الدائرة <span style="color:red">*</span></label>
-                            <select id="caseCircuit" required onchange="toggleOtherCircuit()">
-                                <option value="">اختر الدائرة</option>
-                                <option value="مدني">مدني</option>
-                                <option value="مدني كلي">مدني كلي</option>
-                                <option value="مدني مستأنف">مدني مستأنف</option>
-                                <option value="جنح">جنح</option>
-                                <option value="صحة توقيع">صحة توقيع</option>
-                                <option value="أسرة المراغة">أسرة المراغة</option>
-                                <option value="أسرة سوهاج">أسرة سوهاج</option>
-                                <option value="أخرى">أخرى +</option>
-                            </select>
-                            <input type="text" id="otherCircuit" placeholder="اكتب اسم الدائرة" style="display:none; margin-top:10px;">
-                        </div>
-                        <div class="form-group"><label>درجة التقاضي</label>
-                            <select id="caseDegree">
-                                <option value="">اختر درجة التقاضي</option>
-                                <option value="ابتدائي">ابتدائي</option>
-                                <option value="استئناف">استئناف</option>
-                                <option value="نقض">نقض</option>
-                                <option value="تمييز">تمييز</option>
-                                <option value="أخرى">أخرى +</option>
-                            </select>
-                            <input type="text" id="otherDegree" placeholder="اكتب درجة التقاضي" style="display:none; margin-top:10px;">
-                        </div>
-                        <div class="form-group"><label>تاريخ الجلسة الأولى <span style="color:red">*</span></label><input type="datetime-local" id="firstSessionDate" required></div>
-                        <div class="form-group"><label>الموكل <span style="color:red">*</span></label>
-                            <input type="text" id="clientSearch" placeholder="ابحث عن موكل..." style="margin-bottom: 10px;">
-                            <select id="caseClient" required size="5">
-                                <option value="">اختر موكل</option>
-                            </select>
-                        </div>
-                        <div class="form-group"><label>صفة الموكل <span style="color:red">*</span></label>
-                            <select id="clientRole" required>
-                                <option value="">اختر الصفة</option>
-                                <option value="مدعي">مدعي</option>
-                                <option value="مدعي عليه">مدعي عليه</option>
-                                <option value="متهم">متهم</option>
-                                <option value="مجني عليه">مجني عليه</option>
-                                <option value="شاكي">شاكي</option>
-                                <option value="مشكو في حقه">مشكو في حقه</option>
-                                <option value="سلطته الاتهام">سلطته الاتهام</option>
-                                <option value="مستأنف">مستأنف</option>
-                                <option value="مستأنف ضده">مستأنف ضده</option>
-                                <option value="معترض">معترض</option>
-                                <option value="معترض ضده">معترض ضده</option>
-                            </select>
-                        </div>
-                        <div class="opponent-section">
-                            <div class="opponent-section-title"><i class="fas fa-gavel"></i> الخصم الأول <span style="color:red">*</span></div>
-                            <div class="form-group"><label>اسم الخصم</label><input type="text" id="opponentName" required></div>
-                            <div class="form-group"><label>صفة الخصم</label>
-                                <select id="opponentRole" required>
-                                    <option value="">اختر الصفة</option>
-                                    <option value="مدعي">مدعي</option>
-                                    <option value="مدعي عليه">مدعي عليه</option>
-                                    <option value="متهم">متهم</option>
-                                    <option value="مجني عليه">مجني عليه</option>
-                                    <option value="شاكي">شاكي</option>
-                                    <option value="مشكو في حقه">مشكو في حقه</option>
-                                    <option value="سلطته الاتهام">سلطته الاتهام</option>
-                                    <option value="مستأنف">مستأنف</option>
-                                    <option value="مستأنف ضده">مستأنف ضده</option>
-                                    <option value="معترض">معترض</option>
-                                    <option value="معترض ضده">معترض ضده</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="opponent-section">
-                            <div class="opponent-section-title"><i class="fas fa-user-friends"></i> خصم ثاني (اختياري)</div>
-                            <div class="form-group"><label>اسم الخصم الثاني</label><input type="text" id="opponent2Name"></div>
-                            <div class="form-group"><label>صفة الخصم الثاني</label>
-                                <select id="opponent2Role">
-                                    <option value="">اختر الصفة</option>
-                                    <option value="مدعي">مدعي</option>
-                                    <option value="مدعي عليه">مدعي عليه</option>
-                                    <option value="متهم">متهم</option>
-                                    <option value="مجني عليه">مجني عليه</option>
-                                    <option value="شاكي">شاكي</option>
-                                    <option value="مشكو في حقه">مشكو في حقه</option>
-                                    <option value="سلطته الاتهام">سلطته الاتهام</option>
-                                    <option value="مستأنف">مستأنف</option>
-                                    <option value="مستأنف ضده">مستأنف ضده</option>
-                                    <option value="معترض">معترض</option>
-                                    <option value="معترض ضده">معترض ضده</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group"><label>القرار</label><textarea id="caseDecision" rows="3"></textarea></div>
-                        <button type="submit">✅ إضافة قضية</button>
-                    </form>
-                </div>
-                
-                <div id="activeCasesPanel" class="panel">
-                    <h3>📂 قضايا المكتب</h3>
-                    <div class="internal-search">
-                        <input type="text" id="activeSearchInput" placeholder="🔍 بحث...">
-                        <button onclick="searchActiveCases()" class="btn-sm">بحث</button>
-                        <button onclick="clearActiveSearch()" class="btn-sm btn-warning">مسح</button>
-                    </div>
-                    <div id="activeCasesList"></div>
-                </div>
-                
-                <div id="tomorrowSessionsPanel" class="panel">
-                    <h3>📅 جلسات الغد</h3>
-                    <div style="overflow-x: auto;">
-                        <table class="data-table">
-                            <thead><tr><th>التاريخ</th><th>المحكمة</th><th>المادة</th><th>رقم الدعوى</th><th>السنة</th><th>رقم الملف</th><th>الموكل</th><th></th></tr></thead>
-                            <tbody id="tomorrowSessionsTableBody"><tr><td colspan="8" style="text-align:center;">لا توجد جلسات</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
-                
-                <div id="advancedAgendaPanel" class="panel">
-                    <h3>📅 الأجندة المتطورة</h3>
-                    <div id="advancedAgendaList"></div>
-                </div>
-                
-                <div id="pastSessionsPanel" class="panel">
-                    <h3>📜 ماتم في الجلسات</h3>
-                    <div id="pastSessionsList"></div>
-                </div>
-                
-                <div id="closedCasesPanel" class="panel"><h3>📦 القضايا المنتهية</h3><div id="closedCasesList"></div></div>
-                <div id="clientsPanel" class="panel"><h3>👥 الموكلين</h3><form id="clientForm"><div class="form-group"><label>الاسم</label><input type="text" id="clientName" required></div><div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div><button type="submit">➕ إضافة موكل</button></form><div id="clientsList"></div></div>
-                
-                <div id="adminWorksPanel" class="panel">
-                    <h3>📋 الأعمال الإدارية</h3>
-                    <button onclick="showAddAdminWork()" class="btn-success btn-sm">➕ إضافة عمل إداري</button>
-                    <div id="adminWorksPendingList"></div>
-                    <div id="adminWorksCompletedList"></div>
-                </div>
-                
-                <div id="judgmentRecordsPanel" class="panel"><h3>⚖️ سجل الأحكام</h3><div id="judgmentRecordsList"></div></div>
-                <div id="enforcementsPanel" class="panel"><h3>📄 توكيلات التنفيذ</h3><button onclick="showAddEnforcement()" class="btn-success">➕ إضافة توكيل</button><div id="enforcementsList"></div></div>
-                <div id="expertsPanel" class="panel"><h3>👨‍⚖️ الخبراء</h3><button onclick="showAddExpert()" class="btn-success">➕ إضافة خبير</button><div id="expertsList"></div></div>
-                <div id="archivePanel" class="panel"><h3>📚 الأرشيف</h3><div id="archiveCategories"></div><div id="archiveCasesList"></div></div>
-                <div id="reportsPanel" class="panel"><h3>📊 التقارير <button onclick="exportToExcel()" class="btn-sm btn-success">📊 تصدير Excel</button></h3><div class="report-simple"><h4>📈 إحصائيات</h4><p>قضايا المكتب: <strong id="reportTotalActive">0</strong></p><p>قضايا منتهية: <strong id="reportTotalClosed">0</strong></p><p>الموكلين: <strong id="reportTotalClients">0</strong></p></div><div id="weeklyReport"></div></div>
-                
-                <div id="employeesPanel" class="panel"><h3>👨‍💼 الموظفين - النشاط</h3><form id="employeeForm"><div class="form-group"><label>الاسم</label><input type="text" id="empUsername" required></div><div class="form-group"><label>كلمة المرور</label><input type="text" id="empPassword" required></div><div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div><button type="submit">➕ إضافة موظف</button></form><div id="employeesList"></div></div>
-                
-                <div id="maintenancePanel" class="panel">
-                    <h3>🛠 التحكم في وضع الصيانة</h3>
-                    <div class="form-group">
-                        <label>حالة الموقع</label>
-                        <select id="maintenanceStatusSelect">
-                            <option value="off">🟢 الموقع يعمل</option>
-                            <option value="on">🔴 تعطيل الموقع (صيانة)</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="maintenanceDurationDiv" style="display:none;">
-                        <label>مدة الصيانة (ساعات)</label>
-                        <input type="number" id="maintenanceDuration" placeholder="مثال: 2 (اختياري)" min="1">
-                    </div>
-                    <button onclick="toggleMaintenance()" class="btn-warning">تطبيق</button>
-                    <div id="maintenanceInfo" style="margin-top: 15px;"></div>
-                </div>
-            </div>
+            <div id="dashboardPanel" class="panel active-panel"><h3>لوحة التحكم</h3><p>مرحباً بك في نظام إدارة قضايا مكتب الخواجا</p></div>
+            <div id="newCasePanel" class="panel"><h3>➕ قضية جديدة</h3><form id="caseForm"><div class="form-group"><label>رقم القضية *</label><input type="text" id="caseNumber" required></div><div class="form-group"><label>سنة القضية *</label><input type="text" id="caseYear" required></div><div class="form-group"><label>رقم الملف</label><input type="text" id="caseFileNumber"></div><div class="form-group"><label>موضوع القضية *</label><input type="text" id="caseSubject" required></div><div class="form-group"><label>المحكمة *</label><input type="text" id="caseCourt" required></div><div class="form-group"><label>الدائرة</label><input type="text" id="caseCircuit"></div><div class="form-group"><label>درجة التقاضي</label><input type="text" id="caseDegree"></div><div class="form-group"><label>تاريخ الجلسة الأولى *</label><input type="datetime-local" id="firstSessionDate" required></div><div class="form-group"><label>الموكل *</label><input type="text" id="clientSearch" placeholder="ابحث عن موكل..." list="clientsList"><datalist id="clientsList"></datalist></div><div class="form-group"><label>صفة الموكل</label><select id="clientRole"><option value="مدعي">مدعي</option><option value="مدعي عليه">مدعي عليه</option><option value="متهم">متهم</option></select></div><div class="form-group"><label>الخصم الأول *</label><input type="text" id="opponentName" required></div><div class="form-group"><label>صفة الخصم</label><select id="opponentRole"><option value="مدعي">مدعي</option><option value="مدعي عليه">مدعي عليه</option></select></div><div class="form-group"><label>الخصم الثاني (اختياري)</label><input type="text" id="opponent2Name"></div><div class="form-group"><label>القرار</label><textarea id="caseDecision" rows="3"></textarea></div><button type="submit">إضافة قضية</button></form></div>
+            <div id="activeCasesPanel" class="panel"><h3>📂 قضايا المكتب</h3><div id="activeCasesList"></div></div>
+            <div id="tomorrowSessionsPanel" class="panel"><h3>📅 جلسات الغد</h3><div id="tomorrowList"></div></div>
+            <div id="pastSessionsPanel" class="panel"><h3>📜 ماتم في الجلسات</h3><div id="pastList"></div></div>
+            <div id="closedCasesPanel" class="panel"><h3>📦 قضايا منتهية</h3><div id="closedList"></div></div>
+            <div id="clientsPanel" class="panel"><h3>👥 الموكلين</h3><form id="clientForm"><div class="form-group"><label>الاسم</label><input type="text" id="clientName" required></div><div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div><button type="submit">إضافة موكل</button></form><div id="clientsList"></div></div>
+            <div id="adminWorksPanel" class="panel"><h3>📋 الأعمال الإدارية</h3><button onclick="addAdminWork()" class="btn-sm">➕ إضافة</button><div id="adminWorksList"></div></div>
+            <div id="judgmentRecordsPanel" class="panel"><h3>⚖️ سجل الأحكام</h3><div id="judgmentList"></div></div>
+            <div id="enforcementsPanel" class="panel"><h3>📄 توكيلات التنفيذ</h3><button onclick="addEnforcement()" class="btn-sm">➕ إضافة</button><div id="enforcementsList"></div></div>
+            <div id="expertsPanel" class="panel"><h3>👨‍⚖️ الخبراء</h3><button onclick="addExpert()" class="btn-sm">➕ إضافة</button><div id="expertsList"></div></div>
+            <div id="archivePanel" class="panel"><h3>📚 الأرشيف</h3><div id="archiveList"></div></div>
+            <div id="employeesPanel" class="panel"><h3>👨‍💼 الموظفين</h3><form id="employeeForm"><div class="form-group"><label>اسم المستخدم</label><input type="text" id="empUsername" required></div><div class="form-group"><label>كلمة المرور</label><input type="text" id="empPassword" required></div><div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div><button type="submit">إضافة موظف</button></form><div id="employeesList"></div></div>
+            <div id="maintenancePanel" class="panel"><h3>🛠 وضع الصيانة</h3><button onclick="toggleMaintenance()" id="maintenanceBtn">تعطيل الموقع</button></div>
         </div>
     </div>
 </div>
 
-<div id="detailsModal" class="modal" onclick="if(event.target===this) closeModal()">
-    <div class="modal-content"><h3 id="modalTitle"></h3><div id="modalBody"></div><div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;"><button onclick="saveCaseDetails()" class="btn-success">💾 حفظ</button><button onclick="closeModal()" class="btn-danger">إغلاق</button></div></div>
-</div>
-
-<div id="toastNotification" class="toast-notification"></div>
+<div id="toast" class="toast"></div>
 
 <script>
     const firebaseConfig = {
@@ -802,1381 +137,483 @@
         messagingSenderId: "449097751220",
         appId: "1:449097751220:web:d6ba2d7abead0576ad5e1"
     };
-    
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    const db = firebase.database();
     
-    let activeCases = [], closedCases = [], clients = [], employees = [], currentUser = null;
-    let experts = [], enforcements = [], adminWorks = [], judgmentRecords = [];
-    let customCourts = [];
-    let fixedAdmins = [];
+    let currentUser = null;
+    let activeCases = [], closedCases = [], clients = [], employees = [], adminWorks = [], judgmentRecords = [], enforcements = [], experts = [];
+    let maintenanceMode = false;
     
-    function showToast(msg) {
-        let toast = document.getElementById('toastNotification');
-        toast.innerText = msg;
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 3000);
-    }
+    function showToast(msg) { let t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+    function getClientName(id) { let c = clients.find(c => c.id == id); return c ? c.name : 'غير محدد'; }
     
-    function getClientName(clientId) {
-        if (!clientId) return 'غير محدد';
-        let client = clients.find(c => c.id == clientId);
-        if (client && client.name) return client.name;
-        try {
-            let cachedClients = JSON.parse(localStorage.getItem('law_clients_backup') || '[]');
-            let cached = cachedClients.find(c => c.id == clientId);
-            if (cached && cached.name) return cached.name;
-        } catch(e) {}
-        return 'غير محدد';
-    }
-    
-    function backupClientsToLocal() {
-        if (clients.length > 0) {
-            localStorage.setItem('law_clients_backup', JSON.stringify(clients));
-        }
-    }
-    
-    function canDeleteEverywhere() {
-        return currentUser && (currentUser.superAdmin === true || currentUser.id === "admin_george");
-    }
-    
-    function canDeleteEmployee(employee) {
-        if (!currentUser) return false;
-        if (employee.id === "admin_hesham") return false;
-        if (employee.id === "admin_george" && currentUser.id !== "admin_hesham") return false;
-        if (currentUser.superAdmin === true) return true;
-        if (currentUser.id === "admin_george" && !employee.isFixed) return true;
-        return false;
-    }
-    
-    function canModifyEmployee(employee) {
-        if (!currentUser) return false;
-        if (employee.id === "admin_hesham") return false;
-        if (currentUser.superAdmin === true) return true;
-        if (currentUser.id === "admin_george") {
-            if (!employee.isFixed) return true;
-            if (employee.id === currentUser.id) return true;
-            return false;
-        }
-        return false;
-    }
-    
-    window.switchToTab = function(tabId) {
-        document.querySelectorAll('.sidebar-menu-item').forEach(item => item.classList.remove('active'));
-        let selectedItem = document.querySelector(`.sidebar-menu-item[data-tab="${tabId}"]`);
-        if (selectedItem) selectedItem.classList.add('active');
-        document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active-panel'));
-        let panelId = tabId + 'Panel';
-        let targetPanel = document.getElementById(panelId);
-        if (targetPanel) targetPanel.classList.add('active-panel');
-        else if (tabId === 'dashboard') document.getElementById('dashboardPanel').classList.add('active-panel');
-        localStorage.setItem('lastOpenTab', tabId);
-    };
-    
-    function bindSidebarButtons() {
-        document.querySelectorAll('.sidebar-menu-item').forEach(item => {
-            item.removeEventListener('click', () => {});
-            item.addEventListener('click', () => {
-                let tabId = item.getAttribute('data-tab');
-                if (tabId) switchToTab(tabId);
-            });
-        });
-    }
-    
-    function toggleMaintenance() {
-        let status = document.getElementById('maintenanceStatusSelect').value;
-        let duration = document.getElementById('maintenanceDuration').value;
-        if (status === 'on') {
-            let endTime = duration ? new Date(Date.now() + duration * 3600000).toISOString() : null;
-            database.ref('maintenance').set({ isActive: true, endTime: endTime, startedBy: currentUser.username, startedAt: new Date().toISOString() });
-            showToast('🔴 تم تعطيل الموقع للصيانة');
-        } else {
-            database.ref('maintenance').set({ isActive: false, endTime: null });
-            showToast('🟢 تم تشغيل الموقع');
-        }
-    }
-    
-    function loadMaintenanceStatus() {
-        database.ref('maintenance').on('value', (snapshot) => {
-            let data = snapshot.val();
-            let isActive = data?.isActive || false;
-            let endTime = data?.endTime;
-            if (currentUser?.superAdmin !== true && isActive) {
-                document.getElementById('dashboardContent').style.display = 'none';
-                document.getElementById('maintenanceScreen').style.display = 'flex';
-                if (endTime) {
-                    let remaining = new Date(endTime) - new Date();
-                    if (remaining > 0) {
-                        let hours = Math.floor(remaining / 3600000);
-                        let minutes = Math.floor((remaining % 3600000) / 60000);
-                        document.getElementById('maintenanceTimer').innerHTML = `<p>سيتم انتهاء الصيانة بعد: ${hours} ساعة ${minutes} دقيقة</p>`;
-                    }
-                }
-            } else {
-                document.getElementById('dashboardContent').style.display = 'block';
-                document.getElementById('maintenanceScreen').style.display = 'none';
-            }
-            if (currentUser?.superAdmin === true) {
-                let select = document.getElementById('maintenanceStatusSelect');
-                if (select) select.value = isActive ? 'on' : 'off';
-                document.getElementById('maintenanceDurationDiv').style.display = isActive ? 'none' : 'flex';
-                document.getElementById('maintenanceInfo').innerHTML = isActive ? `<p style="color:#dc3545;">🔴 الموقع معطل حاليًا</p>` : `<p style="color:#28a745;">🟢 الموقع يعمل</p>`;
+    // ========== دالة إصلاح الروابط التلقائية (هي اللي هتحل المشكلة) ==========
+    function autoFixClientIds() {
+        let fixed = false;
+        if (clients.length === 0) return;
+        
+        activeCases.forEach(c => {
+            // لو الموكل مش موجود في قائمة الموكلين
+            if (c.clientId && !clients.find(cl => cl.id == c.clientId)) {
+                // نربطه بأول موكل موجود
+                c.clientId = clients[0].id;
+                fixed = true;
+                console.log(`تم إصلاح clientId للقضية ${c.number}`);
             }
         });
-    }
-    
-    function getTomorrowSessions() {
-        let tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        let tomorrowEnd = new Date(tomorrow);
-        tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
-        return activeCases.filter(c => {
-            let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
-            return sessionDate && sessionDate >= tomorrow && sessionDate < tomorrowEnd;
-        }).map(s => ({ ...s, sessionDate: s.nextSessionDate ? new Date(s.nextSessionDate) : new Date(s.firstSessionDate), clientName: getClientName(s.clientId) }));
-    }
-    
-    function renderTomorrowSessions() {
-        let tbody = document.getElementById('tomorrowSessionsTableBody');
-        if (!tbody) return;
-        let sessions = getTomorrowSessions();
-        if (sessions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">لا توجد جلسات</td></tr>';
-            return;
+        
+        closedCases.forEach(c => {
+            if (c.clientId && !clients.find(cl => cl.id == c.clientId)) {
+                c.clientId = clients[0].id;
+                fixed = true;
+                console.log(`تم إصلاح clientId للقضية المنتهية ${c.number}`);
+            }
+        });
+        
+        if (fixed) {
+            db.ref('activeCases').set(activeCases);
+            db.ref('closedCases').set(closedCases);
+            showToast('✅ تم إصلاح روابط الموكلين تلقائياً');
         }
-        tbody.innerHTML = sessions.map(s => `
-            <tr class="case-row" onclick="openCaseDetails('${s.id}')">
-                <td>${new Date(s.sessionDate).toLocaleDateString('ar-EG')}</td>
-                <td>${s.court}</td>
-                <td>${s.subject || '-'}</td>
-                <td>${s.number}</td>
-                <td>${s.year}</td>
-                <td>${s.fileNumber || '-'}</td>
-                <td>${s.clientName}</td>
-                <td><i class="fas fa-eye" style="color:#1a4a5f;"></i></td>
-            </tr>
-        `).join('');
-        document.getElementById('dashboardTomorrowCount').innerText = sessions.length;
+    }
+    
+    function switchTab(tabId) {
+        document.querySelectorAll('.sidebar-menu-item').forEach(i => i.classList.remove('active'));
+        document.querySelector(`.sidebar-menu-item[data-tab="${tabId}"]`).classList.add('active');
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
+        document.getElementById(tabId + 'Panel').classList.add('active-panel');
+        localStorage.setItem('lastTab', tabId);
+    }
+    
+    function loadData() {
+        db.ref('activeCases').on('value', s => { activeCases = s.val() ? Object.values(s.val()) : []; renderActiveCases(); renderTomorrowSessions(); renderPastSessions(); updateStats(); updateMiniAgenda(); });
+        db.ref('closedCases').on('value', s => { closedCases = s.val() ? Object.values(s.val()) : []; renderClosedCases(); renderArchive(); updateStats(); });
+        db.ref('clients').on('value', s => { 
+            clients = s.val() ? Object.values(s.val()) : []; 
+            renderClients(); 
+            updateDatalist(); 
+            updateStats(); 
+            autoFixClientIds(); // <-- هنا الإصلاح التلقائي
+            renderActiveCases(); 
+            renderPastSessions();
+            renderClosedCases();
+            renderArchive();
+        });
+        db.ref('employees').on('value', s => { employees = s.val() ? Object.values(s.val()) : []; renderEmployees(); });
+        db.ref('adminWorks').on('value', s => { adminWorks = s.val() ? Object.values(s.val()) : []; renderAdminWorks(); });
+        db.ref('judgmentRecords').on('value', s => { judgmentRecords = s.val() ? Object.values(s.val()) : []; renderJudgmentRecords(); });
+        db.ref('enforcements').on('value', s => { enforcements = s.val() ? Object.values(s.val()) : []; renderEnforcements(); });
+        db.ref('experts').on('value', s => { experts = s.val() ? Object.values(s.val()) : []; renderExperts(); });
+        db.ref('maintenance').on('value', s => { maintenanceMode = s.val()?.isActive || false; if(maintenanceMode && currentUser?.superAdmin !== true) document.getElementById('dashboard').style.display = 'none'; });
+    }
+    
+    function updateStats() {
+        document.getElementById('activeCount').innerText = activeCases.length;
+        document.getElementById('closedCount').innerText = closedCases.length;
+        let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0);
+        document.getElementById('tomorrowCount').innerText = activeCases.filter(c => { let d = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null); return d && d.toDateString() === tomorrow.toDateString(); }).length;
+        document.getElementById('clientsCount').innerText = clients.length;
+    }
+    
+    function updateDatalist() {
+        let dl = document.getElementById('clientsList');
+        if(dl) dl.innerHTML = clients.map(c => `<option value="${c.name}">`).join('');
     }
     
     function renderActiveCases() {
         let container = document.getElementById('activeCasesList');
-        if (!container) return;
-        if (activeCases.length === 0) {
-            container.innerHTML = '<p>لا توجد قضايا</p>';
-            return;
-        }
+        if(!container) return;
+        if(activeCases.length === 0) { container.innerHTML = '<p>لا توجد قضايا</p>'; return; }
         container.innerHTML = activeCases.map(c => `
-            <div class="session-card" onclick="openCaseDetails('${c.id}')">
-                <h4>⚖️ ${c.number} (${c.year}) - ${c.court}</h4>
+            <div class="session-card" onclick="showCaseDetails('${c.id}')">
+                <b>⚖️ ${c.number} (${c.year}) - ${c.court}</b>
                 <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${getClientName(c.clientId)} (${c.clientRole})</span>
-                    <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span>
-                    <span class="info-badge"><i class="fas fa-calendar"></i> الجلسة القادمة: ${c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد')}</span>
+                    <span class="info-badge"><i class="fas fa-user"></i> ${getClientName(c.clientId)} (${c.clientRole})</span>
+                    <span class="info-badge"><i class="fas fa-gavel"></i> ${c.opponentName} (${c.opponentRole})</span>
+                    <span class="info-badge"><i class="fas fa-calendar"></i> ${c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : 'لا يوجد')}</span>
                 </div>
-                ${canDeleteEverywhere() ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteCase('${c.id}')">🗑️ حذف</button>` : ''}
             </div>
         `).join('');
-        document.getElementById('dashboardActiveCount').innerText = activeCases.length;
-        document.getElementById('reportTotalActive').innerText = activeCases.length;
     }
     
-    window.deleteCase = function(caseId) {
-        if (confirm('هل أنت متأكد من حذف هذه القضية؟')) {
-            activeCases = activeCases.filter(c => c.id != caseId);
-            database.ref('activeCases').set(activeCases);
-            showToast('تم حذف القضية');
-            renderActiveCases();
-            renderPastSessions();
-        }
-    };
-    
-    function renderExperts() {
-        let container = document.getElementById('expertsList');
-        if (!container) return;
-        if (experts.length === 0) {
-            container.innerHTML = '<p>لا توجد مواعيد خبراء</p>';
-            return;
-        }
-        let upcomingCount = experts.filter(e => {
-            if (!e.expertDate) return false;
-            let expertDate = new Date(e.expertDate);
-            let tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            return expertDate.toDateString() === tomorrow.toDateString();
-        }).length;
-        document.getElementById('dashboardExpertsCount').innerText = upcomingCount;
-        container.innerHTML = experts.map(e => {
-            let caseData = activeCases.find(c => c.id == e.caseId) || closedCases.find(c => c.id == e.caseId);
-            return `
-                <div class="expert-card" onclick="openCaseDetails('${e.caseId}')">
-                    <h4>👨‍⚖️ خبير - ${e.caseNumber} (${e.caseYear})</h4>
-                    <div class="info-row">
-                        <span class="info-badge">الموكل: ${e.clientName}</span>
-                        <span class="info-badge">موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}</span>
-                    </div>
-                    <p><strong>المطلوب:</strong> ${e.request || 'لا يوجد'}</p>
-                    ${canDeleteEverywhere() ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteExpert('${e.id}')">🗑️ حذف</button>` : ''}
-                </div>
-            `;
-        }).join('');
-    }
-    
-    window.deleteExpert = function(expertId) {
-        if (confirm('هل أنت متأكد من حذف موعد الخبير؟')) {
-            experts = experts.filter(e => e.id != expertId);
-            database.ref('experts').set(experts);
-            showToast('تم حذف موعد الخبير');
-            renderExperts();
-        }
-    };
-    
-    window.showAddExpert = function() {
-        let caseOptions = activeCases.map(c => `<option value="${c.id}">${c.number} (${c.year}) - ${getClientName(c.clientId)}</option>`).join('');
-        let modalHtml = `
-            <h4>➕ إضافة خبير جديد</h4>
-            <div class="form-group"><label>اختر القضية</label><select id="expertCaseId">${caseOptions}</select></div>
-            <div class="form-group"><label>موعد الخبير</label><input type="datetime-local" id="expertDate"></div>
-            <div class="form-group"><label>المطلوب من الخبير</label><textarea id="expertRequest" rows="2"></textarea></div>
-            <button onclick="saveExpert()" class="btn-success">حفظ</button>
-        `;
-        document.getElementById('modalTitle').innerHTML = '➕ إضافة خبير';
-        document.getElementById('modalBody').innerHTML = modalHtml;
-        document.getElementById('detailsModal').style.display = 'flex';
-    };
-    
-    window.saveExpert = function() {
-        let caseId = document.getElementById('expertCaseId').value;
-        let caseData = activeCases.find(c => c.id == caseId);
-        if (!caseData) return;
-        let expert = {
-            id: Date.now().toString(),
-            caseId: caseId,
-            caseNumber: caseData.number,
-            caseYear: caseData.year,
-            clientName: getClientName(caseData.clientId),
-            opponentName: caseData.opponentName,
-            expertDate: document.getElementById('expertDate').value,
-            request: document.getElementById('expertRequest').value,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        };
-        experts.push(expert);
-        database.ref('experts').set(experts);
-        showToast('تم إضافة موعد الخبير');
-        closeModal();
-        renderExperts();
-    };
-    
-    function renderEnforcements() {
-        let container = document.getElementById('enforcementsList');
-        if (!container) return;
-        if (enforcements.length === 0) {
-            container.innerHTML = '<p>لا توجد توكيلات تنفيذ</p>';
-            return;
-        }
-        let upcomingCount = enforcements.filter(e => {
-            if (!e.date) return false;
-            let enforcementDate = new Date(e.date);
-            let tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            return enforcementDate.toDateString() === tomorrow.toDateString();
-        }).length;
-        document.getElementById('dashboardEnforcementsCount').innerText = upcomingCount;
-        container.innerHTML = enforcements.map(e => {
-            let caseData = activeCases.find(c => c.id == e.caseId) || closedCases.find(c => c.id == e.caseId);
-            return `
-                <div class="enforcement-card" onclick="openCaseDetails('${e.caseId}')">
-                    <h4>📄 توكيل تنفيذ - ${e.caseNumber} (${e.caseYear})</h4>
-                    <div class="info-row">
-                        <span class="info-badge">الموكل: ${e.clientName}</span>
-                        <span class="info-badge">تاريخ التنفيذ: ${new Date(e.date).toLocaleString('ar-EG')}</span>
-                    </div>
-                    <p><strong>المطلوب:</strong> ${e.request}</p>
-                    ${canDeleteEverywhere() ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteEnforcement('${e.id}')">🗑️ حذف</button>` : ''}
-                </div>
-            `;
-        }).join('');
-    }
-    
-    window.deleteEnforcement = function(enforcementId) {
-        if (confirm('هل أنت متأكد من حذف توكيل التنفيذ؟')) {
-            enforcements = enforcements.filter(e => e.id != enforcementId);
-            database.ref('enforcements').set(enforcements);
-            showToast('تم حذف توكيل التنفيذ');
-            renderEnforcements();
-        }
-    };
-    
-    window.showAddEnforcement = function() {
-        let caseOptions = activeCases.map(c => `<option value="${c.id}">${c.number} (${c.year}) - ${getClientName(c.clientId)}</option>`).join('');
-        let modalHtml = `
-            <h4>➕ إضافة توكيل تنفيذ جديد</h4>
-            <div class="form-group"><label>اختر القضية</label><select id="enforcementCaseId">${caseOptions}</select></div>
-            <div class="form-group"><label>تاريخ التنفيذ</label><input type="datetime-local" id="enforcementDate"></div>
-            <div class="form-group"><label>المطلوب في التنفيذ</label><textarea id="enforcementRequest" rows="2"></textarea></div>
-            <button onclick="saveEnforcement()" class="btn-success">حفظ</button>
-        `;
-        document.getElementById('modalTitle').innerHTML = '➕ إضافة توكيل تنفيذ';
-        document.getElementById('modalBody').innerHTML = modalHtml;
-        document.getElementById('detailsModal').style.display = 'flex';
-    };
-    
-    window.saveEnforcement = function() {
-        let caseId = document.getElementById('enforcementCaseId').value;
-        let caseData = activeCases.find(c => c.id == caseId);
-        if (!caseData) return;
-        let enforcement = {
-            id: Date.now().toString(),
-            caseId: caseId,
-            caseNumber: caseData.number,
-            caseYear: caseData.year,
-            clientName: getClientName(caseData.clientId),
-            opponentName: caseData.opponentName,
-            date: document.getElementById('enforcementDate').value,
-            request: document.getElementById('enforcementRequest').value,
-            createdAt: new Date().toISOString()
-        };
-        enforcements.push(enforcement);
-        database.ref('enforcements').set(enforcements);
-        showToast('تم إضافة توكيل التنفيذ');
-        closeModal();
-        renderEnforcements();
-    };
-    
-    function getPastSessionsCount() {
-        let now = new Date();
-        let count = 0;
-        activeCases.forEach(c => {
-            if (c.firstSessionDate && new Date(c.firstSessionDate) <= now && !c.firstSessionProcessed) count++;
-            if (c.nextSessionDate && new Date(c.nextSessionDate) <= now && !c.nextSessionProcessed) count++;
-        });
-        return count;
+    function renderTomorrowSessions() {
+        let container = document.getElementById('tomorrowList');
+        if(!container) return;
+        let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(0,0,0,0);
+        let sessions = activeCases.filter(c => { let d = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null); return d && d.toDateString() === tomorrow.toDateString(); });
+        if(sessions.length === 0) { container.innerHTML = '<p>لا توجد جلسات غداً</p>'; return; }
+        container.innerHTML = sessions.map(s => `
+            <div class="session-card" onclick="showCaseDetails('${s.id}')">
+                <b>⚖️ ${s.number} (${s.year}) - ${s.court}</b>
+                <div class="info-row"><span class="info-badge">الموكل: ${getClientName(s.clientId)}</span><span class="info-badge">الخصم: ${s.opponentName}</span></div>
+            </div>
+        `).join('');
     }
     
     function renderPastSessions() {
-        let container = document.getElementById('pastSessionsList');
-        if (!container) return;
+        let container = document.getElementById('pastList');
+        if(!container) return;
         let now = new Date();
-        let today = new Date();
-        today.setHours(0, 0, 0, 0);
-        let pastSessions = [];
-        
-        activeCases.forEach(c => {
-            if (c.firstSessionDate && new Date(c.firstSessionDate) <= now && !c.firstSessionProcessed) {
-                pastSessions.push({
-                    ...c,
-                    sessionType: 'first',
-                    sessionDate: new Date(c.firstSessionDate),
-                    decision: c.firstSessionDecision || ''
-                });
-            }
-            if (c.nextSessionDate && new Date(c.nextSessionDate) <= now && !c.nextSessionProcessed) {
-                pastSessions.push({
-                    ...c,
-                    sessionType: 'next',
-                    sessionDate: new Date(c.nextSessionDate),
-                    decision: c.nextSessionDecision || ''
-                });
-            }
+        let past = activeCases.filter(c => {
+            let first = c.firstSessionDate ? new Date(c.firstSessionDate) : null;
+            let next = c.nextSessionDate ? new Date(c.nextSessionDate) : null;
+            return (first && first <= now && !c.firstSessionProcessed) || (next && next <= now && !c.nextSessionProcessed);
         });
-        
-        pastSessions.sort((a, b) => b.sessionDate - a.sessionDate);
-        
-        if (pastSessions.length === 0) {
-            container.innerHTML = '<p>📭 لا توجد جلسات سابقة تحتاج إلى تسجيل قرار</p>';
-            document.getElementById('dashboardPastSessionsCount').innerText = 0;
-            return;
-        }
-        
-        document.getElementById('dashboardPastSessionsCount').innerText = pastSessions.length;
-        
-        container.innerHTML = pastSessions.map(s => {
-            let isToday = s.sessionDate.toDateString() === today.toDateString();
-            let badge = '';
-            if (isToday) badge = '<span style="background:#ffc107; color:#333; padding:2px 8px; border-radius:20px; font-size:11px; margin-right:10px;">اليوم</span>';
-            
-            return `
-                <div class="session-card" style="border-right-color: #ffc107;">
-                    <h4>${badge} ⚖️ ${s.number} (${s.year}) - ${s.court}</h4>
-                    <div class="info-row">
-                        <span class="info-badge"><i class="fas fa-calendar"></i> تاريخ الجلسة: ${s.sessionDate.toLocaleString('ar-EG')}</span>
-                        <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${getClientName(s.clientId)} (${s.clientRole})</span>
-                        <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span>
-                    </div>
-                    <p><strong>موضوع القضية:</strong> ${s.subject || '-'}</p>
-                    <div class="admin-actions" style="margin-top: 15px;">
-                        <button class="btn-warning btn-sm" onclick="openNewSession('${s.id}', '${s.sessionType}')">📅 جلسة جديدة</button>
-                        <button class="btn-danger btn-sm" onclick="closeCaseFromPast('${s.id}', '${s.sessionType}')">🏁 إنهاء القضية</button>
-                        <button class="btn-primary btn-sm" onclick="sendToAdminWork('${s.id}')">📋 أعمال إدارية</button>
-                        <button class="btn-primary btn-sm" onclick="sendToJudgmentRecord('${s.id}')">⚖️ سجل أحكام</button>
-                        <button class="btn-primary btn-sm" onclick="sendToExpertFromPast('${s.id}')">👨‍⚖️ خبراء</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    window.openNewSession = function(caseId, sessionType) {
-        let caseIndex = activeCases.findIndex(c => c.id == caseId);
-        if (caseIndex === -1) return;
-        let newDate = prompt('أدخل تاريخ الجلسة الجديدة (YYYY-MM-DD HH:MM):', new Date().toISOString().slice(0,16));
-        if (!newDate) return;
-        let decision = prompt('أدخل قرار الجلسة الحالية:', '');
-        if (!decision) return;
-        if (sessionType === 'first') {
-            activeCases[caseIndex].firstSessionDecision = decision;
-            activeCases[caseIndex].firstSessionProcessed = true;
-        } else {
-            activeCases[caseIndex].nextSessionDecision = decision;
-            activeCases[caseIndex].nextSessionProcessed = true;
-        }
-        activeCases[caseIndex].nextSessionDate = newDate;
-        activeCases[caseIndex].nextSessionProcessed = false;
-        database.ref('activeCases').set(activeCases);
-        showToast(`✅ تم تسجيل القرار: "${decision}" وتم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
-        renderActiveCases();
-        renderPastSessions();
-        renderAdvancedAgenda();
-        renderDashboardAgenda();
-        updateDashboardCounts();
-    };
-    
-    window.closeCaseFromPast = function(caseId, sessionType) {
-        let caseIndex = activeCases.findIndex(c => c.id == caseId);
-        if (caseIndex === -1) return;
-        let judgment = prompt('أدخل منطوق الحكم النهائي:');
-        if (!judgment) return;
-        let decision = prompt('أدخل قرار الجلسة النهائي:', '');
-        if (sessionType === 'first') {
-            activeCases[caseIndex].firstSessionDecision = decision;
-            activeCases[caseIndex].firstSessionProcessed = true;
-        } else {
-            activeCases[caseIndex].nextSessionDecision = decision;
-            activeCases[caseIndex].nextSessionProcessed = true;
-        }
-        let closedCase = { ...activeCases[caseIndex], judgment, closedAt: new Date().toISOString() };
-        closedCases.push(closedCase);
-        activeCases.splice(caseIndex, 1);
-        database.ref('activeCases').set(activeCases);
-        database.ref('closedCases').set(closedCases);
-        showToast(`✅ تم إنهاء القضية ونقلها للقضايا المنتهية`);
-        renderActiveCases();
-        renderPastSessions();
-        renderClosedCases();
-        renderArchive();
-        updateDashboardCounts();
-    };
-    
-    window.sendToAdminWork = function(caseId) {
-        let caseIndex = activeCases.findIndex(c => c.id == caseId);
-        if (caseIndex === -1) return;
-        let workType = prompt('أدخل نوع العمل الإداري (مثال: سحب حكم، صيغة تنفيذية، استلام مستندات):', 'سحب حكم');
-        let dueDate = prompt('أدخل تاريخ المعاد (YYYY-MM-DD):', new Date().toISOString().slice(0,10));
-        let decision = prompt('أدخل قرار الجلسة:', '');
-        if (!workType || !dueDate) return;
-        let sessionType = activeCases[caseIndex].nextSessionProcessed ? 'next' : 'first';
-        if (sessionType === 'first') {
-            activeCases[caseIndex].firstSessionDecision = decision;
-            activeCases[caseIndex].firstSessionProcessed = true;
-        } else {
-            activeCases[caseIndex].nextSessionDecision = decision;
-            activeCases[caseIndex].nextSessionProcessed = true;
-        }
-        let work = {
-            id: Date.now().toString(),
-            caseId: caseId,
-            caseNumber: activeCases[caseIndex].number,
-            caseYear: activeCases[caseIndex].year,
-            type: workType,
-            dueDate: dueDate,
-            notes: '',
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        };
-        adminWorks.push(work);
-        database.ref('activeCases').set(activeCases);
-        database.ref('adminWorks').set(adminWorks);
-        showToast(`✅ تم إضافة العمل الإداري: ${workType}`);
-        renderActiveCases();
-        renderPastSessions();
-        renderAdminWorks();
-        updateDashboardCounts();
-    };
-    
-    window.sendToJudgmentRecord = function(caseId) {
-        let caseIndex = activeCases.findIndex(c => c.id == caseId);
-        if (caseIndex === -1) return;
-        let judgmentType = prompt('أدخل نوع الحكم (مثال: يلزم معارضة، يلزم استئناف):', 'يلزم معارضة');
-        let decision = prompt('أدخل قرار الجلسة:', '');
-        if (!judgmentType) return;
-        let sessionType = activeCases[caseIndex].nextSessionProcessed ? 'next' : 'first';
-        if (sessionType === 'first') {
-            activeCases[caseIndex].firstSessionDecision = decision;
-            activeCases[caseIndex].firstSessionProcessed = true;
-        } else {
-            activeCases[caseIndex].nextSessionDecision = decision;
-            activeCases[caseIndex].nextSessionProcessed = true;
-        }
-        let record = {
-            id: Date.now().toString(),
-            caseId: caseId,
-            caseNumber: activeCases[caseIndex].number,
-            caseYear: activeCases[caseIndex].year,
-            type: judgmentType,
-            newSessionDate: '',
-            notes: '',
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        };
-        judgmentRecords.push(record);
-        database.ref('activeCases').set(activeCases);
-        database.ref('judgmentRecords').set(judgmentRecords);
-        showToast(`✅ تم إضافة سجل الحكم: ${judgmentType}`);
-        renderActiveCases();
-        renderPastSessions();
-        renderJudgmentRecords();
-        updateDashboardCounts();
-    };
-    
-    window.sendToExpertFromPast = function(caseId) {
-        let caseIndex = activeCases.findIndex(c => c.id == caseId);
-        if (caseIndex === -1) return;
-        let expertDate = prompt('أدخل موعد الخبير:', new Date().toISOString().slice(0,16));
-        let request = prompt('أدخل المطلوب من الخبير:', '');
-        let decision = prompt('أدخل قرار الجلسة:', '');
-        if (!expertDate) return;
-        let sessionType = activeCases[caseIndex].nextSessionProcessed ? 'next' : 'first';
-        if (sessionType === 'first') {
-            activeCases[caseIndex].firstSessionDecision = decision;
-            activeCases[caseIndex].firstSessionProcessed = true;
-        } else {
-            activeCases[caseIndex].nextSessionDecision = decision;
-            activeCases[caseIndex].nextSessionProcessed = true;
-        }
-        let expert = {
-            id: Date.now().toString(),
-            caseId: caseId,
-            caseNumber: activeCases[caseIndex].number,
-            caseYear: activeCases[caseIndex].year,
-            clientName: getClientName(activeCases[caseIndex].clientId),
-            opponentName: activeCases[caseIndex].opponentName,
-            expertDate: expertDate,
-            request: request || '',
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        };
-        experts.push(expert);
-        database.ref('activeCases').set(activeCases);
-        database.ref('experts').set(experts);
-        showToast(`✅ تم إرسال القضية للخبير في ${new Date(expertDate).toLocaleString('ar-EG')}`);
-        renderActiveCases();
-        renderPastSessions();
-        renderExperts();
-        updateDashboardCounts();
-    };
-    
-    function getTomorrowAdminWorksCount() {
-        let tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        return adminWorks.filter(w => {
-            if (!w.dueDate || w.status === 'completed') return false;
-            let dueDate = new Date(w.dueDate);
-            dueDate.setHours(0, 0, 0, 0);
-            return dueDate.getTime() === tomorrow.getTime();
-        }).length;
-    }
-    
-    function renderAdminWorks() {
-        let pendingContainer = document.getElementById('adminWorksPendingList');
-        let completedContainer = document.getElementById('adminWorksCompletedList');
-        if (!pendingContainer || !completedContainer) return;
-        let pending = adminWorks.filter(w => w.status !== 'completed');
-        let completed = adminWorks.filter(w => w.status === 'completed');
-        document.getElementById('dashboardAdminWorksCount').innerText = getTomorrowAdminWorksCount();
-        pendingContainer.innerHTML = pending.map(w => {
-            let caseData = activeCases.find(c => c.id == w.caseId) || closedCases.find(c => c.id == w.caseId);
-            let isTomorrow = false;
-            if (w.dueDate) {
-                let tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                tomorrow.setHours(0, 0, 0, 0);
-                let dueDate = new Date(w.dueDate);
-                dueDate.setHours(0, 0, 0, 0);
-                isTomorrow = dueDate.getTime() === tomorrow.getTime();
-            }
-            return `
-                <div class="admin-work-card" onclick="openCaseDetails('${w.caseId}')">
-                    <h4>📋 ${w.type} ${isTomorrow ? '<span style="color:#ffc107;">(غداً!)</span>' : ''}</h4>
-                    <div class="info-row">
-                        <span class="info-badge">القضية: ${w.caseNumber} (${w.caseYear})</span>
-                        <span class="info-badge">المحكمة: ${caseData?.court || '-'}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-badge">الموكل: ${getClientName(caseData?.clientId)} (${caseData?.clientRole || '-'})</span>
-                        <span class="info-badge">الخصم: ${caseData?.opponentName || '-'}</span>
-                    </div>
-                    <p><strong>موضوع القضية:</strong> ${caseData?.subject || '-'}</p>
-                    <p><strong>📅 تاريخ المعاد:</strong> ${w.dueDate ? new Date(w.dueDate).toLocaleString('ar-EG') : 'غير محدد'}</p>
-                    <p><strong>📝 الملاحظات:</strong> ${w.notes || 'لا توجد'}</p>
-                    <div class="admin-actions">
-                        <button onclick="event.stopPropagation(); completeAdminWork('${w.id}')" class="btn-success btn-sm">✅ إكمال</button>
-                        <button onclick="event.stopPropagation(); editAdminWork('${w.id}')" class="btn-primary btn-sm">✏️ تعديل</button>
-                    </div>
-                </div>
-            `;
-        }).join('') || '<p>لا توجد أعمال إدارية قيد التنفيذ</p>';
-        completedContainer.innerHTML = completed.map(w => {
-            let caseData = activeCases.find(c => c.id == w.caseId) || closedCases.find(c => c.id == w.caseId);
-            return `
-                <div class="admin-work-card" style="opacity:0.7;">
-                    <h4>📋 ${w.type}</h4>
-                    <div class="info-row">
-                        <span class="info-badge">القضية: ${w.caseNumber} (${w.caseYear})</span>
-                        <span class="info-badge">المحكمة: ${caseData?.court || '-'}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-badge">الموكل: ${getClientName(caseData?.clientId)}</span>
-                        <span class="info-badge">الخصم: ${caseData?.opponentName || '-'}</span>
-                    </div>
-                    <p><strong>موضوع القضية:</strong> ${caseData?.subject || '-'}</p>
-                    <p><strong>✅ تم الإكمال:</strong> ${new Date(w.completedAt).toLocaleString('ar-EG')}</p>
-                </div>
-            `;
-        }).join('') || '<p>لا توجد أعمال إدارية منتهية</p>';
-    }
-    
-    window.showAddAdminWork = function() {
-        let caseOptions = activeCases.map(c => `<option value="${c.id}">${c.number} (${c.year}) - ${getClientName(c.clientId)}</option>`).join('');
-        let modalHtml = `
-            <h4>➕ إضافة عمل إداري جديد</h4>
-            <div class="form-group"><label>اختر القضية</label><select id="adminWorkCaseId">${caseOptions}</select></div>
-            <div class="form-group"><label>نوع العمل الإداري</label>
-                <select id="adminWorkType">
-                    <option value="سحب حكم">سحب حكم</option>
-                    <option value="صيغة تنفيذية">صيغة تنفيذية</option>
-                    <option value="استلام مستندات">استلام مستندات</option>
-                    <option value="أخرى">أخرى +</option>
-                </select>
-                <input type="text" id="adminWorkTypeOther" placeholder="اكتب نوع العمل" style="display:none; margin-top:10px;">
-            </div>
-            <div class="form-group"><label>تاريخ المعاد</label><input type="datetime-local" id="adminWorkDueDate"></div>
-            <div class="form-group"><label>ملاحظات</label><textarea id="adminWorkNotes" rows="2"></textarea></div>
-            <button onclick="saveAdminWork()" class="btn-success">حفظ</button>
-        `;
-        document.getElementById('modalTitle').innerHTML = '➕ إضافة عمل إداري';
-        document.getElementById('modalBody').innerHTML = modalHtml;
-        document.getElementById('detailsModal').style.display = 'flex';
-        document.getElementById('adminWorkType').addEventListener('change', function() {
-            document.getElementById('adminWorkTypeOther').style.display = this.value === 'أخرى' ? 'block' : 'none';
-        });
-    };
-    
-    window.saveAdminWork = function() {
-        let caseId = document.getElementById('adminWorkCaseId').value;
-        let caseData = activeCases.find(c => c.id == caseId);
-        if (!caseData) return;
-        let workType = document.getElementById('adminWorkType').value;
-        if (workType === 'أخرى') {
-            workType = document.getElementById('adminWorkTypeOther').value;
-            if (!workType) {
-                showToast('يرجى إدخال نوع العمل');
-                return;
-            }
-        }
-        let work = {
-            id: Date.now().toString(),
-            caseId: caseId,
-            caseNumber: caseData.number,
-            caseYear: caseData.year,
-            type: workType,
-            dueDate: document.getElementById('adminWorkDueDate').value,
-            notes: document.getElementById('adminWorkNotes').value,
-            status: 'pending',
-            createdAt: new Date().toISOString()
-        };
-        adminWorks.push(work);
-        database.ref('adminWorks').set(adminWorks);
-        showToast('تم إضافة العمل الإداري');
-        closeModal();
-        renderAdminWorks();
-    };
-    
-    window.completeAdminWork = function(id) {
-        let work = adminWorks.find(w => w.id == id);
-        if (work) {
-            work.status = 'completed';
-            work.completedAt = new Date().toISOString();
-            database.ref('adminWorks').set(adminWorks);
-            showToast('تم إكمال العمل الإداري');
-            renderAdminWorks();
-        }
-    };
-    
-    window.editAdminWork = function(id) {
-        let work = adminWorks.find(w => w.id == id);
-        if (!work) return;
-        let modalHtml = `
-            <h4>✏️ تعديل العمل الإداري</h4>
-            <div class="form-group"><label>نوع العمل</label><input type="text" id="editWorkType" value="${work.type}"></div>
-            <div class="form-group"><label>تاريخ المعاد</label><input type="datetime-local" id="editWorkDueDate" value="${work.dueDate ? work.dueDate.slice(0,16) : ''}"></div>
-            <div class="form-group"><label>ملاحظات</label><textarea id="editWorkNotes" rows="2">${work.notes || ''}</textarea></div>
-            <button onclick="updateAdminWork('${id}')" class="btn-success">حفظ</button>
-        `;
-        document.getElementById('modalTitle').innerHTML = '✏️ تعديل عمل إداري';
-        document.getElementById('modalBody').innerHTML = modalHtml;
-        document.getElementById('detailsModal').style.display = 'flex';
-    };
-    
-    window.updateAdminWork = function(id) {
-        let idx = adminWorks.findIndex(w => w.id == id);
-        if (idx !== -1) {
-            adminWorks[idx].type = document.getElementById('editWorkType').value;
-            adminWorks[idx].dueDate = document.getElementById('editWorkDueDate').value;
-            adminWorks[idx].notes = document.getElementById('editWorkNotes').value;
-            database.ref('adminWorks').set(adminWorks);
-            showToast('تم تحديث العمل الإداري');
-            closeModal();
-            renderAdminWorks();
-        }
-    };
-    
-    function renderJudgmentRecords() {
-        let container = document.getElementById('judgmentRecordsList');
-        if (!container) return;
-        if (judgmentRecords.length === 0) {
-            container.innerHTML = '<p>لا توجد سجلات أحكام</p>';
-            return;
-        }
-        container.innerHTML = judgmentRecords.map(r => {
-            let caseData = activeCases.find(c => c.id == r.caseId) || closedCases.find(c => c.id == r.caseId);
-            return `
-                <div class="judgment-record-card" onclick="openCaseDetails('${r.caseId}')">
-                    <h4>⚖️ ${r.type}</h4>
-                    <div class="info-row">
-                        <span class="info-badge">القضية: ${r.caseNumber} (${r.caseYear})</span>
-                        <span class="info-badge">المحكمة: ${caseData?.court || '-'}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-badge">الموكل: ${getClientName(caseData?.clientId)} (${caseData?.clientRole || '-'})</span>
-                        <span class="info-badge">الخصم: ${caseData?.opponentName || '-'}</span>
-                    </div>
-                    <p><strong>موضوع القضية:</strong> ${caseData?.subject || '-'}</p>
-                    <p><strong>ملاحظات:</strong> ${r.notes || 'لا توجد'}</p>
-                </div>
-            `;
-        }).join('');
-    }
-    
-    function renderArchive() {
-        let container = document.getElementById('archiveCategories');
-        if (!container) return;
-        let categories = [...new Set(closedCases.map(c => c.circuit).filter(Boolean))];
-        if (categories.length === 0) categories = ['مدني', 'جنح'];
-        container.innerHTML = categories.map(cat => `<span class="archive-cat-btn" onclick="filterArchive('${cat}')">📁 ${cat}</span>`).join('');
-        filterArchive(categories[0]);
-    }
-    
-    window.filterArchive = function(circuit) {
-        let filtered = closedCases.filter(c => c.circuit === circuit);
-        let container = document.getElementById('archiveCasesList');
-        if (!container) return;
-        if (filtered.length === 0) {
-            container.innerHTML = '<p>لا توجد قضايا منتهية في هذا التصنيف</p>';
-            return;
-        }
-        container.innerHTML = filtered.map(c => `
-            <div class="session-card" onclick="openCaseDetails('${c.id}')">
-                <h4>✅ ${c.number} (${c.year}) - ${c.court}</h4>
-                <div class="info-row">
-                    <span class="info-badge">الموكل: ${getClientName(c.clientId)} (${c.clientRole})</span>
-                    <span class="info-badge">الخصم: ${c.opponentName} (${c.opponentRole})</span>
-                    <span class="info-badge">الحكم: ${c.judgment || '-'}</span>
-                </div>
-                <p><strong>موضوع القضية:</strong> ${c.subject || '-'}</p>
-                ${canDeleteEverywhere() ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteClosedCase('${c.id}')">🗑️ حذف</button>` : ''}
-            </div>
-        `).join('');
-    };
-    
-    window.deleteClosedCase = function(id) {
-        if (confirm('هل أنت متأكد من حذف هذه القضية المنتهية؟')) {
-            closedCases = closedCases.filter(c => c.id != id);
-            database.ref('closedCases').set(closedCases);
-            showToast('تم حذف القضية');
-            renderArchive();
-        }
-    };
-    
-    let currentYear = new Date().getFullYear();
-    let currentMonth = new Date().getMonth();
-    
-    function renderAdvancedAgenda() {
-        let container = document.getElementById('advancedAgendaList');
-        if (!container) return;
-        let years = [currentYear - 1, currentYear, currentYear + 1];
-        let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-        let yearSelector = `<div class="year-months">${years.map(y => `<span class="year-btn ${y === currentYear ? 'active' : ''}" onclick="selectYear(${y})">${y}</span>`).join('')}</div>`;
-        let monthsHtml = `<div class="year-months" id="monthsContainer">${months.map((m, i) => `<span class="month-btn ${i === currentMonth ? 'active' : ''}" onclick="selectMonth(${currentYear}, ${i})">${m}</span>`).join('')}</div>`;
-        let daysContainer = '<div id="monthDaysContainer"></div>';
-        container.innerHTML = yearSelector + monthsHtml + daysContainer;
-        showMonthDays(currentYear, currentMonth);
-    }
-    
-    window.selectYear = function(year) {
-        currentYear = year;
-        let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-        document.getElementById('monthsContainer').innerHTML = months.map((m, i) => `<span class="month-btn ${i === currentMonth ? 'active' : ''}" onclick="selectMonth(${year}, ${i})">${m}</span>`).join('');
-        document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active'));
-        let yearBtn = Array.from(document.querySelectorAll('.year-btn')).find(btn => btn.innerText == year);
-        if (yearBtn) yearBtn.classList.add('active');
-        showMonthDays(year, currentMonth);
-    };
-    
-    window.selectMonth = function(year, month) {
-        currentYear = year;
-        currentMonth = month;
-        document.querySelectorAll('.month-btn').forEach(btn => btn.classList.remove('active'));
-        let monthBtns = document.querySelectorAll('.month-btn');
-        if (monthBtns[month]) monthBtns[month].classList.add('active');
-        showMonthDays(year, month);
-    };
-    
-    function showMonthDays(year, month) {
-        let daysInMonth = new Date(year, month + 1, 0).getDate();
-        let firstDayIndex = new Date(year, month, 1).getDay();
-        let today = new Date();
-        let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-        let daysHtml = '<div class="week-days-grid">' + weekDays.map(day => `<div class="week-day-name">${day}</div>`).join('') + '</div><div class="days-grid">';
-        for (let i = 0; i < firstDayIndex; i++) daysHtml += '<div></div>';
-        for (let d = 1; d <= daysInMonth; d++) {
-            let date = new Date(year, month, d);
-            let sessionCount = activeCases.filter(c => {
-                let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
-                return sessionDate && sessionDate.toDateString() === date.toDateString();
-            }).length;
-            let hasSession = sessionCount > 0;
-            let isToday = date.toDateString() === today.toDateString();
-            daysHtml += `<div class="day-card ${hasSession ? 'has-session' : ''} ${isToday ? 'today' : ''}" onclick="showDaySessionsFromAgenda(${year}, ${month}, ${d})">
-                ${d}${sessionCount > 0 ? `<br><small style="font-size:10px;">${sessionCount} جلسة</small>` : ''}
-            </div>`;
-        }
-        daysHtml += '</div>';
-        document.getElementById('monthDaysContainer').innerHTML = daysHtml;
-    }
-    
-    function renderDashboardAgenda() {
-        let container = document.getElementById('dashboardAgendaDays');
-        if (!container) return;
-        let today = new Date();
-        let days = [];
-        for (let i = 0; i < 7; i++) {
-            let date = new Date();
-            date.setDate(today.getDate() + i);
-            date.setHours(0, 0, 0, 0);
-            let sessionCount = activeCases.filter(c => {
-                let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
-                return sessionDate && sessionDate.toDateString() === date.toDateString();
-            }).length;
-            days.push({ date, sessionCount });
-        }
-        let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-        container.innerHTML = days.map(day => `
-            <div class="agenda-day-card ${day.sessionCount > 0 ? 'has-session' : ''} ${day.date.toDateString() === today.toDateString() ? 'today' : ''}" onclick="showDaySessionsFromAgenda(${day.date.getFullYear()}, ${day.date.getMonth()}, ${day.date.getDate()})">
-                <div class="agenda-day-number">${day.date.getDate()}</div>
-                <div class="agenda-day-name">${weekDays[day.date.getDay()]}</div>
-                ${day.sessionCount > 0 ? `<div class="agenda-session-count">${day.sessionCount} جلسة</div>` : ''}
+        if(past.length === 0) { container.innerHTML = '<p>لا توجد جلسات سابقة</p>'; return; }
+        container.innerHTML = past.map(c => `
+            <div class="session-card" onclick="showCaseDetails('${c.id}')">
+                <b>⚖️ ${c.number} (${c.year}) - ${c.court}</b>
+                <div class="info-row"><span class="info-badge">الموكل: ${getClientName(c.clientId)}</span><span class="info-badge">الخصم: ${c.opponentName}</span></div>
+                <div class="info-row"><span class="info-badge">📅 ${c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : (c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : '')}</span></div>
+                <div class="info-row"><button class="btn-warning btn-sm" onclick="event.stopPropagation(); processPastSession('${c.id}')">تسجيل القرار</button></div>
             </div>
         `).join('');
     }
     
-    window.showDaySessionsFromAgenda = function(year, month, day) {
-        let date = new Date(year, month, day);
-        let sessions = activeCases.filter(c => {
-            let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
-            return sessionDate && sessionDate.toDateString() === date.toDateString();
-        }).map(s => ({
-            ...s,
-            clientName: getClientName(s.clientId),
-            sessionDate: s.nextSessionDate ? new Date(s.nextSessionDate) : new Date(s.firstSessionDate)
-        }));
-        if (sessions.length === 0) {
-            showToast('لا توجد جلسات في هذا اليوم');
-            return;
-        }
-        let modalHtml = `
-            <h4>📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}</h4>
-            ${sessions.map(s => `
-                <div class="session-card" style="margin-bottom:15px;" onclick="openCaseDetails('${s.id}')">
-                    <h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4>
-                    <div class="info-row">
-                        <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span>
-                        <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span>
-                        ${s.opponent2Name ? `<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${s.opponent2Name} (${s.opponent2Role || '-'})</span>` : ''}
-                        <span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${s.sessionDate.toLocaleTimeString('ar-EG')}</span>
-                    </div>
-                    <p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p>
-                    <p><strong>القرار:</strong> ${s.decision || 'لا يوجد'}</p>
-                </div>
-            `).join('')}
-        `;
-        document.getElementById('modalTitle').innerHTML = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}`;
-        document.getElementById('modalBody').innerHTML = modalHtml;
-        document.getElementById('detailsModal').style.display = 'flex';
-    };
-    
-    window.openCaseDetails = function(caseId) {
+    function processPastSession(caseId) {
+        let choice = prompt('اختر الإجراء:\n1 - جلسة جديدة\n2 - إنهاء القضية\n3 - أعمال إدارية\n4 - سجل أحكام\n5 - خبراء', '1');
         let caseData = activeCases.find(c => c.id == caseId);
-        if (!caseData) caseData = closedCases.find(c => c.id == caseId);
-        if (!caseData) return;
-        let modalHtml = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div><strong>رقم القضية:</strong><br>${caseData.number}</div>
-                <div><strong>السنة:</strong><br>${caseData.year}</div>
-                <div><strong>رقم الملف:</strong><br><input type="text" id="fileNumberInput" value="${caseData.fileNumber || ''}" style="width:100%;"></div>
-                <div><strong>المحكمة:</strong><br>${caseData.court}</div>
-                <div><strong>الدائرة:</strong><br>${caseData.circuit || '-'}</div>
-                <div><strong>درجة التقاضي:</strong><br><input type="text" id="degreeInput" value="${caseData.degree || ''}" style="width:100%;"></div>
-                <div><strong>الموكل:</strong><br>${getClientName(caseData.clientId)} (${caseData.clientRole})</div>
-                <div><strong>الخصم:</strong><br>${caseData.opponentName} (${caseData.opponentRole})</div>
-                <div><strong>موضوع القضية:</strong><br>${caseData.subject || '-'}</div>
-                <div><strong>الجلسة القادمة:</strong><br>${caseData.nextSessionDate ? new Date(caseData.nextSessionDate).toLocaleString('ar-EG') : (caseData.firstSessionDate ? new Date(caseData.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد')}</div>
+        if(!caseData) return;
+        
+        if(choice === '1') {
+            let newDate = prompt('تاريخ الجلسة الجديدة:', new Date().toISOString().slice(0,16));
+            let decision = prompt('قرار الجلسة:', '');
+            if(newDate && decision) {
+                if(!caseData.firstSessionProcessed) { caseData.firstSessionDecision = decision; caseData.firstSessionProcessed = true; }
+                else { caseData.nextSessionDecision = decision; caseData.nextSessionProcessed = true; }
+                caseData.nextSessionDate = newDate;
+                caseData.nextSessionProcessed = false;
+                db.ref('activeCases').set(activeCases);
+                showToast('تم حفظ القرار وإضافة جلسة جديدة');
+            }
+        } else if(choice === '2') {
+            let judgment = prompt('منطوق الحكم:', '');
+            if(judgment) {
+                if(!caseData.firstSessionProcessed) { caseData.firstSessionDecision = prompt('قرار الجلسة:', ''); caseData.firstSessionProcessed = true; }
+                else { caseData.nextSessionDecision = prompt('قرار الجلسة:', ''); caseData.nextSessionProcessed = true; }
+                closedCases.push({...caseData, judgment, closedAt: new Date().toISOString()});
+                activeCases = activeCases.filter(c => c.id != caseId);
+                db.ref('activeCases').set(activeCases);
+                db.ref('closedCases').set(closedCases);
+                showToast('تم إنهاء القضية');
+            }
+        } else if(choice === '3') {
+            let type = prompt('نوع العمل الإداري:', 'سحب حكم');
+            let dueDate = prompt('تاريخ المعاد:', new Date().toISOString().slice(0,10));
+            if(type && dueDate) {
+                if(!caseData.firstSessionProcessed) { caseData.firstSessionDecision = prompt('قرار الجلسة:', ''); caseData.firstSessionProcessed = true; }
+                else { caseData.nextSessionDecision = prompt('قرار الجلسة:', ''); caseData.nextSessionProcessed = true; }
+                adminWorks.push({id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, type, dueDate, status: 'pending'});
+                db.ref('activeCases').set(activeCases);
+                db.ref('adminWorks').set(adminWorks);
+                showToast('تم إضافة عمل إداري');
+            }
+        } else if(choice === '4') {
+            let type = prompt('نوع الحكم:', 'يلزم معارضة');
+            if(type) {
+                if(!caseData.firstSessionProcessed) { caseData.firstSessionDecision = prompt('قرار الجلسة:', ''); caseData.firstSessionProcessed = true; }
+                else { caseData.nextSessionDecision = prompt('قرار الجلسة:', ''); caseData.nextSessionProcessed = true; }
+                judgmentRecords.push({id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, type, notes: ''});
+                db.ref('activeCases').set(activeCases);
+                db.ref('judgmentRecords').set(judgmentRecords);
+                showToast('تم إضافة سجل حكم');
+            }
+        } else if(choice === '5') {
+            let expertDate = prompt('موعد الخبير:', new Date().toISOString().slice(0,16));
+            let request = prompt('المطلوب من الخبير:', '');
+            if(expertDate) {
+                if(!caseData.firstSessionProcessed) { caseData.firstSessionDecision = prompt('قرار الجلسة:', ''); caseData.firstSessionProcessed = true; }
+                else { caseData.nextSessionDecision = prompt('قرار الجلسة:', ''); caseData.nextSessionProcessed = true; }
+                experts.push({id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: getClientName(caseData.clientId), opponentName: caseData.opponentName, expertDate, request, status: 'pending'});
+                db.ref('activeCases').set(activeCases);
+                db.ref('experts').set(experts);
+                showToast('تم إرسال القضية للخبير');
+            }
+        }
+        renderActiveCases(); renderPastSessions(); renderAdminWorks(); renderJudgmentRecords(); renderExperts(); updateStats();
+    }
+    
+    function renderClosedCases() {
+        let container = document.getElementById('closedList');
+        if(!container) return;
+        if(closedCases.length === 0) { container.innerHTML = '<p>لا توجد قضايا منتهية</p>'; return; }
+        container.innerHTML = closedCases.map(c => `
+            <div class="session-card" onclick="showCaseDetails('${c.id}')">
+                <b>✅ ${c.number} (${c.year}) - ${c.court}</b>
+                <div class="info-row"><span class="info-badge">الموكل: ${getClientName(c.clientId)}</span><span class="info-badge">الحكم: ${c.judgment || '-'}</span></div>
             </div>
-            <hr>
-            <div><strong>توصيات:</strong><br><textarea id="recommendationsInput" rows="2" style="width:100%;">${caseData.recommendations || ''}</textarea></div>
-            <div><strong>القرار (ما تم):</strong><br><textarea id="decisionInput" rows="3" style="width:100%;">${caseData.decision || ''}</textarea></div>
-            <div><strong>ملاحظات:</strong><br><textarea id="notesInput" rows="2" style="width:100%;">${caseData.notes || ''}</textarea></div>
-        `;
-        document.getElementById('modalTitle').innerHTML = `⚖️ تفاصيل القضية ${caseData.number} (${caseData.year})`;
-        document.getElementById('modalBody').innerHTML = modalHtml;
-        document.getElementById('detailsModal').style.display = 'flex';
-        window.currentCaseId = caseId;
-    };
-    
-    window.saveCaseDetails = function() {
-        if (!window.currentCaseId) return;
-        let idx = activeCases.findIndex(c => c.id == window.currentCaseId);
-        if (idx !== -1) {
-            activeCases[idx].fileNumber = document.getElementById('fileNumberInput').value;
-            activeCases[idx].degree = document.getElementById('degreeInput').value;
-            activeCases[idx].recommendations = document.getElementById('recommendationsInput').value;
-            activeCases[idx].decision = document.getElementById('decisionInput').value;
-            activeCases[idx].notes = document.getElementById('notesInput').value;
-            database.ref('activeCases').set(activeCases);
-            showToast('✅ تم حفظ التعديلات');
-        } else {
-            let closedIdx = closedCases.findIndex(c => c.id == window.currentCaseId);
-            if (closedIdx !== -1) {
-                closedCases[closedIdx].fileNumber = document.getElementById('fileNumberInput').value;
-                closedCases[closedIdx].degree = document.getElementById('degreeInput').value;
-                closedCases[closedIdx].recommendations = document.getElementById('recommendationsInput').value;
-                closedCases[closedIdx].decision = document.getElementById('decisionInput').value;
-                closedCases[closedIdx].notes = document.getElementById('notesInput').value;
-                database.ref('closedCases').set(closedCases);
-                showToast('✅ تم حفظ التعديلات');
-            }
-        }
-        closeModal();
-    };
-    
-    function updateCourtOptions() {
-        let container = document.getElementById('courtOptions');
-        if (!container) return;
-        let courts = ['المراغة', 'سوهاج', ...customCourts];
-        container.innerHTML = '';
-        courts.forEach(court => {
-            let btn = document.createElement('span');
-            btn.className = 'court-btn';
-            btn.innerText = court;
-            btn.onclick = () => {
-                document.getElementById('caseCourt').value = court;
-                document.querySelectorAll('.court-btn').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-            };
-            container.appendChild(btn);
-        });
-    }
-    
-    function toggleOtherCircuit() {
-        let select = document.getElementById('caseCircuit');
-        let otherInput = document.getElementById('otherCircuit');
-        otherInput.style.display = select.value === 'أخرى' ? 'block' : 'none';
-    }
-    
-    function populateSelects() {
-        let select = document.getElementById('caseClient');
-        let searchInput = document.getElementById('clientSearch');
-        if (!select) return;
-        function updateSelect(filterText = '') {
-            let filteredClients = clients.filter(c => c.name.toLowerCase().includes(filterText.toLowerCase()));
-            if (filteredClients.length === 0 && filterText !== '') {
-                select.innerHTML = '<option value="">❌ لا يوجد موكلين بهذا الاسم</option>';
-            } else {
-                select.innerHTML = '<option value="">-- اختر موكل --</option>' + filteredClients.map(c => `<option value="${c.id}">${c.name} (📱 ${c.phone})</option>`).join('');
-            }
-        }
-        updateSelect();
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                updateSelect(this.value);
-            });
-        }
+        `).join('');
     }
     
     function renderClients() {
         let container = document.getElementById('clientsList');
-        if (!container) return;
-        if (clients.length === 0) {
-            container.innerHTML = '<p>📭 لا توجد موكلين، قم بإضافة موكل أولاً</p>';
-            return;
-        }
-        container.innerHTML = clients.map(cl => {
-            let totalCases = activeCases.filter(c => c.clientId == cl.id).length + closedCases.filter(c => c.clientId == cl.id).length;
-            return `
-                <div class="session-card">
-                    <h4>👤 ${cl.name}</h4>
-                    <div class="info-row">
-                        <span class="info-badge">📱 ${cl.phone}</span>
-                        <span class="info-badge">📋 عدد القضايا: ${totalCases}</span>
-                    </div>
-                    ${canDeleteEverywhere() ? `<button class="delete-btn" onclick="event.stopPropagation(); deleteClient('${cl.id}')">🗑️ حذف</button>` : ''}
-                </div>
-            `;
-        }).join('');
-    }
-    
-    window.deleteClient = function(id) {
-        if (confirm('حذف الموكل سيؤثر على القضايا المرتبطة؟')) {
-            clients = clients.filter(c => c.id != id);
-            database.ref('clients').set(clients);
-            showToast('تم حذف الموكل');
-            renderClients();
-            populateSelects();
-        }
-    };
-    
-    function renderEmployees() {
-        let container = document.getElementById('employeesList');
-        if (!container) return;
-        let allEmployees = [...fixedAdmins, ...employees];
-        let visible = allEmployees.filter(emp => {
-            if (emp.id === "admin_hesham") return false;
-            if (emp.id === "admin_george" && currentUser?.superAdmin !== true && currentUser?.id !== "admin_george") return false;
-            return true;
-        });
-        let now = new Date();
-        let activeCount = 0;
-        container.innerHTML = visible.map(emp => {
-            let isActive = false;
-            let lastLoginDisplay = '';
-            if (emp.lastLogin) {
-                let lastLoginDate = new Date(emp.lastLogin);
-                let diffMinutes = (now - lastLoginDate) / 1000 / 60;
-                isActive = diffMinutes <= 5;
-                if (isActive) activeCount++;
-                lastLoginDisplay = `آخر دخول: ${emp.lastLoginDisplay || lastLoginDate.toLocaleString('ar-EG')}`;
-            } else {
-                lastLoginDisplay = 'لم يسجل دخول بعد';
-            }
-            let canModify = canModifyEmployee(emp);
-            let canDel = canDeleteEmployee(emp);
-            let statusIcon = isActive ? '🟢' : '⚪';
-            let statusText = isActive ? 'نشط الآن' : 'غير نشط';
-            return `
-                <div class="session-card">
-                    <h4>${statusIcon} 👤 ${emp.username}</h4>
-                    <div class="info-row">
-                        <span class="info-badge">الصلاحية: ${emp.role}</span>
-                        <span class="info-badge">${statusText}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-badge"><i class="fas fa-clock"></i> ${lastLoginDisplay}</span>
-                    </div>
-                    ${currentUser?.superAdmin === true ? `<div class="info-row"><span class="info-badge">🔐 كلمة المرور: ${emp.password}</span></div>` : ''}
-                    <div class="admin-actions">
-                        ${canModify ? `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button>` : ''}
-                        ${canDel ? `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>` : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-        let activityCard = document.getElementById('employeesActivityCard');
-        if (activityCard) {
-            document.getElementById('activeEmployeesCount').innerText = activeCount;
-        }
-    }
-    
-    window.changePassword = function(empId) {
-        let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
-        if (!newPassword) return;
-        let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
-        if (!emp) return;
-        if (emp.id === "admin_hesham" && currentUser.id !== "admin_hesham") {
-            showToast('❌ لا يمكن تغيير كلمة سر المدير الأساسي');
-            return;
-        }
-        if (currentUser.id === "admin_george" && emp.isFixed && emp.id !== currentUser.id) {
-            showToast('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم');
-            return;
-        }
-        emp.password = newPassword;
-        if (emp.isFixed) {
-            database.ref('fixedAdmins/' + emp.id).update({ password: newPassword }).then(() => showToast(`✅ تم تغيير كلمة السر لـ ${emp.username}`));
-        } else {
-            database.ref('employees/' + emp.id).update({ password: newPassword }).then(() => showToast(`✅ تم تغيير كلمة السر لـ ${emp.username}`));
-        }
-        renderEmployees();
-        if (emp.id === currentUser?.id) {
-            showToast('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج');
-            setTimeout(() => { logout(); }, 2000);
-        }
-    };
-    
-    window.deleteEmployee = function(id) {
-        if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
-            employees = employees.filter(e => e.id != id);
-            database.ref('employees').set(employees);
-            showToast('تم حذف الموظف');
-            renderEmployees();
-        }
-    };
-    
-    function updateReports() {
-        document.getElementById('reportTotalActive').innerText = activeCases.length;
-        document.getElementById('reportTotalClosed').innerText = closedCases.length;
-        document.getElementById('reportTotalClients').innerText = clients.length;
-        let weekDays = ['السبت', 'الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
-        let today = new Date();
-        let startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay() + 6);
-        startOfWeek.setHours(0, 0, 0, 0);
-        let weeklyHtml = '';
-        for (let i = 0; i < 7; i++) {
-            let day = new Date(startOfWeek);
-            day.setDate(startOfWeek.getDate() + i);
-            day.setHours(0, 0, 0, 0);
-            let count = activeCases.filter(c => {
-                let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
-                return sessionDate && sessionDate.toDateString() === day.toDateString();
-            }).length;
-            weeklyHtml += `<p><strong>${weekDays[i]} ${day.toLocaleDateString('ar-EG')}:</strong> ${count} جلسة</p>`;
-        }
-        document.getElementById('weeklyReport').innerHTML = weeklyHtml;
-    }
-    
-    function updateDashboardCounts() {
-        let tomorrowCount = getTomorrowSessions().length;
-        let pastCount = getPastSessionsCount();
-        let adminWorksCount = getTomorrowAdminWorksCount();
-        let expertsCount = experts.filter(e => {
-            if (!e.expertDate) return false;
-            let tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            let expertDate = new Date(e.expertDate);
-            expertDate.setHours(0, 0, 0, 0);
-            return expertDate.getTime() === tomorrow.getTime();
-        }).length;
-        document.getElementById('dashboardTomorrowCount').innerText = tomorrowCount;
-        document.getElementById('dashboardPastSessionsCount').innerText = pastCount;
-        document.getElementById('dashboardAdminWorksCount').innerText = adminWorksCount;
-        document.getElementById('dashboardExpertsCount').innerText = expertsCount;
-        document.getElementById('dashboardActiveCount').innerText = activeCases.length;
-        let welcomeMsg = document.getElementById('welcomeMessage');
-        if (tomorrowCount > 0) {
-            welcomeMsg.innerHTML = `📋 لديك غداً ${tomorrowCount} جلسة${tomorrowCount > 1 ? 'ات' : ''}`;
-        } else if (adminWorksCount > 0) {
-            welcomeMsg.innerHTML = `📋 لديك ${adminWorksCount} عمل إداري غداً`;
-        } else if (expertsCount > 0) {
-            welcomeMsg.innerHTML = `👨‍⚖️ لديك ${expertsCount} موعد خبير غداً`;
-        } else {
-            welcomeMsg.innerHTML = `لا توجد مواعيد قادمة`;
-        }
-    }
-    
-    window.exportToExcel = function() {
-        let data = activeCases.map(c => ({
-            'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الموكل': getClientName(c.clientId),
-            'الخصم': c.opponentName, 'موضوع القضية': c.subject, 'الجلسة القادمة': c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : ''
-        }));
-        let wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'قضايا المكتب');
-        XLSX.writeFile(wb, `مكتب_الخواجا_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
-        showToast('تم تصدير البيانات');
-    };
-    
-    function searchActiveCases() {
-        let term = document.getElementById('activeSearchInput').value.toLowerCase();
-        let filtered = activeCases.filter(c => c.number.toLowerCase().includes(term) || getClientName(c.clientId).toLowerCase().includes(term));
-        let container = document.getElementById('activeCasesList');
-        if (filtered.length === 0) {
-            container.innerHTML = '<p>لا توجد نتائج</p>';
-            return;
-        }
-        container.innerHTML = filtered.map(c => `
-            <div class="session-card" onclick="openCaseDetails('${c.id}')">
-                <h4>⚖️ ${c.number} (${c.year}) - ${c.court}</h4>
-                <div class="info-row"><span class="info-badge">الموكل: ${getClientName(c.clientId)}</span></div>
+        if(!container) return;
+        if(clients.length === 0) { container.innerHTML = '<p>لا توجد موكلين</p>'; return; }
+        container.innerHTML = clients.map(c => `
+            <div class="session-card">
+                <b>👤 ${c.name}</b>
+                <div class="info-row"><span class="info-badge">📱 ${c.phone}</span><span class="info-badge">📋 ${activeCases.filter(a => a.clientId == c.id).length + closedCases.filter(cl => cl.clientId == c.id).length} قضية</span></div>
+                ${currentUser?.superAdmin ? `<button class="btn-danger btn-sm" onclick="deleteClient('${c.id}')">حذف</button>` : ''}
             </div>
         `).join('');
     }
     
-    function clearActiveSearch() {
-        document.getElementById('activeSearchInput').value = '';
-        renderActiveCases();
+    function renderAdminWorks() {
+        let container = document.getElementById('adminWorksList');
+        if(!container) return;
+        if(adminWorks.length === 0) { container.innerHTML = '<p>لا توجد أعمال إدارية</p>'; return; }
+        container.innerHTML = adminWorks.map(w => `
+            <div class="session-card">
+                <b>📋 ${w.type}</b>
+                <div class="info-row"><span class="info-badge">القضية: ${w.caseNumber} (${w.caseYear})</span><span class="info-badge">تاريخ المعاد: ${w.dueDate ? new Date(w.dueDate).toLocaleDateString('ar-EG') : '-'}</span></div>
+                ${w.status !== 'completed' ? `<button class="btn-success btn-sm" onclick="completeAdminWork('${w.id}')">إكمال</button>` : '<span class="info-badge">✓ مكتمل</span>'}
+            </div>
+        `).join('');
     }
     
-    function renderTabsBasedOnRole() {
-        let isSuperAdmin = currentUser?.superAdmin === true;
-        let maintenanceItem = document.getElementById('maintenanceMenuItem');
-        if (maintenanceItem) maintenanceItem.style.display = isSuperAdmin ? 'flex' : 'none';
-        let employeesItem = document.getElementById('employeesTabItem');
-        if (employeesItem) employeesItem.style.display = (currentUser?.role === 'مدير' || isSuperAdmin) ? 'flex' : 'none';
-        let activityCard = document.getElementById('employeesActivityCard');
-        if (activityCard) {
-            activityCard.style.display = isSuperAdmin ? 'flex' : 'none';
+    function renderJudgmentRecords() {
+        let container = document.getElementById('judgmentList');
+        if(!container) return;
+        if(judgmentRecords.length === 0) { container.innerHTML = '<p>لا توجد سجلات أحكام</p>'; return; }
+        container.innerHTML = judgmentRecords.map(r => `
+            <div class="session-card">
+                <b>⚖️ ${r.type}</b>
+                <div class="info-row"><span class="info-badge">القضية: ${r.caseNumber} (${r.caseYear})</span></div>
+            </div>
+        `).join('');
+    }
+    
+    function renderEnforcements() {
+        let container = document.getElementById('enforcementsList');
+        if(!container) return;
+        if(enforcements.length === 0) { container.innerHTML = '<p>لا توجد توكيلات تنفيذ</p>'; return; }
+        container.innerHTML = enforcements.map(e => `
+            <div class="session-card">
+                <b>📄 توكيل تنفيذ - ${e.caseNumber} (${e.caseYear})</b>
+                <div class="info-row"><span class="info-badge">الموكل: ${e.clientName}</span><span class="info-badge">تاريخ التنفيذ: ${new Date(e.date).toLocaleDateString('ar-EG')}</span></div>
+                <p>المطلوب: ${e.request}</p>
+            </div>
+        `).join('');
+    }
+    
+    function renderExperts() {
+        let container = document.getElementById('expertsList');
+        if(!container) return;
+        if(experts.length === 0) { container.innerHTML = '<p>لا توجد مواعيد خبراء</p>'; return; }
+        container.innerHTML = experts.map(e => `
+            <div class="session-card">
+                <b>👨‍⚖️ خبير - ${e.caseNumber} (${e.caseYear})</b>
+                <div class="info-row"><span class="info-badge">الموكل: ${e.clientName}</span><span class="info-badge">موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}</span></div>
+                <p>المطلوب: ${e.request || '-'}</p>
+            </div>
+        `).join('');
+    }
+    
+    function renderArchive() {
+        let container = document.getElementById('archiveList');
+        if(!container) return;
+        if(closedCases.length === 0) { container.innerHTML = '<p>لا توجد قضايا في الأرشيف</p>'; return; }
+        container.innerHTML = closedCases.map(c => `
+            <div class="session-card" onclick="showCaseDetails('${c.id}')">
+                <b>✅ ${c.number} (${c.year}) - ${c.court}</b>
+                <div class="info-row"><span class="info-badge">الموكل: ${getClientName(c.clientId)}</span><span class="info-badge">الحكم: ${c.judgment || '-'}</span></div>
+            </div>
+        `).join('');
+    }
+    
+    function renderEmployees() {
+        let container = document.getElementById('employeesList');
+        if(!container) return;
+        let all = [...(window.fixedAdmins || []), ...employees];
+        let visible = all.filter(e => {
+            if(e.id === "admin_hesham") return false;
+            if(e.id === "admin_george" && currentUser?.superAdmin !== true) return false;
+            return true;
+        });
+        if(visible.length === 0) { container.innerHTML = '<p>لا يوجد موظفين</p>'; return; }
+        container.innerHTML = visible.map(e => `
+            <div class="session-card">
+                <b>👤 ${e.username}</b>
+                <div class="info-row"><span class="info-badge">${e.role}</span></div>
+                ${currentUser?.superAdmin ? `<button class="btn-warning btn-sm" onclick="changePassword('${e.id}')">تغيير كلمة السر</button><button class="btn-danger btn-sm" onclick="deleteEmployee('${e.id}')">حذف</button>` : ''}
+            </div>
+        `).join('');
+    }
+    
+    function updateMiniAgenda() {
+        let container = document.getElementById('miniAgenda');
+        if(!container) return;
+        let days = [];
+        for(let i=0; i<7; i++) {
+            let d = new Date(); d.setDate(d.getDate() + i); d.setHours(0,0,0,0);
+            let count = activeCases.filter(c => { let sd = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null); return sd && sd.toDateString() === d.toDateString(); }).length;
+            days.push({date: d, count});
         }
-        bindSidebarButtons();
-        let lastTab = localStorage.getItem('lastOpenTab');
-        if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
-            switchToTab(lastTab);
-        } else {
-            switchToTab('dashboard');
+        let weekDays = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+        container.innerHTML = days.map(d => `<div class="agenda-day-card ${d.count>0?'has-session':''} ${d.date.toDateString()===new Date().toDateString()?'today':''}" onclick="showDaySessions(${d.date.getFullYear()},${d.date.getMonth()},${d.date.getDate()})"><div>${d.date.getDate()}</div><div>${weekDays[d.date.getDay()]}</div>${d.count>0?`<small>${d.count} جلسة</small>`:''}</div>`).join('');
+    }
+    
+    function showDaySessions(year, month, day) {
+        let date = new Date(year, month, day);
+        let sessions = activeCases.filter(c => { let sd = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null); return sd && sd.toDateString() === date.toDateString(); });
+        if(sessions.length === 0) { showToast('لا توجد جلسات في هذا اليوم'); return; }
+        let msg = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}:\n` + sessions.map(s => `${s.number} (${s.year}) - ${s.court}`).join('\n');
+        alert(msg);
+    }
+    
+    function showCaseDetails(caseId) {
+        let c = activeCases.find(c => c.id == caseId) || closedCases.find(c => c.id == caseId);
+        if(!c) return;
+        alert(`القضية: ${c.number} (${c.year})\nالمحكمة: ${c.court}\nالموكل: ${getClientName(c.clientId)} (${c.clientRole})\nالخصم: ${c.opponentName} (${c.opponentRole})\nموضوع القضية: ${c.subject || '-'}\nالقرار: ${c.decision || '-'}`);
+    }
+    
+    function addAdminWork() {
+        let caseId = prompt('أدخل ID القضية:');
+        let caseData = activeCases.find(c => c.id == caseId);
+        if(!caseData) { showToast('قضية غير موجودة'); return; }
+        let type = prompt('نوع العمل الإداري:', 'سحب حكم');
+        let dueDate = prompt('تاريخ المعاد:', new Date().toISOString().slice(0,10));
+        if(type && dueDate) {
+            adminWorks.push({id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, type, dueDate, status: 'pending'});
+            db.ref('adminWorks').set(adminWorks);
+            showToast('تم إضافة العمل الإداري');
         }
     }
     
-    function loadData() {
-        database.ref('activeCases').on('value', (s) => { activeCases = s.val() ? Object.values(s.val()) : []; renderActiveCases(); renderTomorrowSessions(); renderPastSessions(); renderAdvancedAgenda(); renderDashboardAgenda(); updateReports(); updateDashboardCounts(); });
-        database.ref('closedCases').on('value', (s) => { closedCases = s.val() ? Object.values(s.val()) : []; renderArchive(); updateReports(); });
-        database.ref('clients').on('value', (s) => { clients = s.val() ? Object.values(s.val()) : []; backupClientsToLocal(); renderActiveCases(); renderTomorrowSessions(); renderPastSessions(); renderClosedCases(); renderArchive(); renderExperts(); renderEnforcements(); renderJudgmentRecords(); renderAdminWorks(); updateReports(); updateDashboardCounts(); populateSelects(); renderClients(); });
-        database.ref('employees').on('value', (s) => { employees = s.val() ? Object.values(s.val()) : []; renderEmployees(); renderTabsBasedOnRole(); });
-        database.ref('customCourts').on('value', (s) => { customCourts = s.val() ? Object.values(s.val()) : []; updateCourtOptions(); });
-        database.ref('experts').on('value', (s) => { experts = s.val() ? Object.values(s.val()) : []; renderExperts(); updateDashboardCounts(); });
-        database.ref('enforcements').on('value', (s) => { enforcements = s.val() ? Object.values(s.val()) : []; renderEnforcements(); updateDashboardCounts(); });
-        database.ref('adminWorks').on('value', (s) => { adminWorks = s.val() ? Object.values(s.val()) : []; renderAdminWorks(); updateDashboardCounts(); });
-        database.ref('judgmentRecords').on('value', (s) => { judgmentRecords = s.val() ? Object.values(s.val()) : []; renderJudgmentRecords(); });
-        database.ref('fixedAdmins').on('value', (s) => { let data = s.val(); if (data) fixedAdmins = Object.values(data); else { fixedAdmins = [ { id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, superAdmin: true }, { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true } ]; let obj = {}; fixedAdmins.forEach(a => obj[a.id] = a); database.ref('fixedAdmins').set(obj); } renderEmployees(); renderTabsBasedOnRole(); });
+    function addEnforcement() {
+        let caseId = prompt('أدخل ID القضية:');
+        let caseData = activeCases.find(c => c.id == caseId);
+        if(!caseData) { showToast('قضية غير موجودة'); return; }
+        let date = prompt('تاريخ التنفيذ:', new Date().toISOString().slice(0,16));
+        let request = prompt('المطلوب في التنفيذ:', '');
+        if(date && request) {
+            enforcements.push({id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: getClientName(caseData.clientId), opponentName: caseData.opponentName, date, request});
+            db.ref('enforcements').set(enforcements);
+            showToast('تم إضافة توكيل التنفيذ');
+        }
     }
     
-    document.getElementById('newCaseForm')?.addEventListener('submit', (e) => {
+    function addExpert() {
+        let caseId = prompt('أدخل ID القضية:');
+        let caseData = activeCases.find(c => c.id == caseId);
+        if(!caseData) { showToast('قضية غير موجودة'); return; }
+        let expertDate = prompt('موعد الخبير:', new Date().toISOString().slice(0,16));
+        let request = prompt('المطلوب من الخبير:', '');
+        if(expertDate) {
+            experts.push({id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: getClientName(caseData.clientId), opponentName: caseData.opponentName, expertDate, request, status: 'pending'});
+            db.ref('experts').set(experts);
+            showToast('تم إضافة موعد الخبير');
+        }
+    }
+    
+    function completeAdminWork(id) {
+        let w = adminWorks.find(w => w.id == id);
+        if(w) { w.status = 'completed'; w.completedAt = new Date().toISOString(); db.ref('adminWorks').set(adminWorks); showToast('تم إكمال العمل'); renderAdminWorks(); }
+    }
+    
+    function deleteClient(id) { if(confirm('حذف الموكل سيؤثر على القضايا؟')) { clients = clients.filter(c => c.id != id); db.ref('clients').set(clients); showToast('تم حذف الموكل'); } }
+    function deleteEmployee(id) { if(confirm('حذف الموظف؟')) { employees = employees.filter(e => e.id != id); db.ref('employees').set(employees); showToast('تم حذف الموظف'); } }
+    function changePassword(id) { let pwd = prompt('كلمة المرور الجديدة:'); if(pwd) { let e = [...(window.fixedAdmins || []), ...employees].find(e => e.id == id); if(e) { e.password = pwd; if(e.isFixed) db.ref('fixedAdmins/'+id).update({password: pwd}); else db.ref('employees/'+id).update({password: pwd}); showToast('تم تغيير كلمة السر'); } } }
+    
+    function toggleMaintenance() {
+        if(currentUser?.superAdmin !== true) { showToast('غير مسموح'); return; }
+        db.ref('maintenance').set({isActive: !maintenanceMode, endTime: null});
+    }
+    
+    document.getElementById('caseForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        let clientId = document.getElementById('caseClient').value;
-        if (!clientId) {
-            showToast('❌ يرجى اختيار موكل من القائمة');
-            return;
-        }
-        let clientExists = clients.some(c => c.id == clientId);
-        if (!clientExists) {
-            showToast('❌ الموكل غير موجود، يرجى اختيار موكل صحيح');
-            return;
-        }
-        let caseData = {
+        let clientName = document.getElementById('clientSearch').value;
+        let client = clients.find(c => c.name === clientName);
+        if(!client) { showToast('الموكل غير موجود، أضفه أولاً'); return; }
+        activeCases.push({
             id: Date.now().toString(),
             number: document.getElementById('caseNumber').value,
             year: document.getElementById('caseYear').value,
             fileNumber: document.getElementById('caseFileNumber').value,
             subject: document.getElementById('caseSubject').value,
             court: document.getElementById('caseCourt').value,
-            circuit: document.getElementById('caseCircuit').value === 'أخرى' ? document.getElementById('otherCircuit').value : document.getElementById('caseCircuit').value,
-            degree: document.getElementById('caseDegree').value === 'أخرى' ? document.getElementById('otherDegree').value : document.getElementById('caseDegree').value,
+            circuit: document.getElementById('caseCircuit').value,
+            degree: document.getElementById('caseDegree').value,
             firstSessionDate: document.getElementById('firstSessionDate').value,
-            clientId: clientId,
+            clientId: client.id,
             clientRole: document.getElementById('clientRole').value,
             opponentName: document.getElementById('opponentName').value,
             opponentRole: document.getElementById('opponentRole').value,
             opponent2Name: document.getElementById('opponent2Name').value,
-            opponent2Role: document.getElementById('opponent2Role').value,
             decision: document.getElementById('caseDecision').value,
             firstSessionProcessed: false,
             nextSessionDate: '',
-            nextSessionProcessed: false,
-            createdAt: new Date().toISOString()
-        };
-        activeCases.push(caseData);
-        database.ref('activeCases').set(activeCases);
+            nextSessionProcessed: false
+        });
+        db.ref('activeCases').set(activeCases);
         e.target.reset();
         showToast('تم إضافة القضية');
-        switchToTab('activeCases');
+        switchTab('activeCases');
     });
     
     document.getElementById('clientForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        let client = {
-            id: Date.now().toString(),
-            name: document.getElementById('clientName').value,
-            phone: document.getElementById('clientPhone').value
-        };
+        let client = {id: Date.now().toString(), name: document.getElementById('clientName').value, phone: document.getElementById('clientPhone').value};
         clients.push(client);
-        database.ref('clients').set(clients);
+        db.ref('clients').set(clients);
         e.target.reset();
         showToast('تم إضافة الموكل');
-        populateSelects();
-        renderClients();
     });
     
     document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        if (currentUser?.role !== 'مدير' && !currentUser?.superAdmin) {
-            showToast('غير مسموح لك بإضافة موظفين');
-            return;
-        }
-        let employee = {
-            id: Date.now().toString(),
-            username: document.getElementById('empUsername').value,
-            password: document.getElementById('empPassword').value,
-            role: document.getElementById('empRole').value
-        };
-        employees.push(employee);
-        database.ref('employees').set(employees);
+        if(currentUser?.role !== 'مدير' && !currentUser?.superAdmin) { showToast('غير مسموح'); return; }
+        let emp = {id: Date.now().toString(), username: document.getElementById('empUsername').value, password: document.getElementById('empPassword').value, role: document.getElementById('empRole').value};
+        employees.push(emp);
+        db.ref('employees').set(employees);
         e.target.reset();
         showToast('تم إضافة الموظف');
     });
     
-    window.attemptLogin = async function() {
+    window.login = async function() {
         let username = document.getElementById('loginUsername').value.trim();
         let password = document.getElementById('loginPassword').value;
-        let fixedSnapshot = await database.ref('fixedAdmins').once('value');
-        let fixedList = fixedSnapshot.val() ? Object.values(fixedSnapshot.val()) : [];
-        let fixedAdmin = fixedList.find(e => e.username === username && e.password === password);
-        if (fixedAdmin) {
-            currentUser = fixedAdmin;
-            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+        let fixed = await db.ref('fixedAdmins').once('value');
+        let fixedList = fixed.val() ? Object.values(fixed.val()) : [];
+        if(fixedList.length === 0) {
+            let defaultAdmins = [
+                {id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, superAdmin: true},
+                {id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true}
+            ];
+            let obj = {}; defaultAdmins.forEach(a => obj[a.id] = a);
+            await db.ref('fixedAdmins').set(obj);
+            fixedList = defaultAdmins;
+        }
+        window.fixedAdmins = fixedList;
+        let admin = fixedList.find(e => e.username === username && e.password === password);
+        if(admin) {
+            currentUser = admin;
             document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'block';
-            document.getElementById('currentUserName').innerText = currentUser.username;
-            document.getElementById('welcomeUserName').innerText = currentUser.username;
-            document.getElementById('currentUserRole').innerHTML = currentUser.role;
-            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('userName').innerText = currentUser.username;
+            document.getElementById('userRole').innerText = currentUser.role;
+            document.getElementById('userRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
+            if(currentUser.superAdmin) document.getElementById('maintenanceTab').style.display = 'block';
             loadData();
-            loadMaintenanceStatus();
-            renderTabsBasedOnRole();
-            showToast(`مرحباً بك ${username}`);
+            let lastTab = localStorage.getItem('lastTab');
+            if(lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) switchTab(lastTab);
+            else switchTab('dashboard');
             return;
         }
-        let empSnapshot = await database.ref('employees').once('value');
-        let empList = empSnapshot.val() ? Object.values(empSnapshot.val()) : [];
+        let empData = await db.ref('employees').once('value');
+        let empList = empData.val() ? Object.values(empData.val()) : [];
         let user = empList.find(e => e.username === username && e.password === password);
-        if (user) {
+        if(user) {
             currentUser = user;
-            let now = new Date().toISOString();
-            await database.ref('employees/' + user.id).update({ lastLogin: now, lastLoginDisplay: new Date(now).toLocaleString('ar-EG') });
-            user.lastLogin = now;
-            user.lastLoginDisplay = new Date(now).toLocaleString('ar-EG');
-            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
             document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboardContent').style.display = 'block';
-            document.getElementById('currentUserName').innerText = currentUser.username;
-            document.getElementById('welcomeUserName').innerText = currentUser.username;
-            document.getElementById('currentUserRole').innerHTML = currentUser.role;
-            document.getElementById('currentUserRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('userName').innerText = currentUser.username;
+            document.getElementById('userRole').innerText = currentUser.role;
+            document.getElementById('userRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
             loadData();
-            loadMaintenanceStatus();
-            renderTabsBasedOnRole();
-            showToast(`مرحباً بك ${username}`);
+            let lastTab = localStorage.getItem('lastTab');
+            if(lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) switchTab(lastTab);
+            else switchTab('dashboard');
         } else {
             document.getElementById('loginError').style.display = 'block';
         }
@@ -2184,36 +621,26 @@
     
     window.logout = function() {
         currentUser = null;
-        localStorage.removeItem('law_currentUser');
-        localStorage.removeItem('lastOpenTab');
         document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('dashboardContent').style.display = 'none';
-        showToast('تم تسجيل الخروج');
+        document.getElementById('dashboard').style.display = 'none';
     };
     
-    window.closeModal = function() {
-        document.getElementById('detailsModal').style.display = 'none';
-    };
+    window.switchTab = switchTab;
+    window.showCaseDetails = showCaseDetails;
+    window.showDaySessions = showDaySessions;
+    window.processPastSession = processPastSession;
+    window.addAdminWork = addAdminWork;
+    window.addEnforcement = addEnforcement;
+    window.addExpert = addExpert;
+    window.completeAdminWork = completeAdminWork;
+    window.deleteClient = deleteClient;
+    window.deleteEmployee = deleteEmployee;
+    window.changePassword = changePassword;
+    window.toggleMaintenance = toggleMaintenance;
     
-    setInterval(() => {
-        if (currentUser?.superAdmin === true) {
-            renderEmployees();
-        }
-    }, 60000);
-    
-    let savedUser = localStorage.getItem('law_currentUser');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('dashboardContent').style.display = 'block';
-        document.getElementById('currentUserName').innerText = currentUser.username;
-        document.getElementById('welcomeUserName').innerText = currentUser.username;
-        document.getElementById('currentUserRole').innerHTML = currentUser.role;
-        document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
-        loadData();
-        loadMaintenanceStatus();
-        renderTabsBasedOnRole();
-    }
+    document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+        item.addEventListener('click', () => { let tab = item.getAttribute('data-tab'); if(tab) switchTab(tab); });
+    });
 </script>
 </body>
 </html>
