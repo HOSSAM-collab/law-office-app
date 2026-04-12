@@ -19,7 +19,97 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; padding: 20px; }
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; }
+        
+        /* ========== Dashboard Layout ========== */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* ========== Sidebar (على اليمين) ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0b2b40 0%, #1a4a5f 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .sidebar-menu {
+            flex: 1;
+            padding: 0 15px;
+        }
+        
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 18px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: rgba(255,255,255,0.8);
+            font-weight: 500;
+        }
+        
+        .sidebar-menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .sidebar-menu-item.active {
+            background: #ffc107;
+            color: #1a4a5f;
+        }
+        
+        .sidebar-menu-item i {
+            width: 24px;
+            font-size: 18px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 12px;
+            text-align: center;
+            opacity: 0.6;
+        }
+        
+        /* ========== Main Content ========== */
+        .main-content {
+            flex: 1;
+            margin-right: 280px;
+            padding: 20px;
+        }
+        
+        /* ========== باقي الـ Styles من الكود القديم ========== */
         .container { max-width: 1400px; margin: 0 auto; }
         
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
@@ -131,7 +221,6 @@
         @media (max-width: 768px) { .tab-btn { padding: 8px 16px; font-size: 13px; } .panel { padding: 15px; } th, td { font-size: 12px; } }
         
         .notification-toast { position: fixed; bottom: 20px; left: 20px; background: #1a4a5f; color: white; padding: 12px 20px; border-radius: 12px; display: none; z-index: 1000; }
-        .main-content { display: none; }
         
         .court-options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .court-btn { background: #e9ecef; color: #333; padding: 8px 16px; border-radius: 25px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
@@ -249,6 +338,13 @@
         .export-btn:hover {
             background: #1e7e34;
         }
+        
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar-header h2, .sidebar-header p, .sidebar-menu-item span { display: none; }
+            .sidebar-menu-item { justify-content: center; padding: 14px; }
+            .main-content { margin-right: 70px; }
+        }
     </style>
 </head>
 <body>
@@ -275,236 +371,341 @@
     </div>
 </div>
 
-<div id="mainContent" class="main-content">
-<div class="container">
-    <div class="header">
-        <div class="logo">
-            <h1><i class="fas fa-gavel"></i> مكتب الخواجا للمحاماة</h1>
-            <p>نظام إدارة القضايا والجلسات</p>
-        </div>
-        <div class="user-info">
-            <i class="fas fa-user-shield"></i>
-            <span id="currentUserName"></span>
-            <span id="currentUserRole" class="role-badge"></span>
-            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
-        </div>
-    </div>
-
-    <div class="search-section">
-        <div class="search-title"><i class="fas fa-search"></i> بحث عام في القضايا</div>
-        <div class="search-box">
-            <div class="search-group">
-                <label>بحث بـ</label>
-                <select id="searchType">
-                    <option value="caseNumber">رقم القضية + السنة</option>
-                    <option value="clientName">اسم الموكل</option>
-                </select>
+<div id="dashboardContent" style="display: none;">
+    <div class="dashboard-container">
+        <!-- ========== Sidebar (القائمة الجانبية) ========== -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-gavel" style="font-size: 32px; margin-bottom: 10px;"></i>
+                <h2>مكتب الخواجا</h2>
+                <p>نظام إدارة القضايا</p>
             </div>
-            <div class="search-group" id="caseNumberGroup">
-                <label>رقم القضية</label>
-                <input type="text" id="searchCaseNumber" placeholder="مثال: 123">
-            </div>
-            <div class="search-group" id="caseYearGroup">
-                <label>سنة القضية</label>
-                <input type="text" id="searchCaseYear" placeholder="مثال: 2025">
-            </div>
-            <div class="search-group" id="clientNameGroup" style="display:none;">
-                <label>اسم الموكل</label>
-                <input type="text" id="searchClientName" placeholder="أدخل اسم الموكل">
-            </div>
-            <div class="search-group">
-                <button onclick="performSearch()"><i class="fas fa-search"></i> بحث</button>
-                <button onclick="clearSearch()" class="btn-warning" style="background:#ffc107; color:#333;">مسح</button>
-            </div>
-        </div>
-        <div id="searchResults" class="search-results"></div>
-    </div>
-
-    <div id="welcomeBanner" class="welcome-banner">
-        <div><i class="fas fa-bell"></i> <span id="welcomeMessage"></span></div>
-        <div class="sessions-count" id="tomorrowSessionsCount"></div>
-    </div>
-
-    <div class="stats">
-        <div class="stat-card" data-tab="activeCases"><div class="stat-info"><h3 id="totalActiveCases">0</h3><p>قضايا المكتب</p></div><div class="stat-icon"><i class="fas fa-balance-scale"></i></div></div>
-        <div class="stat-card" data-tab="closedCases"><div class="stat-info"><h3 id="totalClosedCases">0</h3><p>قضايا منتهية</p></div><div class="stat-icon"><i class="fas fa-check-circle"></i></div></div>
-        <div class="stat-card" data-tab="tomorrowSessions"><div class="stat-info"><h3 id="upcomingSessions">0</h3><p>جلسات قادمة</p></div><div class="stat-icon"><i class="fas fa-calendar-check"></i></div></div>
-        <div class="stat-card" data-tab="clients"><div class="stat-info"><h3 id="totalClients">0</h3><p>الموكلين</p></div><div class="stat-icon"><i class="fas fa-users"></i></div></div>
-    </div>
-
-    <div class="tabs" id="tabsContainer"></div>
-
-    <!-- New Case Panel -->
-    <div id="newCasePanel" class="panel">
-        <h3>➕ إضافة قضية جديدة</h3>
-        <form id="newCaseForm">
-            <div class="form-group"><label>رقم القضية <span style="color:red">*</span></label><input type="text" id="caseNumber" required></div>
-            <div class="form-group"><label>سنة القضية <span style="color:red">*</span></label><input type="text" id="caseYear" placeholder="مثال: 2025" required></div>
-            <div class="form-group"><label>موضوع القضية <span style="color:red">*</span></label><input type="text" id="caseSubject" placeholder="مثال: شيك، إيجار، نفقة، ..." required></div>
-            <div class="form-group"><label>المحكمة <span style="color:red">*</span></label><div class="court-options" id="courtOptions"></div><input type="text" id="caseCourt" placeholder="أو اكتب اسم المحكمة" style="display:none;"></div>
-            <div class="form-group"><label>الدائرة <span style="color:red">*</span></label>
-                <select id="caseCircuit" required onchange="toggleOtherCircuit()">
-                    <option value="">اختر الدائرة</option>
-                    <option value="مدني">مدني</option>
-                    <option value="مدني كلي">مدني كلي</option>
-                    <option value="مدني مستأنف">مدني مستأنف</option>
-                    <option value="جنح">جنح</option>
-                    <option value="صحة توقيع">صحة توقيع</option>
-                    <option value="أسرة المراغة">أسرة المراغة</option>
-                    <option value="أسرة سوهاج">أسرة سوهاج</option>
-                    <option value="أخرى">أخرى +</option>
-                </select>
-                <input type="text" id="otherCircuit" placeholder="اكتب اسم الدائرة" style="display:none; margin-top:10px;">
-            </div>
-            <div class="form-group"><label>تاريخ الجلسة الأولى <span style="color:red">*</span></label><input type="datetime-local" id="firstSessionDate" required></div>
-            <div class="form-group"><label>الموكل <span style="color:red">*</span></label><select id="caseClient" required><option value="">اختر موكل</option></select></div>
-            <div class="form-group"><label>صفة الموكل <span style="color:red">*</span></label>
-                <select id="clientRole" required>
-                    <option value="">اختر الصفة</option>
-                    <option value="مدعي">مدعي</option>
-                    <option value="مدعي عليه">مدعي عليه</option>
-                    <option value="متهم">متهم</option>
-                    <option value="مجني عليه">مجني عليه</option>
-                    <option value="شاكي">شاكي</option>
-                    <option value="مشكو في حقه">مشكو في حقه</option>
-                    <option value="سلطته الاتهام">سلطته الاتهام</option>
-                    <option value="مستأنف">مستأنف</option>
-                    <option value="مستأنف ضده">مستأنف ضده</option>
-                    <option value="معترض">معترض</option>
-                    <option value="معترض ضده">معترض ضده</option>
-                </select>
-            </div>
-            <div class="opponent-section">
-                <div class="opponent-section-title"><i class="fas fa-gavel"></i> الخصم الأول <span style="color:red">*</span></div>
-                <div class="form-group"><label>اسم الخصم</label><input type="text" id="opponentName" required></div>
-                <div class="form-group"><label>صفة الخصم</label>
-                    <select id="opponentRole" required>
-                        <option value="">اختر الصفة</option>
-                        <option value="مدعي">مدعي</option>
-                        <option value="مدعي عليه">مدعي عليه</option>
-                        <option value="متهم">متهم</option>
-                        <option value="مجني عليه">مجني عليه</option>
-                        <option value="شاكي">شاكي</option>
-                        <option value="مشكو في حقه">مشكو في حقه</option>
-                        <option value="سلطته الاتهام">سلطته الاتهام</option>
-                        <option value="مستأنف">مستأنف</option>
-                        <option value="مستأنف ضده">مستأنف ضده</option>
-                        <option value="معترض">معترض</option>
-                        <option value="معترض ضده">معترض ضده</option>
-                    </select>
+            <div class="sidebar-menu" id="sidebarMenu">
+                <div class="sidebar-menu-item" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>الرئيسية</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="newCase">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>قضية جديدة</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="activeCases">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>قضايا المكتب</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="tomorrowSessions">
+                    <i class="fas fa-calendar-day"></i>
+                    <span>جلسات الغد</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="advancedAgenda">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>الأجندة</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="pastSessions">
+                    <i class="fas fa-history"></i>
+                    <span>ماتم في الجلسات</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="closedCases">
+                    <i class="fas fa-check-circle"></i>
+                    <span>قضايا منتهية</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="clients">
+                    <i class="fas fa-users"></i>
+                    <span>الموكلين</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="adminWorks">
+                    <i class="fas fa-tasks"></i>
+                    <span>أعمال إدارية</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="judgmentRecords">
+                    <i class="fas fa-gavel"></i>
+                    <span>سجل الأحكام</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="enforcements">
+                    <i class="fas fa-file-signature"></i>
+                    <span>توكيلات تنفيذ</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="experts">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>الخبراء</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="archive">
+                    <i class="fas fa-archive"></i>
+                    <span>الأرشيف</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="reports">
+                    <i class="fas fa-chart-line"></i>
+                    <span>التقارير</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="employees" id="employeesTabItem" style="display: none;">
+                    <i class="fas fa-user-tie"></i>
+                    <span>الموظفين</span>
+                </div>
+                <div class="sidebar-menu-item" data-tab="maintenance" id="maintenanceMenuItem" style="display: none;">
+                    <i class="fas fa-tools"></i>
+                    <span>وضع الصيانة</span>
                 </div>
             </div>
-            <div class="opponent-section">
-                <div class="opponent-section-title"><i class="fas fa-user-friends"></i> خصم ثاني (اختياري)</div>
-                <div class="form-group"><label>اسم الخصم الثاني</label><input type="text" id="opponent2Name" placeholder="اختياري"></div>
-                <div class="form-group"><label>صفة الخصم الثاني</label>
-                    <select id="opponent2Role">
-                        <option value="">اختر الصفة (اختياري)</option>
-                        <option value="مدعي">مدعي</option>
-                        <option value="مدعي عليه">مدعي عليه</option>
-                        <option value="متهم">متهم</option>
-                        <option value="مجني عليه">مجني عليه</option>
-                        <option value="شاكي">شاكي</option>
-                        <option value="مشكو في حقه">مشكو في حقه</option>
-                        <option value="سلطته الاتهام">سلطته الاتهام</option>
-                        <option value="مستأنف">مستأنف</option>
-                        <option value="مستأنف ضده">مستأنف ضده</option>
-                        <option value="معترض">معترض</option>
-                        <option value="معترض ضده">معترض ضده</option>
-                    </select>
+            <div class="sidebar-footer">
+                <i class="fas fa-copyright"></i> مكتب الخواجا للمحاماة
+            </div>
+        </div>
+        
+        <!-- ========== Main Content (المحتوى الأصلي) ========== -->
+        <div class="main-content">
+            <div class="container">
+                <div class="header">
+                    <div class="logo">
+                        <h1><i class="fas fa-gavel"></i> مكتب الخواجا للمحاماة</h1>
+                        <p>نظام إدارة القضايا والجلسات</p>
+                    </div>
+                    <div class="user-info">
+                        <i class="fas fa-user-shield"></i>
+                        <span id="currentUserName"></span>
+                        <span id="currentUserRole" class="role-badge"></span>
+                        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+                    </div>
+                </div>
+
+                <div class="search-section">
+                    <div class="search-title"><i class="fas fa-search"></i> بحث عام في القضايا</div>
+                    <div class="search-box">
+                        <div class="search-group">
+                            <label>بحث بـ</label>
+                            <select id="searchType">
+                                <option value="caseNumber">رقم القضية + السنة</option>
+                                <option value="clientName">اسم الموكل</option>
+                            </select>
+                        </div>
+                        <div class="search-group" id="caseNumberGroup">
+                            <label>رقم القضية</label>
+                            <input type="text" id="searchCaseNumber" placeholder="مثال: 123">
+                        </div>
+                        <div class="search-group" id="caseYearGroup">
+                            <label>سنة القضية</label>
+                            <input type="text" id="searchCaseYear" placeholder="مثال: 2025">
+                        </div>
+                        <div class="search-group" id="clientNameGroup" style="display:none;">
+                            <label>اسم الموكل</label>
+                            <input type="text" id="searchClientName" placeholder="أدخل اسم الموكل">
+                        </div>
+                        <div class="search-group">
+                            <button onclick="performSearch()"><i class="fas fa-search"></i> بحث</button>
+                            <button onclick="clearSearch()" class="btn-warning" style="background:#ffc107; color:#333;">مسح</button>
+                        </div>
+                    </div>
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+
+                <div id="welcomeBanner" class="welcome-banner">
+                    <div><i class="fas fa-bell"></i> <span id="welcomeMessage"></span></div>
+                    <div class="sessions-count" id="tomorrowSessionsCount"></div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card" data-tab="activeCases"><div class="stat-info"><h3 id="totalActiveCases">0</h3><p>قضايا المكتب</p></div><div class="stat-icon"><i class="fas fa-balance-scale"></i></div></div>
+                    <div class="stat-card" data-tab="closedCases"><div class="stat-info"><h3 id="totalClosedCases">0</h3><p>قضايا منتهية</p></div><div class="stat-icon"><i class="fas fa-check-circle"></i></div></div>
+                    <div class="stat-card" data-tab="tomorrowSessions"><div class="stat-info"><h3 id="upcomingSessions">0</h3><p>جلسات قادمة</p></div><div class="stat-icon"><i class="fas fa-calendar-check"></i></div></div>
+                    <div class="stat-card" data-tab="clients"><div class="stat-info"><h3 id="totalClients">0</h3><p>الموكلين</p></div><div class="stat-icon"><i class="fas fa-users"></i></div></div>
+                </div>
+
+                <div id="panelsContainer">
+                    <div id="dashboardPanel" class="panel active-panel">
+                        <div style="text-align: center; padding: 20px;">
+                            <i class="fas fa-gavel" style="font-size: 48px; color: #1a4a5f; margin-bottom: 15px;"></i>
+                            <h3 style="color: #1a4a5f;">مكتب الخواجا للمحاماة</h3>
+                            <p style="color: #666;">نظام إدارة القضايا والجلسات - اختر أحد الخيارات من القائمة الجانبية</p>
+                        </div>
+                    </div>
+                    
+                    <div id="newCasePanel" class="panel">
+                        <h3>➕ إضافة قضية جديدة</h3>
+                        <form id="newCaseForm">
+                            <div class="form-group"><label>رقم القضية <span style="color:red">*</span></label><input type="text" id="caseNumber" required></div>
+                            <div class="form-group"><label>سنة القضية <span style="color:red">*</span></label><input type="text" id="caseYear" placeholder="مثال: 2025" required></div>
+                            <div class="form-group"><label>موضوع القضية <span style="color:red">*</span></label><input type="text" id="caseSubject" placeholder="مثال: شيك، إيجار، نفقة، ..." required></div>
+                            <div class="form-group"><label>المحكمة <span style="color:red">*</span></label><div class="court-options" id="courtOptions"></div><input type="text" id="caseCourt" placeholder="أو اكتب اسم المحكمة" style="display:none;"></div>
+                            <div class="form-group"><label>الدائرة <span style="color:red">*</span></label>
+                                <select id="caseCircuit" required onchange="toggleOtherCircuit()">
+                                    <option value="">اختر الدائرة</option>
+                                    <option value="مدني">مدني</option>
+                                    <option value="مدني كلي">مدني كلي</option>
+                                    <option value="مدني مستأنف">مدني مستأنف</option>
+                                    <option value="جنح">جنح</option>
+                                    <option value="صحة توقيع">صحة توقيع</option>
+                                    <option value="أسرة المراغة">أسرة المراغة</option>
+                                    <option value="أسرة سوهاج">أسرة سوهاج</option>
+                                    <option value="أخرى">أخرى +</option>
+                                </select>
+                                <input type="text" id="otherCircuit" placeholder="اكتب اسم الدائرة" style="display:none; margin-top:10px;">
+                            </div>
+                            <div class="form-group"><label>تاريخ الجلسة الأولى <span style="color:red">*</span></label><input type="datetime-local" id="firstSessionDate" required></div>
+                            <div class="form-group"><label>الموكل <span style="color:red">*</span></label><select id="caseClient" required><option value="">اختر موكل</option></select></div>
+                            <div class="form-group"><label>صفة الموكل <span style="color:red">*</span></label>
+                                <select id="clientRole" required>
+                                    <option value="">اختر الصفة</option>
+                                    <option value="مدعي">مدعي</option>
+                                    <option value="مدعي عليه">مدعي عليه</option>
+                                    <option value="متهم">متهم</option>
+                                    <option value="مجني عليه">مجني عليه</option>
+                                    <option value="شاكي">شاكي</option>
+                                    <option value="مشكو في حقه">مشكو في حقه</option>
+                                    <option value="سلطته الاتهام">سلطته الاتهام</option>
+                                    <option value="مستأنف">مستأنف</option>
+                                    <option value="مستأنف ضده">مستأنف ضده</option>
+                                    <option value="معترض">معترض</option>
+                                    <option value="معترض ضده">معترض ضده</option>
+                                </select>
+                            </div>
+                            <div class="opponent-section">
+                                <div class="opponent-section-title"><i class="fas fa-gavel"></i> الخصم الأول <span style="color:red">*</span></div>
+                                <div class="form-group"><label>اسم الخصم</label><input type="text" id="opponentName" required></div>
+                                <div class="form-group"><label>صفة الخصم</label>
+                                    <select id="opponentRole" required>
+                                        <option value="">اختر الصفة</option>
+                                        <option value="مدعي">مدعي</option>
+                                        <option value="مدعي عليه">مدعي عليه</option>
+                                        <option value="متهم">متهم</option>
+                                        <option value="مجني عليه">مجني عليه</option>
+                                        <option value="شاكي">شاكي</option>
+                                        <option value="مشكو في حقه">مشكو في حقه</option>
+                                        <option value="سلطته الاتهام">سلطته الاتهام</option>
+                                        <option value="مستأنف">مستأنف</option>
+                                        <option value="مستأنف ضده">مستأنف ضده</option>
+                                        <option value="معترض">معترض</option>
+                                        <option value="معترض ضده">معترض ضده</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="opponent-section">
+                                <div class="opponent-section-title"><i class="fas fa-user-friends"></i> خصم ثاني (اختياري)</div>
+                                <div class="form-group"><label>اسم الخصم الثاني</label><input type="text" id="opponent2Name" placeholder="اختياري"></div>
+                                <div class="form-group"><label>صفة الخصم الثاني</label>
+                                    <select id="opponent2Role">
+                                        <option value="">اختر الصفة (اختياري)</option>
+                                        <option value="مدعي">مدعي</option>
+                                        <option value="مدعي عليه">مدعي عليه</option>
+                                        <option value="متهم">متهم</option>
+                                        <option value="مجني عليه">مجني عليه</option>
+                                        <option value="شاكي">شاكي</option>
+                                        <option value="مشكو في حقه">مشكو في حقه</option>
+                                        <option value="سلطته الاتهام">سلطته الاتهام</option>
+                                        <option value="مستأنف">مستأنف</option>
+                                        <option value="مستأنف ضده">مستأنف ضده</option>
+                                        <option value="معترض">معترض</option>
+                                        <option value="معترض ضده">معترض ضده</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group"><label>القرار</label><textarea id="caseDecision" rows="3" placeholder="القرار أو ملاحظات على القضية"></textarea></div>
+                            <button type="submit">✅ إضافة قضية</button>
+                        </form>
+                    </div>
+                    
+                    <div id="activeCasesPanel" class="panel">
+                        <h3>📂 قضايا المكتب</h3>
+                        <div class="internal-search">
+                            <input type="text" id="activeSearchInput" placeholder="🔍 بحث في قضايا المكتب (رقم القضية أو اسم الموكل)...">
+                            <button onclick="searchActiveCases()" class="btn-sm">بحث</button>
+                            <button onclick="clearActiveSearch()" class="btn-sm btn-warning">مسح</button>
+                        </div>
+                        <div id="activeCasesList"></div>
+                    </div>
+                    
+                    <div id="tomorrowSessionsPanel" class="panel"><h3>📅 جلسات الغد</h3><div id="tomorrowSessionsList"></div></div>
+                    
+                    <div id="advancedAgendaPanel" class="panel"><h3>📅 الأجندة</h3><div id="advancedAgendaList"></div></div>
+                    
+                    <div id="pastSessionsPanel" class="panel"><h3>📜 ماتم في الجلسات</h3><div id="pastSessionsList"></div></div>
+                    
+                    <div id="closedCasesPanel" class="panel">
+                        <h3>📦 القضايا المنتهية</h3>
+                        <div class="internal-search">
+                            <input type="text" id="closedSearchInput" placeholder="🔍 بحث في القضايا المنتهية (رقم القضية أو اسم الموكل)...">
+                            <button onclick="searchClosedCases()" class="btn-sm">بحث</button>
+                            <button onclick="clearClosedSearch()" class="btn-sm btn-warning">مسح</button>
+                        </div>
+                        <div id="closedCasesList"></div>
+                    </div>
+                    
+                    <div id="clientsPanel" class="panel">
+                        <h3>👥 إدارة الموكلين</h3>
+                        <form id="clientForm">
+                            <div class="form-group"><label>الاسم</label><input type="text" id="clientName" required></div>
+                            <div class="form-group"><label>الرقم القومي</label><input type="text" id="clientNationalId"></div>
+                            <div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div>
+                            <button type="submit">➕ إضافة موكل</button>
+                        </form>
+                        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                    
+                    <div id="adminWorksPanel" class="panel">
+                        <h3>📋 الأعمال الإدارية</h3>
+                        <div class="admin-works-section">
+                            <div class="admin-works-title"><i class="fas fa-spinner"></i> قيد التنفيذ</div>
+                            <div id="adminWorksPendingList"></div>
+                        </div>
+                        <div class="admin-works-section">
+                            <div class="admin-works-title"><i class="fas fa-check-circle"></i> منتهية</div>
+                            <div id="adminWorksCompletedList"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="judgmentRecordsPanel" class="panel"><h3>⚖️ سجل الأحكام</h3><div id="judgmentRecordsList"></div></div>
+                    
+                    <div id="enforcementsPanel" class="panel"><h3>📄 توكيلات التنفيذ</h3><button onclick="addEnforcement()" class="btn-success">➕ إضافة توكيل جديد</button><div id="enforcementsList" style="margin-top:20px;"></div></div>
+                    
+                    <div id="expertsPanel" class="panel">
+                        <h3>👨‍⚖️ الخبراء</h3>
+                        <button onclick="addExpert()" class="btn-success">➕ إضافة خبير جديد</button>
+                        <div id="expertsList" style="margin-top:20px;"></div>
+                    </div>
+                    
+                    <div id="archivePanel" class="panel">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+                            <h3>📚 الأرشيف</h3>
+                            <button onclick="addArchiveCircuit()" class="btn-sm btn-primary" id="addCircuitBtn" style="display: none;"><i class="fas fa-plus"></i> إضافة دائرة جديدة</button>
+                        </div>
+                        <div id="archiveCategories"></div>
+                        <div id="archiveCasesList" class="archive-cases-list"></div>
+                    </div>
+                    
+                    <div id="reportsPanel" class="panel">
+                        <h3>📊 التقارير <button onclick="exportToExcel()" class="export-btn btn-sm"><i class="fas fa-file-excel"></i> 📊 تصدير Excel</button></h3>
+                        <div class="report-simple"><h4>⚖️ كل القضايا</h4><p>إجمالي القضايا المتداولة: <strong id="reportTotalActive">0</strong></p><p>إجمالي القضايا المنتهية: <strong id="reportTotalClosed">0</strong></p><p>إجمالي الموكلين: <strong id="reportTotalClients">0</strong></p></div>
+                        <div class="report-simple"><h4>📅 جلسات هذا الأسبوع</h4><div id="weeklyReport"></div></div>
+                    </div>
+                    
+                    <div id="employeesPanel" class="panel">
+                        <h3>👨‍💼 الموظفين</h3>
+                        <form id="employeeForm">
+                            <div class="form-group"><label>اسم المستخدم <span style="color:red">*</span></label><input type="text" id="empUsername" required placeholder="مثال: ahmed123" autocomplete="off"></div>
+                            <div class="form-group"><label>كلمة المرور <span style="color:red">*</span></label><input type="text" id="empPassword" required placeholder="كلمة المرور" autocomplete="off"></div>
+                            <div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div>
+                            <button type="submit">➕ إضافة موظف</button>
+                        </form>
+                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                    
+                    <div id="maintenancePanel" class="panel">
+                        <h3>🛠 وضع الصيانة</h3>
+                        <div class="maintenance-control">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                <button id="toggleMaintenanceBtn" class="btn-warning">🔧 تعطيل الموقع (صيانة)</button>
+                                <select id="maintenanceDuration" style="width: 120px; padding: 8px; border-radius: 8px;">
+                                    <option value="0">غير محدد</option>
+                                    <option value="1">1 ساعة</option><option value="2">2 ساعة</option><option value="4">4 ساعات</option>
+                                    <option value="8">8 ساعات</option><option value="12">12 ساعة</option><option value="24">24 ساعة</option>
+                                </select>
+                                <span id="maintenanceStatusSpan"><span class="maintenance-status status-maintenance-off">🟢 الموقع يعمل</span></span>
+                            </div>
+                            <div id="maintenanceInfo" style="margin-top: 15px;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group"><label>القرار</label><textarea id="caseDecision" rows="3" placeholder="القرار أو ملاحظات على القضية"></textarea></div>
-            <button type="submit">✅ إضافة قضية</button>
-        </form>
-    </div>
-
-    <!-- Active Cases -->
-    <div id="activeCasesPanel" class="panel">
-        <h3>📂 قضايا المكتب</h3>
-        <div class="internal-search">
-            <input type="text" id="activeSearchInput" placeholder="🔍 بحث في قضايا المكتب (رقم القضية أو اسم الموكل)...">
-            <button onclick="searchActiveCases()" class="btn-sm">بحث</button>
-            <button onclick="clearActiveSearch()" class="btn-sm btn-warning">مسح</button>
-        </div>
-        <div id="activeCasesList"></div>
-    </div>
-
-    <!-- Tomorrow Sessions -->
-    <div id="tomorrowSessionsPanel" class="panel"><h3>📅 جلسات الغد</h3><div id="tomorrowSessionsList"></div></div>
-
-    <!-- Advanced Agenda -->
-    <div id="advancedAgendaPanel" class="panel"><h3>📅 الأجندة</h3><div id="advancedAgendaList"></div></div>
-
-    <!-- Past Sessions -->
-    <div id="pastSessionsPanel" class="panel"><h3>📜 ماتم في الجلسات</h3><div id="pastSessionsList"></div></div>
-
-    <!-- Closed Cases -->
-    <div id="closedCasesPanel" class="panel">
-        <h3>📦 القضايا المنتهية</h3>
-        <div class="internal-search">
-            <input type="text" id="closedSearchInput" placeholder="🔍 بحث في القضايا المنتهية (رقم القضية أو اسم الموكل)...">
-            <button onclick="searchClosedCases()" class="btn-sm">بحث</button>
-            <button onclick="clearClosedSearch()" class="btn-sm btn-warning">مسح</button>
-        </div>
-        <div id="closedCasesList"></div>
-    </div>
-
-    <!-- Clients -->
-    <div id="clientsPanel" class="panel">
-        <h3>👥 إدارة الموكلين</h3>
-        <form id="clientForm">
-            <div class="form-group"><label>الاسم</label><input type="text" id="clientName" required></div>
-            <div class="form-group"><label>الرقم القومي</label><input type="text" id="clientNationalId"></div>
-            <div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div>
-            <button type="submit">➕ إضافة موكل</button>
-        </form>
-        <div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
-    </div>
-
-    <!-- Admin Works -->
-    <div id="adminWorksPanel" class="panel">
-        <h3>📋 الأعمال الإدارية</h3>
-        <div class="admin-works-section">
-            <div class="admin-works-title"><i class="fas fa-spinner"></i> قيد التنفيذ</div>
-            <div id="adminWorksPendingList"></div>
-        </div>
-        <div class="admin-works-section">
-            <div class="admin-works-title"><i class="fas fa-check-circle"></i> منتهية</div>
-            <div id="adminWorksCompletedList"></div>
         </div>
     </div>
-
-    <!-- Judgment Records -->
-    <div id="judgmentRecordsPanel" class="panel"><h3>⚖️ سجل الأحكام</h3><div id="judgmentRecordsList"></div></div>
-
-    <!-- Enforcements -->
-    <div id="enforcementsPanel" class="panel"><h3>📄 توكيلات التنفيذ</h3><button onclick="addEnforcement()" class="btn-success">➕ إضافة توكيل جديد</button><div id="enforcementsList" style="margin-top:20px;"></div></div>
-
-    <!-- Experts -->
-    <div id="expertsPanel" class="panel">
-        <h3>👨‍⚖️ الخبراء</h3>
-        <button onclick="addExpert()" class="btn-success">➕ إضافة خبير جديد</button>
-        <div id="expertsList" style="margin-top:20px;"></div>
-    </div>
-
-    <!-- Archive -->
-    <div id="archivePanel" class="panel">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
-            <h3>📚 الأرشيف</h3>
-            <button onclick="addArchiveCircuit()" class="btn-sm btn-primary" id="addCircuitBtn" style="display: none;"><i class="fas fa-plus"></i> إضافة دائرة جديدة</button>
-        </div>
-        <div id="archiveCategories"></div>
-        <div id="archiveCasesList" class="archive-cases-list"></div>
-    </div>
-
-    <!-- Reports -->
-    <div id="reportsPanel" class="panel">
-        <h3>📊 التقارير <button onclick="exportToExcel()" class="export-btn btn-sm"><i class="fas fa-file-excel"></i> 📊 تصدير Excel</button></h3>
-        <div class="report-simple"><h4>⚖️ كل القضايا</h4><p>إجمالي القضايا المتداولة: <strong id="reportTotalActive">0</strong></p><p>إجمالي القضايا المنتهية: <strong id="reportTotalClosed">0</strong></p><p>إجمالي الموكلين: <strong id="reportTotalClients">0</strong></p></div>
-        <div class="report-simple"><h4>📅 جلسات هذا الأسبوع</h4><div id="weeklyReport"></div></div>
-    </div>
-</div>
 </div>
 
 <div id="detailsModal" class="modal" onclick="if(event.target===this) closeModal()">
@@ -580,28 +781,17 @@
         }
     }
 
-    // ========== صلاحيات المستخدمين (المعدلة) ==========
+    // ========== صلاحيات المستخدمين ==========
     function isVisibleToCurrentUser(employee) {
         if (!currentUser) return false;
-        
-        // حسام (سوبر أدمن) يشوف كل حاجة
         if (currentUser.superAdmin === true) return true;
-        
-        // حسام نفسه لا يظهر لأي حد
         if (employee.id === "admin_hesham") return false;
-        
-        // جورج: يظهر فقط لحسام ولنفسه
         if (employee.id === "admin_george") {
-            // لو المستخدم الحالي هو حسام -> يشوف جورج
             if (currentUser.superAdmin === true) return true;
-            // لو المستخدم الحالي هو جورج نفسه -> يشوف نفسه
             if (currentUser.id === "admin_george") return true;
             return false;
         }
-        
-        // الموظف العادي يظهر للكل (عدا حسام)
         if (!employee.isFixed) return true;
-        
         return false;
     }
 
@@ -657,6 +847,131 @@
         document.getElementById('detailsModal').style.display = 'none'; 
     };
 
+    // ========== تبديل التبويبات (من القائمة الجانبية) ==========
+    window.switchToTab = function(tabId) {
+        // تحديث القائمة الجانبية
+        document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('data-tab') === tabId) {
+                item.classList.add('active');
+            }
+        });
+        
+        // تحديث البانلات
+        document.querySelectorAll('.panel').forEach(panel => {
+            panel.classList.remove('active-panel');
+        });
+        
+        let panelId = tabId + 'Panel';
+        let targetPanel = document.getElementById(panelId);
+        if (targetPanel) {
+            targetPanel.classList.add('active-panel');
+        } else if (tabId === 'dashboard') {
+            document.getElementById('dashboardPanel').classList.add('active-panel');
+        }
+        
+        // حفظ آخر تبويب في localStorage
+        localStorage.setItem('lastOpenTab', tabId);
+    };
+
+    // ربط أزرار القائمة الجانبية
+    function bindSidebarButtons() {
+        document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+            item.removeEventListener('click', () => {});
+            item.addEventListener('click', () => {
+                let tabId = item.getAttribute('data-tab');
+                if (tabId) {
+                    switchToTab(tabId);
+                }
+            });
+        });
+    }
+
+    // تفعيل الكروت العلوية
+    function initStatCards() {
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('click', () => {
+                let tabName = card.getAttribute('data-tab');
+                if (tabName) {
+                    switchToTab(tabName);
+                }
+            });
+        });
+    }
+
+    // عرض التبويبات حسب الدور (لإظهار تبويب الموظفين للمدير)
+    function renderTabsBasedOnRole() {
+        let isAdminUser = isAdmin();
+        let employeesTabItem = document.getElementById('employeesTabItem');
+        let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
+        
+        if (employeesTabItem) {
+            employeesTabItem.style.display = isAdminUser ? 'flex' : 'none';
+        }
+        if (maintenanceMenuItem) {
+            maintenanceMenuItem.style.display = (currentUser && currentUser.superAdmin === true) ? 'flex' : 'none';
+        }
+        
+        bindSidebarButtons();
+        
+        // فتح آخر تبويب كان مفتوح
+        let lastTab = localStorage.getItem('lastOpenTab');
+        if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
+            switchToTab(lastTab);
+        } else {
+            switchToTab('dashboard');
+        }
+        
+        // إضافة أزرار التحكم في الصيانة لو المستخدم حسام
+        if (currentUser && currentUser.superAdmin === true) {
+            setupMaintenanceControls();
+        }
+    }
+    
+    function setupMaintenanceControls() {
+        let toggleBtn = document.getElementById('toggleMaintenanceBtn');
+        let durationSelect = document.getElementById('maintenanceDuration');
+        let statusSpan = document.getElementById('maintenanceStatusSpan');
+        let infoDiv = document.getElementById('maintenanceInfo');
+        
+        if (toggleBtn) {
+            toggleBtn.onclick = () => {
+                if (isMaintenanceMode) disableMaintenance();
+                else { let duration = parseInt(durationSelect?.value || 0); enableMaintenance(duration > 0 ? duration : null); }
+            };
+        }
+        
+        // تحديث واجهة الصيانة
+        database.ref('maintenance').on('value', (snapshot) => {
+            const data = snapshot.val();
+            isMaintenanceMode = data?.isActive || false;
+            maintenanceEndTime = data?.endTime;
+            
+            if (toggleBtn) {
+                if (isMaintenanceMode) {
+                    toggleBtn.innerHTML = '🔓 تشغيل الموقع';
+                    toggleBtn.className = 'btn-success';
+                    if (statusSpan) statusSpan.innerHTML = '<span class="maintenance-status status-maintenance-on">🔴 الموقع معطل</span>';
+                } else {
+                    toggleBtn.innerHTML = '🔧 تعطيل الموقع (صيانة)';
+                    toggleBtn.className = 'btn-warning';
+                    if (statusSpan) statusSpan.innerHTML = '<span class="maintenance-status status-maintenance-off">🟢 الموقع يعمل</span>';
+                }
+            }
+            
+            if (infoDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) {
+                let remaining = new Date(maintenanceEndTime) - new Date();
+                let hours = Math.floor(remaining / 3600000);
+                let minutes = Math.floor((remaining % 3600000) / 60000);
+                infoDiv.innerHTML = `<small><i class="fas fa-clock"></i> تنتهي الصيانة بعد: ${hours} ساعة ${minutes} دقيقة</small>`;
+            } else if (infoDiv) {
+                infoDiv.innerHTML = '';
+            }
+            
+            checkMaintenance();
+        });
+    }
+
     // ========== تحميل وحفظ البيانات ==========
     function loadDataFromFirebase() {
         database.ref('activeCases').on('value', (s) => { activeCases = s.val() ? Object.values(s.val()) : []; updateStats(); renderActiveCases(); renderPastSessions(); renderTomorrowSessions(); renderAdvancedAgenda(); updateReports(); });
@@ -678,7 +993,7 @@
             renderEnforcements();
             renderJudgmentRecords();
         });
-        database.ref('employees').on('value', (s) => { employees = s.val() ? Object.values(s.val()) : []; renderTabsBasedOnRole(); renderEmployeesTable(); });
+        database.ref('employees').on('value', (s) => { employees = s.val() ? Object.values(s.val()) : []; renderEmployeesTable(); renderTabsBasedOnRole(); });
         database.ref('customCourts').on('value', (s) => { customCourts = s.val() ? Object.values(s.val()) : []; updateCourtOptions(); });
         database.ref('adminWorks').on('value', (s) => { adminWorks = s.val() ? Object.values(s.val()) : []; renderAdminWorks(); checkOverdueWorks(); });
         database.ref('judgmentRecords').on('value', (s) => { judgmentRecords = s.val() ? Object.values(s.val()) : []; renderJudgmentRecords(); });
@@ -700,8 +1015,8 @@
                 database.ref('fixedAdmins').set(adminsObj);
                 fixedAdmins.push(...defaultAdmins);
             }
-            renderTabsBasedOnRole();
             renderEmployeesTable();
+            renderTabsBasedOnRole();
         });
         loadMaintenanceStatus();
     }
@@ -723,127 +1038,50 @@
         setTimeout(()=>{ toast.style.display = 'none'; }, 3000);
     }
 
-    // ========== تبديل التبويبات ==========
-    window.switchToTab = function(tabId) {
-        let tabBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-        if (tabBtn) {
-            tabBtn.click();
-        } else {
-            let allBtns = document.querySelectorAll('.tab-btn');
-            for (let btn of allBtns) {
-                if (btn.getAttribute('data-tab') === tabId) {
-                    btn.click();
-                    break;
-                }
-            }
-        }
-    };
-
-    // ========== تفعيل الكروت العلوية ==========
-    function initStatCards() {
-        document.querySelectorAll('.stat-card').forEach(card => {
-            card.addEventListener('click', () => {
-                let tabName = card.getAttribute('data-tab');
-                if (tabName) {
-                    switchToTab(tabName);
-                }
-            });
-        });
-    }
-
     // ========== تصدير Excel ==========
     window.exportToExcel = function() {
         try {
             let activeData = activeCases.map(c => ({
-                'رقم القضية': c.number,
-                'السنة': c.year,
-                'المحكمة': c.court,
-                'الدائرة': c.circuit || '',
-                'الموكل': getClientName(c.clientId),
-                'صفة الموكل': c.clientRole,
-                'الخصم الأول': c.opponentName,
-                'صفة الخصم الأول': c.opponentRole,
-                'الخصم الثاني': c.opponent2Name || '',
-                'موضوع القضية': c.subject || '',
+                'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الدائرة': c.circuit || '',
+                'الموكل': getClientName(c.clientId), 'صفة الموكل': c.clientRole,
+                'الخصم الأول': c.opponentName, 'صفة الخصم الأول': c.opponentRole,
+                'الخصم الثاني': c.opponent2Name || '', 'موضوع القضية': c.subject || '',
                 'الجلسة القادمة': c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : ''),
                 'القرار': c.decision || ''
             }));
-
             let closedData = closedCases.map(c => ({
-                'رقم القضية': c.number,
-                'السنة': c.year,
-                'المحكمة': c.court,
-                'الدائرة': c.circuit || '',
-                'الموكل': getClientName(c.clientId),
-                'صفة الموكل': c.clientRole,
-                'الخصم الأول': c.opponentName,
-                'صفة الخصم الأول': c.opponentRole,
-                'موضوع القضية': c.subject || '',
-                'الحكم': c.judgment,
-                'تاريخ الإنهاء': c.closedAt ? new Date(c.closedAt).toLocaleDateString('ar-EG') : ''
+                'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الدائرة': c.circuit || '',
+                'الموكل': getClientName(c.clientId), 'صفة الموكل': c.clientRole,
+                'الخصم الأول': c.opponentName, 'صفة الخصم الأول': c.opponentRole,
+                'موضوع القضية': c.subject || '', 'الحكم': c.judgment, 'تاريخ الإنهاء': c.closedAt ? new Date(c.closedAt).toLocaleDateString('ar-EG') : ''
             }));
-
             let clientsData = clients.map(cl => ({
-                'اسم الموكل': cl.name,
-                'الرقم القومي': cl.nationalId || '',
-                'رقم الموبايل': cl.phone,
+                'اسم الموكل': cl.name, 'الرقم القومي': cl.nationalId || '', 'رقم الموبايل': cl.phone,
                 'عدد القضايا': activeCases.filter(c => c.clientId == cl.id).length + closedCases.filter(c => c.clientId == cl.id).length
             }));
-
-            let tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            let tomorrowEnd = new Date(tomorrow);
-            tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
-            
+            let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(0,0,0,0);
+            let tomorrowEnd = new Date(tomorrow); tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
             let upcomingSessions = activeCases.filter(c => {
                 let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
                 return sessionDate && sessionDate >= tomorrow && sessionDate < tomorrowEnd;
             }).map(s => ({
-                'رقم القضية': s.number,
-                'السنة': s.year,
-                'المحكمة': s.court,
-                'الموكل': getClientName(s.clientId),
-                'الخصم': s.opponentName,
+                'رقم القضية': s.number, 'السنة': s.year, 'المحكمة': s.court,
+                'الموكل': getClientName(s.clientId), 'الخصم': s.opponentName,
                 'وقت الجلسة': (s.nextSessionDate ? new Date(s.nextSessionDate) : new Date(s.firstSessionDate)).toLocaleString('ar-EG')
             }));
-
             let wb = XLSX.utils.book_new();
-            
-            if (activeData.length) {
-                let wsActive = XLSX.utils.json_to_sheet(activeData);
-                XLSX.utils.book_append_sheet(wb, wsActive, 'قضايا المكتب');
-            }
-            
-            if (closedData.length) {
-                let wsClosed = XLSX.utils.json_to_sheet(closedData);
-                XLSX.utils.book_append_sheet(wb, wsClosed, 'قضايا منتهية');
-            }
-            
-            if (clientsData.length) {
-                let wsClients = XLSX.utils.json_to_sheet(clientsData);
-                XLSX.utils.book_append_sheet(wb, wsClients, 'الموكلين');
-            }
-            
-            if (upcomingSessions.length) {
-                let wsSessions = XLSX.utils.json_to_sheet(upcomingSessions);
-                XLSX.utils.book_append_sheet(wb, wsSessions, 'جلسات الغد');
-            }
-
+            if (activeData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(activeData), 'قضايا المكتب');
+            if (closedData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(closedData), 'قضايا منتهية');
+            if (clientsData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(clientsData), 'الموكلين');
+            if (upcomingSessions.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(upcomingSessions), 'جلسات الغد');
             XLSX.writeFile(wb, `مكتب_الخواجا_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
             showNotification('تم تصدير البيانات بنجاح');
-        } catch(e) {
-            console.error(e);
-            showNotification('حدث خطأ أثناء تصدير البيانات');
-        }
+        } catch(e) { showNotification('حدث خطأ أثناء تصدير البيانات'); }
     };
 
     // ========== إضافة دائرة جديدة للأرشيف ==========
     window.addArchiveCircuit = function() {
-        if (!currentUser || !currentUser.superAdmin) {
-            showNotification('غير مسموح لك بهذه العملية');
-            return;
-        }
+        if (!currentUser || !currentUser.superAdmin) { showNotification('غير مسموح لك بهذه العملية'); return; }
         let newCircuit = prompt('أدخل اسم الدائرة الجديدة:');
         if (newCircuit && newCircuit.trim()) {
             let circuitName = newCircuit.trim();
@@ -851,9 +1089,7 @@
                 archiveCategories.push({ id: circuitName.replace(/\s/g, '_'), name: circuitName, circuit: circuitName });
                 renderArchive();
                 showNotification(`تم إضافة دائرة "${circuitName}" للأرشيف`);
-            } else {
-                showNotification('هذه الدائرة موجودة بالفعل');
-            }
+            } else { showNotification('هذه الدائرة موجودة بالفعل'); }
         }
     };
 
@@ -861,9 +1097,7 @@
     window.chooseCircuitForClosedCase = function(caseId) {
         let caseData = activeCases.find(c => c.id == caseId);
         if (!caseData) return;
-        
         let allCircuits = [...new Set([...archiveCategories.map(c => c.circuit), ...activeCases.map(c => c.circuit), ...closedCases.map(c => c.circuit)].filter(Boolean))];
-        
         let modalBody = `
             <h4>اختر دائرة للقضية المنتهية</h4>
             <p><strong>القضية: ${caseData.number} (${caseData.year})</strong></p>
@@ -873,9 +1107,7 @@
                     <option value="أخرى">أخرى +</option>
                 </select>
             </div>
-            <div id="newCircuitDiv" style="display:none;">
-                <div class="form-group"><label>دائرة جديدة</label><input type="text" id="newCircuit" placeholder="أدخل اسم الدائرة الجديدة"></div>
-            </div>
+            <div id="newCircuitDiv" style="display:none;"><div class="form-group"><label>دائرة جديدة</label><input type="text" id="newCircuit" placeholder="أدخل اسم الدائرة الجديدة"></div></div>
             <div class="form-group"><label>منطوق الحكم</label><input type="text" id="judgmentText" placeholder="أدخل منطوق الحكم النهائي"></div>
             <button onclick="saveCaseWithCircuit('${caseId}')" class="btn-success">حفظ وإنهاء القضية</button>
             <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
@@ -883,7 +1115,6 @@
         document.getElementById('modalTitle').innerHTML = '🏁 إنهاء القضية - اختيار الدائرة';
         document.getElementById('modalBody').innerHTML = modalBody;
         document.getElementById('detailsModal').style.display = 'flex';
-        
         document.getElementById('circuitSelect').addEventListener('change', function() {
             document.getElementById('newCircuitDiv').style.display = this.value === 'أخرى' ? 'block' : 'none';
         });
@@ -892,35 +1123,23 @@
     window.saveCaseWithCircuit = function(caseId) {
         let caseData = activeCases.find(c => c.id == caseId);
         if (!caseData) return;
-        
         let circuit = document.getElementById('circuitSelect').value;
         if (circuit === 'أخرى') {
             circuit = document.getElementById('newCircuit').value.trim();
-            if (!circuit) {
-                showNotification('يرجى إدخال اسم الدائرة الجديدة');
-                return;
-            }
+            if (!circuit) { showNotification('يرجى إدخال اسم الدائرة الجديدة'); return; }
             if (!archiveCategories.find(c => c.circuit === circuit)) {
                 archiveCategories.push({ id: circuit.replace(/\s/g, '_'), name: circuit, circuit: circuit });
             }
         }
-        
         let judgment = document.getElementById('judgmentText').value;
-        if (!judgment) {
-            showNotification('يرجى إدخال منطوق الحكم');
-            return;
-        }
-        
+        if (!judgment) { showNotification('يرجى إدخال منطوق الحكم'); return; }
         let closedCase = { ...caseData, circuit: circuit, judgment: judgment, closedAt: new Date().toISOString() };
         closedCases.push(closedCase);
         activeCases = activeCases.filter(c => c.id != caseId);
-        saveActiveCases();
-        saveClosedCases();
+        saveActiveCases(); saveClosedCases();
         showNotification('تم إنهاء القضية ونقلها للأرشيف');
         closeModal();
-        renderArchive();
-        renderActiveCases();
-        renderClosedCases();
+        renderArchive(); renderActiveCases(); renderClosedCases();
         updateStats();
     };
 
@@ -932,7 +1151,6 @@
                 isMaintenanceMode = data.isActive || false;
                 maintenanceEndTime = data.endTime;
                 checkMaintenance();
-                updateMaintenanceUI();
             }
         });
     }
@@ -978,57 +1196,6 @@
             setTimeout(updateMaintenanceTimer, 1000);
         } else if (isMaintenanceMode) timerDiv.innerHTML = '<p style="color:#dc3545;"><i class="fas fa-clock"></i> الصيانة مستمرة</p>';
         else timerDiv.innerHTML = '';
-    }
-
-    function updateMaintenanceUI() {
-        let btn = document.getElementById('toggleMaintenanceBtn');
-        let statusSpan = document.getElementById('maintenanceStatusSpan');
-        if (!btn) return;
-        if (isMaintenanceMode) {
-            btn.innerHTML = '🔓 تشغيل الموقع'; btn.className = 'btn-success';
-            if (statusSpan) statusSpan.innerHTML = '<span class="maintenance-status status-maintenance-on">🔴 الموقع معطل</span>';
-        } else {
-            btn.innerHTML = '🔧 تعطيل الموقع (صيانة)'; btn.className = 'btn-warning';
-            if (statusSpan) statusSpan.innerHTML = '<span class="maintenance-status status-maintenance-off">🟢 الموقع يعمل</span>';
-        }
-    }
-
-    function addMaintenanceControls() {
-        let employeesPanel = document.getElementById('employeesPanel');
-        if (!employeesPanel) return;
-        let oldSection = document.getElementById('maintenanceControlSection');
-        if(oldSection) oldSection.remove();
-        let controlHtml = `
-            <div id="maintenanceControlSection" class="maintenance-control">
-                <h4><i class="fas fa-tools"></i> التحكم في الموقع - وضع الصيانة</h4>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px;">
-                    <button id="toggleMaintenanceBtn" class="${isMaintenanceMode ? 'btn-success' : 'btn-warning'}">${isMaintenanceMode ? '🔓 تشغيل الموقع' : '🔧 تعطيل الموقع (صيانة)'}</button>
-                    <select id="maintenanceDuration" style="width: 120px; padding: 8px; border-radius: 8px;">
-                        <option value="0">غير محدد</option>
-                        <option value="1">1 ساعة</option><option value="2">2 ساعة</option><option value="4">4 ساعات</option>
-                        <option value="8">8 ساعات</option><option value="12">12 ساعة</option><option value="24">24 ساعة</option>
-                    </select>
-                    <span id="maintenanceStatusSpan">${isMaintenanceMode ? '<span class="maintenance-status status-maintenance-on">🔴 الموقع معطل</span>' : '<span class="maintenance-status status-maintenance-off">🟢 الموقع يعمل</span>'}</span>
-                </div>
-                <div id="maintenanceTimerDiv" style="margin-top: 10px; font-size: 13px;"></div>
-            </div>`;
-        let employeeForm = employeesPanel.querySelector('#employeeForm');
-        if(employeeForm) employeeForm.insertAdjacentHTML('beforebegin', controlHtml);
-        else employeesPanel.insertAdjacentHTML('afterbegin', controlHtml);
-        document.getElementById('toggleMaintenanceBtn')?.addEventListener('click', () => {
-            if (isMaintenanceMode) disableMaintenance();
-            else { let duration = parseInt(document.getElementById('maintenanceDuration').value); enableMaintenance(duration > 0 ? duration : null); }
-        });
-        setInterval(() => {
-            let timerDiv = document.getElementById('maintenanceTimerDiv');
-            if (timerDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) {
-                let remaining = new Date(maintenanceEndTime) - new Date();
-                let hours = Math.floor(remaining / 3600000);
-                let minutes = Math.floor((remaining % 3600000) / 60000);
-                timerDiv.innerHTML = `<small><i class="fas fa-clock"></i> تنتهي بعد: ${hours} ساعة ${minutes} دقيقة</small>`;
-            } else if (timerDiv && isMaintenanceMode) timerDiv.innerHTML = '<small><i class="fas fa-clock"></i> مدة غير محددة</small>';
-            else if (timerDiv) timerDiv.innerHTML = '';
-        }, 1000);
     }
 
     // ========== دوال البحث ==========
@@ -1999,7 +2166,7 @@
         if(select) select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
     }
 
-    // ========== الموظفين (جدول الإدارة) - المعدل ==========
+    // ========== الموظفين (جدول الإدارة) ==========
     function renderEmployeesTable() {
         let tbody = document.querySelector('#employeesTable tbody');
         if(!tbody) return;
@@ -2059,94 +2226,29 @@
         if(confirm('هل أنت متأكد من حذف هذا الموظف؟')){ employees = employees.filter(e=>e.id!=id); saveEmployees(); showNotification('تم حذف الموظف'); renderEmployeesTable(); }
     };
 
-    // ========== عرض التبويبات حسب الدور ==========
-    function renderTabsBasedOnRole() {
-        let tabsContainer = document.getElementById('tabsContainer');
-        let isAdminUser = isAdmin();
-        let tabsHtml = `
-            <button class="tab-btn" data-tab="newCase">➕ قضية جديدة</button>
-            <button class="tab-btn" data-tab="activeCases">📂 قضايا المكتب</button>
-            <button class="tab-btn" data-tab="tomorrowSessions">📅 جلسات الغد</button>
-            <button class="tab-btn" data-tab="advancedAgenda">📅 الأجندة</button>
-            <button class="tab-btn" data-tab="pastSessions">📜 ماتم في الجلسات</button>
-            <button class="tab-btn" data-tab="closedCases">📦 قضايا منتهية</button>
-            <button class="tab-btn" data-tab="clients">👥 الموكلين</button>
-            <button class="tab-btn" data-tab="adminWorks">📋 أعمال إدارية</button>
-            <button class="tab-btn" data-tab="judgmentRecords">⚖️ سجل الأحكام</button>
-            <button class="tab-btn" data-tab="enforcements">📄 توكيلات تنفيذ</button>
-            <button class="tab-btn" data-tab="experts">👨‍⚖️ الخبراء</button>
-            <button class="tab-btn" data-tab="archive">📚 الأرشيف</button>
-            <button class="tab-btn" data-tab="reports">📊 التقارير</button>
-        `;
-        if(isAdminUser) tabsHtml += `<button class="tab-btn" data-tab="employees">👨‍💼 الموظفين</button>`;
-        tabsContainer.innerHTML = tabsHtml;
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-                btn.classList.add('active');
-                document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active-panel'));
-                let panelId = btn.getAttribute('data-tab') + 'Panel';
-                if(document.getElementById(panelId)) document.getElementById(panelId).classList.add('active-panel');
-            });
-        });
-        if(document.querySelector('.tab-btn')) document.querySelector('.tab-btn').classList.add('active');
-        if(document.getElementById('newCasePanel')) document.getElementById('newCasePanel').classList.add('active-panel');
-
-        if(isAdminUser && !document.getElementById('employeesPanel')){
-            let empPanelHtml = `
-                <div id="employeesPanel" class="panel">
-                    <h3>👨‍💼 إدارة الموظفين</h3>
-                    <form id="employeeForm">
-                        <div class="form-group"><label>اسم المستخدم <span style="color:red">*</span></label><input type="text" id="empUsername" required placeholder="مثال: ahmed123" autocomplete="off"></div>
-                        <div class="form-group"><label>كلمة المرور <span style="color:red">*</span></label><input type="text" id="empPassword" required placeholder="كلمة المرور" autocomplete="off"></div>
-                        <div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div>
-                        <button type="submit">➕ إضافة موظف</button>
-                    </form>
-                    <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
-                </div>`;
-            document.querySelector('.container').insertAdjacentHTML('beforeend', empPanelHtml);
-            renderEmployeesTable();
-            document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
-                e.preventDefault();
-                if(!currentUser || (currentUser.role!=='مدير' && !currentUser.superAdmin)){ showNotification('غير مسموح لك بإضافة موظفين'); return; }
-                let uname = document.getElementById('empUsername').value.trim();
-                let pwd = document.getElementById('empPassword').value;
-                let role = document.getElementById('empRole').value;
-                if(!uname || !pwd){ showNotification('يرجى إدخال اسم المستخدم وكلمة المرور'); return; }
-                let allExisting = [...employees, ...fixedAdmins];
-                if(allExisting.find(e=>e.username===uname)){ showNotification('اسم المستخدم موجود بالفعل'); return; }
-                let newEmp = { id: Date.now().toString(), username: uname, password: pwd, role: role };
-                employees.push(newEmp); saveEmployees(); renderEmployeesTable();
-                showNotification(`✅ تم إضافة الموظف ${uname} بنجاح\n📝 كلمة المرور: ${pwd}`);
-                e.target.reset();
-            });
-            if(currentUser && currentUser.superAdmin===true) addMaintenanceControls();
-        }
-        if(isAdminUser && currentUser && currentUser.superAdmin===true && document.getElementById('employeesPanel') && !document.getElementById('maintenanceControlSection')) addMaintenanceControls();
-    }
-
     // ========== تسجيل الدخول والخروج ==========
     function checkLoginStatus() {
         let savedUser = localStorage.getItem('law_currentUser');
         if(savedUser) {
             currentUser = JSON.parse(savedUser);
             document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'block';
             document.getElementById('currentUserName').innerText = currentUser.username;
             document.getElementById('currentUserRole').innerHTML = currentUser.role;
             document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
             loadDataFromFirebase();
             setTimeout(() => { 
                 updateWelcomeMessage(); 
-                if(currentUser && currentUser.superAdmin===true && document.getElementById('employeesPanel')) addMaintenanceControls();
+                if(currentUser && currentUser.superAdmin===true) setupMaintenanceControls();
                 initStatCards();
                 renderArchive();
+                renderTabsBasedOnRole();
             }, 500);
             setSessionTimeout();
             bindSessionEvents();
         } else {
             document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'none';
             localStorage.removeItem('law_currentUser');
         }
         checkMaintenance();
@@ -2175,16 +2277,17 @@
             currentUser = fixedAdmin;
             localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
             document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'block';
             document.getElementById('currentUserName').innerText = currentUser.username;
             document.getElementById('currentUserRole').innerHTML = currentUser.role;
             document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : 'role-admin'}`;
             loadDataFromFirebase();
             setTimeout(() => { 
                 updateWelcomeMessage(); 
-                if(currentUser && currentUser.superAdmin===true && document.getElementById('employeesPanel')) addMaintenanceControls();
+                if(currentUser && currentUser.superAdmin===true) setupMaintenanceControls();
                 initStatCards();
                 renderArchive();
+                renderTabsBasedOnRole();
             }, 500);
             showNotification(`مرحباً بك ${username}`);
             checkMaintenance();
@@ -2202,7 +2305,7 @@
             currentUser = user;
             localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
             document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'block';
             document.getElementById('currentUserName').innerText = currentUser.username;
             document.getElementById('currentUserRole').innerHTML = currentUser.role;
             document.getElementById('currentUserRole').className = `role-badge ${currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer'}`;
@@ -2211,6 +2314,7 @@
                 updateWelcomeMessage(); 
                 initStatCards();
                 renderArchive();
+                renderTabsBasedOnRole();
             }, 500);
             showNotification(`مرحباً بك ${username}`);
             checkMaintenance();
@@ -2225,8 +2329,9 @@
     window.logout = function() {
         currentUser = null;
         localStorage.removeItem('law_currentUser');
+        localStorage.removeItem('lastOpenTab');
         document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('mainContent').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'none';
         showNotification('تم تسجيل الخروج');
         checkMaintenance();
         if (sessionTimeout) clearTimeout(sessionTimeout);
@@ -2280,6 +2385,22 @@
         e.target.reset();
         showNotification('تم إضافة الموكل');
         resetSessionTimer();
+    });
+
+    // ========== إضافة موظف جديد ==========
+    document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if(!currentUser || (currentUser.role!=='مدير' && !currentUser.superAdmin)){ showNotification('غير مسموح لك بإضافة موظفين'); return; }
+        let uname = document.getElementById('empUsername').value.trim();
+        let pwd = document.getElementById('empPassword').value;
+        let role = document.getElementById('empRole').value;
+        if(!uname || !pwd){ showNotification('يرجى إدخال اسم المستخدم وكلمة المرور'); return; }
+        let allExisting = [...employees, ...fixedAdmins];
+        if(allExisting.find(e=>e.username===uname)){ showNotification('اسم المستخدم موجود بالفعل'); return; }
+        let newEmp = { id: Date.now().toString(), username: uname, password: pwd, role: role };
+        employees.push(newEmp); saveEmployees(); renderEmployeesTable();
+        showNotification(`✅ تم إضافة الموظف ${uname} بنجاح\n📝 كلمة المرور: ${pwd}`);
+        e.target.reset();
     });
 
     // ========== تحديثات دورية ==========
