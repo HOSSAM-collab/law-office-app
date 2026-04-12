@@ -698,6 +698,37 @@
         { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }
     ];
 
+    // ========== دالة إضافة المستخدمين الافتراضيين ==========
+    async function initDefaultUsers() {
+        // بيانات حسام (سوبر أدمن)
+        let hesham = {
+            id: "admin_hesham",
+            username: "حسام الشويخ",
+            password: "00000000",
+            role: "مدير",
+            isFixed: true,
+            superAdmin: true
+        };
+        
+        // بيانات جورج (أدمن)
+        let george = {
+            id: "admin_george",
+            username: "جورج بولس",
+            password: "0000",
+            role: "مدير",
+            isFixed: true
+        };
+        
+        // حفظهم في Firebase
+        await database.ref('fixedAdmins/hesham').set(hesham);
+        await database.ref('fixedAdmins/george').set(george);
+        
+        // حفظهم في localStorage كـ backup
+        localStorage.setItem('law_default_users', JSON.stringify([hesham, george]));
+        
+        fixedAdmins = [hesham, george];
+    }
+
     // ========== دوال مساعدة ==========
     function toggleOtherCircuit() {
         let select = document.getElementById('caseCircuit');
@@ -946,14 +977,9 @@
                 fixedAdmins.length = 0;
                 Object.values(data).forEach(admin => fixedAdmins.push(admin));
             } else {
-                const defaultAdmins = [
-                    { id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, hidden: true, superAdmin: true },
-                    { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }
-                ];
-                const adminsObj = {};
-                defaultAdmins.forEach(admin => { adminsObj[admin.id] = admin; });
-                database.ref('fixedAdmins').set(adminsObj);
-                fixedAdmins.push(...defaultAdmins);
+                initDefaultUsers().then(() => {
+                    fixedAdmins = [{ id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, superAdmin: true }, { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }];
+                });
             }
             renderEmployeesTable();
             renderTabsBasedOnRole();
@@ -2275,33 +2301,6 @@
     };
 
     // ========== تسجيل الدخول (المعدل) ==========
-    async function initDefaultUsers() {
-        // بيانات حسام (سوبر أدمن)
-        let hesham = {
-            id: "admin_hesham",
-            username: "حسام الشويخ",
-            password: "00000000",
-            role: "مدير",
-            isFixed: true,
-            superAdmin: true
-        };
-        
-        // بيانات جورج (أدمن)
-        let george = {
-            id: "admin_george",
-            username: "جورج بولس",
-            password: "0000",
-            role: "مدير",
-            isFixed: true
-        };
-        
-        // حفظهم في Firebase
-        await database.ref('fixedAdmins/hesham').set(hesham);
-        await database.ref('fixedAdmins/george').set(george);
-        
-        fixedAdmins = [hesham, george];
-    }
-    
     function checkLoginStatus() {
         let savedUser = localStorage.getItem('law_currentUser');
         if(savedUser) {
@@ -2380,6 +2379,10 @@
         let user = employeesList.find(e => e.username === username && e.password === password);
         if (user) {
             currentUser = user;
+            let now = new Date().toISOString();
+            await database.ref('employees/' + user.id).update({ lastLogin: now, lastLoginDisplay: new Date(now).toLocaleString('ar-EG') });
+            user.lastLogin = now;
+            user.lastLoginDisplay = new Date(now).toLocaleString('ar-EG');
             localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
