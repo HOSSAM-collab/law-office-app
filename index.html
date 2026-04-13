@@ -10,6 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
+        /* جميع الأنماط كما هي - لم يتم التعديل عليها */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; }
         .dashboard-container { display: flex; min-height: 100vh; }
@@ -131,7 +132,6 @@
         .opponent-section-title { font-weight: bold; margin-bottom: 10px; color: #1a4a5f; }
         .export-btn { background: #28a745; margin-right: 10px; }
         .notification-toast { position: fixed; bottom: 20px; left: 20px; background: #1a4a5f; color: white; padding: 12px 20px; border-radius: 12px; display: none; z-index: 1000; }
-        /* اجندة مصغرة */
         .mini-agenda { background: white; border: 1px solid #ddd; border-radius: 12px; padding: 10px; margin-top: 10px; }
         .mini-agenda .days-grid { gap: 4px; }
         .mini-agenda .day-card { padding: 6px 4px; font-size: 12px; }
@@ -371,7 +371,7 @@
                             <div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div>
                             <button type="submit">➕ إضافة موظف</button>
                         </form>
-                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>كلمة المرور</th><th>إجراءات</th></tr></thead><tbody></tbody></tr></div>
+                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>كلمة المرور</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
                     </div>
                     
                     <div id="maintenancePanel" class="panel">
@@ -462,16 +462,6 @@
         return client ? client.name : 'غير محدد';
     }
 
-    function getFullCaseData(caseId) {
-        let caseData = activeCases.find(c => c.id == caseId) || closedCases.find(c => c.id == caseId);
-        if (!caseData) return null;
-        return {
-            ...caseData,
-            clientName: getClientName(caseData.clientId),
-            allSessions: getAllSessions(caseData)
-        };
-    }
-
     function getAllSessions(caseData) {
         let sessions = [];
         if (caseData.firstSessionDate) {
@@ -494,6 +484,16 @@
             sessions.push(...caseData.pastSessions);
         }
         return sessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function getFullCaseData(caseId) {
+        let caseData = activeCases.find(c => c.id == caseId) || closedCases.find(c => c.id == caseId);
+        if (!caseData) return null;
+        return {
+            ...caseData,
+            clientName: getClientName(caseData.clientId),
+            allSessions: getAllSessions(caseData)
+        };
     }
 
     function isAdmin() { return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
@@ -626,7 +626,7 @@
             resultsDiv.innerHTML = `<h4>🔍 نتائج البحث (${results.length})</h4>` + results.map(c => {
                 let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد');
                 let typeBadge = c.caseType === 'active' ? '<span style="background:#1a4a5f; color:white; padding:2px 10px; border-radius:20px; font-size:12px;">📂 قضايا المكتب</span>' : '<span style="background:#28a745; color:white; padding:2px 10px; border-radius:20px; font-size:12px;">✅ قضية منتهية</span>';
-                return `<div class="search-result-card">${typeBadge}<br><strong>⚖️ ${c.number} (${c.year}) - ${c.court}</strong><br>👤 الموكل: ${c.clientName} (${c.clientRole})<br>⚖️ الخصم: ${c.opponentName} (${c.opponentRole})<br>📝 موضوع القضية: ${c.subject || 'غير محدد'}<br>📅 الجلسة: ${sessionDate}${c.caseType === 'closed' ? `<br>⚖️ الحكم: ${c.judgment || 'غير مسجل'}` : ''}<br><button onclick="viewFullCase('${c.id}', '${c.caseType}')" class="btn-sm btn-primary" style="margin-top:10px;">📋 عرض القضية كاملة</button></div>`;
+                return `<div class="search-result-card">${typeBadge}<br><strong>⚖️ ${c.number} (${c.year}) - ${c.court}</strong><br>👤 الموكل: ${c.clientName} (${c.clientRole})<br>⚖️ الخصم: ${c.opponentName} (${c.opponentRole})<br>📝 موضوع القضية: ${c.subject || 'غير محدد'}<br>📅 الجلسة: ${sessionDate}<br>📝 آخر قرار: ${c.decision || 'لا يوجد'}<br><button onclick="viewFullCase('${c.id}', '${c.caseType}')" class="btn-sm btn-primary" style="margin-top:10px;">📋 عرض القضية كاملة</button></div>`;
             }).join('');
         }
         resultsDiv.classList.add('show');
@@ -679,8 +679,6 @@
         container.innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${s.circuit || 'غير محددة'}</span><span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join('');
     }
 
-    // أجندة مصغرة لاختيار التاريخ
-    let tempSelectedDate = null;
     let tempCallback = null;
 
     function showMiniAgenda(callback) {
@@ -816,6 +814,7 @@
             activeCases[caseIndex].nextSessionDecision = decision;
             activeCases[caseIndex].nextSessionProcessed = true;
         }
+        activeCases[caseIndex].decision = decision;
         
         if (action === 'new') {
             showMiniAgenda(function(newDate) {
@@ -837,7 +836,6 @@
                 activeCases[caseIndex].nextSessionDate = newDate;
                 activeCases[caseIndex].nextSessionProcessed = false;
                 activeCases[caseIndex].nextSessionDecision = '';
-                activeCases[caseIndex].decision = decision;
                 database.ref('activeCases').set(activeCases);
                 showNotification(`✅ تم تسجيل القرار: "${decision}" وتم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
                 renderActiveCases();
@@ -924,9 +922,19 @@
         updateStats();
     }
 
-    function viewFullCase(caseId, caseType) {
-        let caseData = caseType === 'active' ? activeCases.find(c => c.id == caseId) : closedCases.find(c => c.id == caseId);
-        if (!caseData) { showNotification('القضية غير موجودة'); return; }
+    // ========== دالة عرض القضية كاملة ==========
+    window.viewFullCase = function(caseId, caseType) {
+        let caseData = null;
+        if (caseType === 'active') {
+            caseData = activeCases.find(c => c.id == caseId);
+        } else {
+            caseData = closedCases.find(c => c.id == caseId);
+        }
+        
+        if (!caseData) { 
+            showNotification('❌ القضية غير موجودة'); 
+            return; 
+        }
         
         let fullData = getFullCaseData(caseId);
         let sessionsHtml = '';
@@ -942,6 +950,17 @@
             sessionsHtml = '<p>لا توجد جلسات مسجلة</p>';
         }
         
+        let nextSessionDate = '';
+        if (caseType === 'active') {
+            if (caseData.nextSessionDate) {
+                nextSessionDate = new Date(caseData.nextSessionDate).toLocaleString('ar-EG');
+            } else if (caseData.firstSessionDate) {
+                nextSessionDate = new Date(caseData.firstSessionDate).toLocaleString('ar-EG');
+            } else {
+                nextSessionDate = 'لم تحدد';
+            }
+        }
+        
         let modalBody = `
             <h4>⚖️ ${caseData.number} (${caseData.year})</h4>
             <div class="info-row">
@@ -955,7 +974,7 @@
             ${caseData.opponent2Name ? `<div class="info-row"><span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${caseData.opponent2Name} (${caseData.opponent2Role || '-'})</span></div>` : ''}
             <p><strong><i class="fas fa-file-alt"></i> موضوع القضية:</strong> ${caseData.subject || 'غير محدد'}</p>
             <p><strong><i class="fas fa-sticky-note"></i> آخر قرار:</strong> ${caseData.decision || 'لا يوجد'}</p>
-            ${caseType === 'active' ? `<p><strong><i class="fas fa-calendar"></i> الجلسة القادمة:</strong> ${caseData.nextSessionDate ? new Date(caseData.nextSessionDate).toLocaleString('ar-EG') : (caseData.firstSessionDate ? new Date(caseData.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد')}</p>` : `<p><strong><i class="fas fa-gavel"></i> الحكم النهائي:</strong> ${caseData.judgment}</p><p><strong><i class="fas fa-calendar"></i> تاريخ الإنهاء:</strong> ${new Date(caseData.closedAt).toLocaleDateString()}</p>`}
+            ${caseType === 'active' ? `<p><strong><i class="fas fa-calendar"></i> الجلسة القادمة:</strong> ${nextSessionDate}</p>` : `<p><strong><i class="fas fa-gavel"></i> الحكم النهائي:</strong> ${caseData.judgment}</p><p><strong><i class="fas fa-calendar"></i> تاريخ الإنهاء:</strong> ${new Date(caseData.closedAt).toLocaleDateString()}</p>`}
             ${sessionsHtml}
             <hr>
             <div class="admin-actions">
@@ -969,7 +988,7 @@
         document.getElementById('modalTitle').innerHTML = `📋 تفاصيل القضية - ${caseData.number}`;
         document.getElementById('modalBody').innerHTML = modalBody;
         document.getElementById('detailsModal').style.display = 'flex';
-    }
+    };
 
     function addNewSessionFromModal(caseId) {
         let caseIndex = activeCases.findIndex(c => c.id == caseId);
@@ -2011,11 +2030,47 @@
     function logout() {
         currentUser = null;
         localStorage.removeItem('law_currentUser');
+        // لا نحذف lastOpenTab عشان يرجع لنفس المكان بعد الدخول تاني
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('dashboardContent').style.display = 'none';
         showNotification('تم تسجيل الخروج');
         if (sessionTimeout) clearTimeout(sessionTimeout);
         if (maintenanceInterval) clearInterval(maintenanceInterval);
+    }
+
+    function checkLoginStatus() {
+        let savedUser = localStorage.getItem('law_currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('currentUserName').innerText = currentUser.username;
+            document.getElementById('currentUserRole').innerHTML = currentUser.role;
+            document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
+            loadDataFromFirebase();
+            setTimeout(() => { 
+                updateWelcomeMessage(); 
+                if (currentUser && currentUser.superAdmin === true) setupMaintenanceControls();
+                initStatCards();
+                renderArchive();
+                let employeesTabItem = document.getElementById('employeesTabItem');
+                let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
+                if (employeesTabItem) employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
+                if (maintenanceMenuItem) maintenanceMenuItem.style.display = isSuperAdmin() ? 'flex' : 'none';
+                let lastTab = localStorage.getItem('lastOpenTab');
+                if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
+                    switchToTab(lastTab, false);
+                }
+                bindSidebarButtons();
+            }, 500);
+            setSessionTimeout();
+            bindSessionEvents();
+        } else {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('dashboardContent').style.display = 'none';
+            localStorage.removeItem('law_currentUser');
+        }
+        checkMaintenance();
     }
 
     document.getElementById('newCaseForm')?.addEventListener('submit', (e) => {
