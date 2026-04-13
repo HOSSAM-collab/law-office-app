@@ -131,6 +131,11 @@
         .opponent-section-title { font-weight: bold; margin-bottom: 10px; color: #1a4a5f; }
         .export-btn { background: #28a745; margin-right: 10px; }
         .notification-toast { position: fixed; bottom: 20px; left: 20px; background: #1a4a5f; color: white; padding: 12px 20px; border-radius: 12px; display: none; z-index: 1000; }
+        /* اجندة مصغرة */
+        .mini-agenda { background: white; border: 1px solid #ddd; border-radius: 12px; padding: 10px; margin-top: 10px; }
+        .mini-agenda .days-grid { gap: 4px; }
+        .mini-agenda .day-card { padding: 6px 4px; font-size: 12px; }
+        .mini-agenda .week-day-name { padding: 4px; font-size: 10px; }
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar-header h2, .sidebar-header p, .sidebar-menu-item span { display: none; }
@@ -366,7 +371,7 @@
                             <div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div>
                             <button type="submit">➕ إضافة موظف</button>
                         </form>
-                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>كلمة المرور</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>كلمة المرور</th><th>إجراءات</th></tr></thead><tbody></tbody></tr></div>
                     </div>
                     
                     <div id="maintenancePanel" class="panel">
@@ -485,7 +490,6 @@
                 processed: caseData.nextSessionProcessed || false
             });
         }
-        // جلسات سابقة مسجلة
         if (caseData.pastSessions && caseData.pastSessions.length) {
             sessions.push(...caseData.pastSessions);
         }
@@ -502,6 +506,7 @@
     function isVisibleToCurrentUser(employee) {
         if (!currentUser) return false;
         if (employee.id === "admin_hesham") return isHesham();
+        if (employee.username === "undefined" || !employee.username) return false;
         return true;
     }
     
@@ -517,6 +522,7 @@
         if (!currentUser) return false;
         if (employee.id === "admin_hesham") return false;
         if (employee.id === "admin_george" && !isSuperAdmin()) return false;
+        if (employee.username === "undefined" || !employee.username) return false;
         return isSuperAdmin() || isGeorge();
     }
 
@@ -670,7 +676,84 @@
         if (!container) return;
         let sessions = getTomorrowSessions();
         if (sessions.length === 0) { container.innerHTML = '<div class="session-card"><p style="text-align:center">📅 لا توجد جلسات غداً</p></div>'; return; }
-        container.innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${s.circuit || 'غير محددة'}</span><span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض القضية كاملة</button></div>`).join('');
+        container.innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${s.circuit || 'غير محددة'}</span><span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join('');
+    }
+
+    // أجندة مصغرة لاختيار التاريخ
+    let tempSelectedDate = null;
+    let tempCallback = null;
+
+    function showMiniAgenda(callback) {
+        tempCallback = callback;
+        let today = new Date();
+        let currentYear = today.getFullYear();
+        let currentMonth = today.getMonth();
+        
+        function renderMiniCalendar(year, month) {
+            let daysInMonth = new Date(year, month + 1, 0).getDate();
+            let firstDayIndex = new Date(year, month, 1).getDay();
+            let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            let daysHtml = '<div class="week-days-grid">' + weekDays.map(day => `<div class="week-day-name">${day}</div>`).join('') + '</div><div class="days-grid">';
+            for (let i = 0; i < firstDayIndex; i++) daysHtml += '<div></div>';
+            for (let d = 1; d <= daysInMonth; d++) {
+                let date = new Date(year, month, d);
+                let isToday = date.toDateString() === today.toDateString();
+                daysHtml += `<div class="day-card ${isToday ? 'today' : ''}" onclick="selectDateFromAgenda(${year},${month},${d})">${d}</div>`;
+            }
+            daysHtml += '</div>';
+            document.getElementById('miniAgendaDays').innerHTML = daysHtml;
+        }
+        
+        let months = ['يناير', 'فبراير', 'مارس', 'بريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        let modalBody = `
+            <h4>📅 اختر تاريخ الجلسة الجديدة</h4>
+            <div class="year-months" style="margin-bottom:10px;">
+                <button onclick="changeMiniMonth(-1)" class="btn-sm btn-primary">◀ السابق</button>
+                <span id="miniMonthYear">${months[currentMonth]} ${currentYear}</span>
+                <button onclick="changeMiniMonth(1)" class="btn-sm btn-primary">التالي ▶</button>
+            </div>
+            <div id="miniAgendaDays"></div>
+            <div class="form-group" style="margin-top:15px;">
+                <label>أو اكتب التاريخ يدوياً:</label>
+                <input type="datetime-local" id="manualDateInput" style="width:100%">
+            </div>
+            <button onclick="confirmDateSelection()" class="btn-success" style="margin-top:10px;">تأكيد التاريخ</button>
+            <button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>
+        `;
+        document.getElementById('modalTitle').innerHTML = 'اختر تاريخ الجلسة';
+        document.getElementById('modalBody').innerHTML = modalBody;
+        document.getElementById('detailsModal').style.display = 'flex';
+        
+        window.currentMiniYear = currentYear;
+        window.currentMiniMonth = currentMonth;
+        window.miniMonths = months;
+        renderMiniCalendar(currentYear, currentMonth);
+        
+        window.changeMiniMonth = function(delta) {
+            let newDate = new Date(currentYear, currentMonth + delta, 1);
+            currentYear = newDate.getFullYear();
+            currentMonth = newDate.getMonth();
+            window.currentMiniYear = currentYear;
+            window.currentMiniMonth = currentMonth;
+            document.getElementById('miniMonthYear').innerHTML = `${miniMonths[currentMonth]} ${currentYear}`;
+            renderMiniCalendar(currentYear, currentMonth);
+        };
+        
+        window.selectDateFromAgenda = function(year, month, day) {
+            let selected = new Date(year, month, day);
+            let formatted = selected.toISOString().slice(0, 16);
+            document.getElementById('manualDateInput').value = formatted;
+        };
+        
+        window.confirmDateSelection = function() {
+            let manualDate = document.getElementById('manualDateInput').value;
+            if (manualDate) {
+                if (tempCallback) tempCallback(manualDate);
+                closeModal();
+            } else {
+                showNotification('❌ يرجى اختيار تاريخ');
+            }
+        };
     }
 
     function renderPastSessions() {
@@ -718,7 +801,6 @@
         let decision = decisionInput ? decisionInput.value : '';
         if (!decision) { showNotification('❌ يرجى إدخال قرار الجلسة أولاً'); return; }
         
-        // تسجيل القرار في سجل الجلسات
         if (!activeCases[caseIndex].pastSessions) activeCases[caseIndex].pastSessions = [];
         activeCases[caseIndex].pastSessions.push({
             date: sessionType === 'first' ? activeCases[caseIndex].firstSessionDate : activeCases[caseIndex].nextSessionDate,
@@ -736,30 +818,34 @@
         }
         
         if (action === 'new') {
-            let defaultDate = new Date();
-            defaultDate.setDate(defaultDate.getDate() + 7);
-            let defaultDateStr = defaultDate.toISOString().slice(0, 16);
-            let newDate = prompt('أدخل تاريخ الجلسة الجديدة (YYYY-MM-DD HH:MM):', defaultDateStr);
-            if (!newDate) {
-                if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false;
-                else activeCases[caseIndex].nextSessionProcessed = false;
-                activeCases[caseIndex].pastSessions.pop();
+            showMiniAgenda(function(newDate) {
+                if (!newDate) {
+                    if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false;
+                    else activeCases[caseIndex].nextSessionProcessed = false;
+                    activeCases[caseIndex].pastSessions.pop();
+                    database.ref('activeCases').set(activeCases);
+                    showNotification('❌ تم إلغاء العملية');
+                    return;
+                }
+                let editCourt = confirm('هل تريد تعديل المحكمة أو الدائرة؟');
+                if (editCourt) {
+                    let newCourt = prompt('أدخل المحكمة الجديدة:', activeCases[caseIndex].court);
+                    let newCircuit = prompt('أدخل الدائرة الجديدة:', activeCases[caseIndex].circuit || '');
+                    if (newCourt) activeCases[caseIndex].court = newCourt;
+                    if (newCircuit) activeCases[caseIndex].circuit = newCircuit;
+                }
+                activeCases[caseIndex].nextSessionDate = newDate;
+                activeCases[caseIndex].nextSessionProcessed = false;
+                activeCases[caseIndex].nextSessionDecision = '';
+                activeCases[caseIndex].decision = decision;
                 database.ref('activeCases').set(activeCases);
-                showNotification('❌ تم إلغاء العملية');
-                return;
-            }
-            let editCourt = confirm('هل تريد تعديل المحكمة أو الدائرة؟');
-            if (editCourt) {
-                let newCourt = prompt('أدخل المحكمة الجديدة:', activeCases[caseIndex].court);
-                let newCircuit = prompt('أدخل الدائرة الجديدة:', activeCases[caseIndex].circuit || '');
-                if (newCourt) activeCases[caseIndex].court = newCourt;
-                if (newCircuit) activeCases[caseIndex].circuit = newCircuit;
-            }
-            activeCases[caseIndex].nextSessionDate = newDate;
-            activeCases[caseIndex].nextSessionProcessed = false;
-            activeCases[caseIndex].nextSessionDecision = '';
-            database.ref('activeCases').set(activeCases);
-            showNotification(`✅ تم تسجيل القرار: "${decision}" وتم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
+                showNotification(`✅ تم تسجيل القرار: "${decision}" وتم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
+                renderActiveCases();
+                renderPastSessions();
+                renderTomorrowSessions();
+                renderAdvancedAgenda();
+                updateStats();
+            });
         } else if (action === 'close') {
             let judgment = prompt('أدخل منطوق الحكم النهائي للقضية:');
             if (!judgment) {
@@ -776,6 +862,11 @@
             database.ref('activeCases').set(activeCases);
             database.ref('closedCases').set(closedCases);
             showNotification(`✅ تم إنهاء القضية ونقلها للقضايا المنتهية`);
+            renderActiveCases();
+            renderPastSessions();
+            renderClosedCases();
+            renderArchive();
+            updateStats();
         } else if (action === 'admin') {
             let workType = prompt('أدخل نوع العمل الإداري:', 'سحب حكم');
             let dueDate = prompt('أدخل تاريخ المعاد (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
@@ -790,6 +881,7 @@
             database.ref('activeCases').set(activeCases);
             database.ref('adminWorks').set(adminWorks);
             showNotification(`✅ تم إضافة العمل الإداري: ${workType}`);
+            renderAdminWorks();
         } else if (action === 'judgment') {
             let judgmentType = prompt('أدخل نوع الحكم:', 'يلزم معارضة');
             if (!judgmentType) {
@@ -803,20 +895,23 @@
             database.ref('activeCases').set(activeCases);
             database.ref('judgmentRecords').set(judgmentRecords);
             showNotification(`✅ تم إضافة سجل الحكم: ${judgmentType}`);
+            renderJudgmentRecords();
         } else if (action === 'expert') {
-            let expertDate = prompt('أدخل موعد الخبير:', new Date().toISOString().slice(0, 16));
-            let request = prompt('أدخل المطلوب من الخبير:', '');
-            if (!expertDate) {
-                if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false;
-                else activeCases[caseIndex].nextSessionProcessed = false;
-                activeCases[caseIndex].pastSessions.pop();
+            showMiniAgenda(function(expertDate) {
+                if (!expertDate) {
+                    if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false;
+                    else activeCases[caseIndex].nextSessionProcessed = false;
+                    activeCases[caseIndex].pastSessions.pop();
+                    database.ref('activeCases').set(activeCases);
+                    return;
+                }
+                let request = prompt('أدخل المطلوب من الخبير:', '');
+                experts.push({ id: Date.now().toString(), caseId, caseNumber: activeCases[caseIndex].number, caseYear: activeCases[caseIndex].year, clientName: getClientName(activeCases[caseIndex].clientId), opponentName: activeCases[caseIndex].opponentName, expertDate, request: request || '', inspections: '', notes: '', status: 'pending', createdAt: new Date().toISOString() });
                 database.ref('activeCases').set(activeCases);
-                return;
-            }
-            experts.push({ id: Date.now().toString(), caseId, caseNumber: activeCases[caseIndex].number, caseYear: activeCases[caseIndex].year, clientName: getClientName(activeCases[caseIndex].clientId), opponentName: activeCases[caseIndex].opponentName, expertDate, request: request || '', inspections: '', notes: '', status: 'pending', createdAt: new Date().toISOString() });
-            database.ref('activeCases').set(activeCases);
-            database.ref('experts').set(experts);
-            showNotification(`✅ تم إرسال القضية للخبير في ${new Date(expertDate).toLocaleString('ar-EG')}`);
+                database.ref('experts').set(experts);
+                showNotification(`✅ تم إرسال القضية للخبير في ${new Date(expertDate).toLocaleString('ar-EG')}`);
+                renderExperts();
+            });
         }
         renderActiveCases();
         renderPastSessions();
@@ -864,7 +959,7 @@
             ${sessionsHtml}
             <hr>
             <div class="admin-actions">
-                <button onclick="addNewSessionFromModal('${caseId}', '${caseType}')" class="btn-warning btn-sm">📅 إضافة جلسة جديدة</button>
+                ${caseType === 'active' ? `<button onclick="addNewSessionFromModal('${caseId}')" class="btn-warning btn-sm">📅 إضافة جلسة جديدة</button>` : ''}
                 <button onclick="addAdminWorkFromModal('${caseId}')" class="btn-primary btn-sm">📋 أعمال إدارية</button>
                 <button onclick="addJudgmentFromModal('${caseId}')" class="btn-primary btn-sm">⚖️ سجل أحكام</button>
                 <button onclick="addExpertFromModal('${caseId}')" class="btn-primary btn-sm">👨‍⚖️ خبير</button>
@@ -876,28 +971,28 @@
         document.getElementById('detailsModal').style.display = 'flex';
     }
 
-    function addNewSessionFromModal(caseId, caseType) {
-        if (caseType !== 'active') { showNotification('لا يمكن إضافة جلسة لقضية منتهية'); closeModal(); return; }
+    function addNewSessionFromModal(caseId) {
         let caseIndex = activeCases.findIndex(c => c.id == caseId);
-        if (caseIndex === -1) return;
-        let newDate = prompt('أدخل تاريخ الجلسة الجديدة (YYYY-MM-DD HH:MM):', new Date().toISOString().slice(0, 16));
-        if (!newDate) return;
-        let editCourt = confirm('هل تريد تعديل المحكمة أو الدائرة؟');
-        if (editCourt) {
-            let newCourt = prompt('أدخل المحكمة الجديدة:', activeCases[caseIndex].court);
-            let newCircuit = prompt('أدخل الدائرة الجديدة:', activeCases[caseIndex].circuit || '');
-            if (newCourt) activeCases[caseIndex].court = newCourt;
-            if (newCircuit) activeCases[caseIndex].circuit = newCircuit;
-        }
-        activeCases[caseIndex].nextSessionDate = newDate;
-        activeCases[caseIndex].nextSessionProcessed = false;
-        activeCases[caseIndex].nextSessionDecision = '';
-        database.ref('activeCases').set(activeCases);
-        showNotification(`✅ تم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
-        closeModal();
-        renderActiveCases();
-        renderTomorrowSessions();
-        renderAdvancedAgenda();
+        if (caseIndex === -1) { showNotification('القضية غير موجودة'); closeModal(); return; }
+        showMiniAgenda(function(newDate) {
+            if (!newDate) return;
+            let editCourt = confirm('هل تريد تعديل المحكمة أو الدائرة؟');
+            if (editCourt) {
+                let newCourt = prompt('أدخل المحكمة الجديدة:', activeCases[caseIndex].court);
+                let newCircuit = prompt('أدخل الدائرة الجديدة:', activeCases[caseIndex].circuit || '');
+                if (newCourt) activeCases[caseIndex].court = newCourt;
+                if (newCircuit) activeCases[caseIndex].circuit = newCircuit;
+            }
+            activeCases[caseIndex].nextSessionDate = newDate;
+            activeCases[caseIndex].nextSessionProcessed = false;
+            activeCases[caseIndex].nextSessionDecision = '';
+            database.ref('activeCases').set(activeCases);
+            showNotification(`✅ تم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
+            closeModal();
+            renderActiveCases();
+            renderTomorrowSessions();
+            renderAdvancedAgenda();
+        });
     }
 
     function addAdminWorkFromModal(caseId) {
@@ -928,14 +1023,15 @@
     function addExpertFromModal(caseId) {
         let caseData = activeCases.find(c => c.id == caseId);
         if (!caseData) { showNotification('القضية غير موجودة'); return; }
-        let expertDate = prompt('أدخل موعد الخبير:', new Date().toISOString().slice(0, 16));
-        let request = prompt('أدخل المطلوب من الخبير:', '');
-        if (!expertDate) return;
-        experts.push({ id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: getClientName(caseData.clientId), opponentName: caseData.opponentName, expertDate, request: request || '', inspections: '', notes: '', status: 'pending', createdAt: new Date().toISOString() });
-        database.ref('experts').set(experts);
-        showNotification(`✅ تم إرسال القضية للخبير في ${new Date(expertDate).toLocaleString('ar-EG')}`);
-        closeModal();
-        renderExperts();
+        showMiniAgenda(function(expertDate) {
+            if (!expertDate) return;
+            let request = prompt('أدخل المطلوب من الخبير:', '');
+            experts.push({ id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: getClientName(caseData.clientId), opponentName: caseData.opponentName, expertDate, request: request || '', inspections: '', notes: '', status: 'pending', createdAt: new Date().toISOString() });
+            database.ref('experts').set(experts);
+            showNotification(`✅ تم إرسال القضية للخبير في ${new Date(expertDate).toLocaleString('ar-EG')}`);
+            closeModal();
+            renderExperts();
+        });
     }
 
     function closeCaseFromModal(caseId) {
@@ -962,7 +1058,7 @@
                     <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit || 'غير محددة'}</span>
                 </div>
                 <p><strong><i class="fas fa-file-alt"></i> موضوع القضية:</strong> ${c.subject || 'غير محدد'}</p>
-                <p><strong><i class="fas fa-sticky-note"></i> القرار:</strong> ${c.decision || 'لا يوجد'}</p>
+                <p><strong><i class="fas fa-sticky-note"></i> آخر قرار:</strong> ${c.decision || 'لا يوجد'}</p>
                 <div class="admin-actions">
                     <button onclick="editCase('${c.id}')" class="btn-warning btn-sm">✏️ تعديل القضية</button>
                     <button onclick="viewFullCase('${c.id}', 'active')" class="btn-primary btn-sm">📋 عرض التفاصيل</button>
@@ -1434,20 +1530,21 @@
     function returnExpertToCase(id) {
         let expert = experts.find(e => e.id == id);
         if (!expert) return;
-        let newSessionDate = prompt('أدخل تاريخ الجلسة الجديدة (بعد انتهاء الخبير):', new Date().toISOString().slice(0, 16));
-        if (newSessionDate) {
-            let caseIdx = activeCases.findIndex(c => c.id == expert.caseId);
-            if (caseIdx !== -1) {
-                activeCases[caseIdx].nextSessionDate = newSessionDate;
-                activeCases[caseIdx].nextSessionProcessed = false;
-                database.ref('activeCases').set(activeCases);
-                experts = experts.filter(e => e.id != id);
-                database.ref('experts').set(experts);
-                showNotification('تم إرجاع القضية لجلسة جديدة بعد الخبير');
-                renderExperts();
-                renderActiveCases();
-            } else { showNotification('القضية غير موجودة في قضايا المكتب'); }
-        }
+        showMiniAgenda(function(newSessionDate) {
+            if (newSessionDate) {
+                let caseIdx = activeCases.findIndex(c => c.id == expert.caseId);
+                if (caseIdx !== -1) {
+                    activeCases[caseIdx].nextSessionDate = newSessionDate;
+                    activeCases[caseIdx].nextSessionProcessed = false;
+                    database.ref('activeCases').set(activeCases);
+                    experts = experts.filter(e => e.id != id);
+                    database.ref('experts').set(experts);
+                    showNotification('تم إرجاع القضية لجلسة جديدة بعد الخبير');
+                    renderExperts();
+                    renderActiveCases();
+                } else { showNotification('القضية غير موجودة في قضايا المكتب'); }
+            }
+        });
     }
 
     function completeExpert(id) {
@@ -1527,7 +1624,7 @@
         let tbody = document.querySelector('#employeesTable tbody');
         if (!tbody) return;
         let allEmployees = [...fixedAdmins, ...employees];
-        let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp));
+        let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp) && emp.username && emp.username !== "undefined");
         tbody.innerHTML = visible.map(emp => {
             let canModify = canModifyEmployee(emp);
             let canDel = canDeleteEmployee(emp);
@@ -1644,7 +1741,7 @@
         }).map(s => ({ ...s, clientName: getClientName(s.clientId) }));
         if (sessions.length === 0) document.getElementById('modalBody').innerHTML = '<p>لا توجد جلسات في هذا اليوم</p>';
         else {
-            document.getElementById('modalBody').innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge">الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge">الدائرة: ${s.circuit || 'غير محددة'}</span><span class="info-badge">الساعة: ${new Date(s.nextSessionDate || s.firstSessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join('');
+            document.getElementById('modalBody').innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge">الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge">الدائرة: ${s.circuit || 'غير محددة'}</span><span class="info-badge">الساعة: ${new Date(s.nextSessionDate || s.firstSessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join('');
         }
         document.getElementById('modalTitle').innerHTML = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}`;
         document.getElementById('detailsModal').style.display = 'flex';
@@ -1833,7 +1930,6 @@
         }
 
         try {
-            // أولاً: البحث في الحسابات الثابتة (fixedAdmins)
             let fixedAdminsSnapshot = await database.ref('fixedAdmins').once('value');
             let fixedAdminsData = fixedAdminsSnapshot.val();
             let fixedAdminsList = fixedAdminsData ? Object.values(fixedAdminsData) : [];
@@ -1869,7 +1965,6 @@
                 return;
             }
 
-            // ثانياً: البحث في الموظفين العاديين
             let employeesSnapshot = await database.ref('employees').once('value');
             let employeesData = employeesSnapshot.val();
             let employeesList = employeesData ? Object.values(employeesData) : [];
@@ -1904,7 +1999,6 @@
                 return;
             }
             
-            // إذا لم يتم العثور على المستخدم
             document.getElementById('loginError').style.display = 'block';
             showNotification('❌ اسم المستخدم أو كلمة المرور غير صحيحة');
             
