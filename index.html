@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>نظام إدارة قضايا - مكتب الخواجا للمحاماة</title>
-    
     <link rel="manifest" href="/law-office-app/manifest.json">
     <link rel="apple-touch-icon" href="/law-office-app/icons/icon-192.png">
     <meta name="theme-color" content="#1a4a5f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="الخواجا">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
@@ -20,9 +18,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; }
-        
         .dashboard-container { display: flex; min-height: 100vh; }
-        
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #0b2b40 0%, #1a4a5f 100%);
@@ -37,7 +33,6 @@
             z-index: 100;
             box-shadow: -4px 0 20px rgba(0,0,0,0.1);
         }
-        
         .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
         .sidebar-header h2 { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
         .sidebar-header p { font-size: 12px; opacity: 0.7; }
@@ -47,10 +42,8 @@
         .sidebar-menu-item.active { background: #ffc107; color: #1a4a5f; }
         .sidebar-menu-item i { width: 24px; font-size: 18px; }
         .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; text-align: center; opacity: 0.6; }
-        
         .main-content { flex: 1; margin-right: 280px; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
-        
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
         .login-card { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 400px; text-align: center; }
         .login-card h2 { color: #1a4a5f; margin-bottom: 10px; }
@@ -58,18 +51,15 @@
         .login-card button { width: 100%; padding: 12px; background: #1a4a5f; color: white; border: none; border-radius: 12px; font-size: 18px; cursor: pointer; }
         .login-card button:hover { background: #0b2b40; }
         .error-msg { color: #dc3545; margin-top: 10px; display: none; }
-        
         .maintenance-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); display: none; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
         .maintenance-card { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 450px; text-align: center; }
         .maintenance-card i { font-size: 60px; color: #ffc107; margin-bottom: 20px; }
         .maintenance-card h2 { color: #1a4a5f; margin-bottom: 15px; }
-        
         .header { background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); color: white; padding: 25px 30px; border-radius: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo h1 { font-size: 28px; font-weight: 800; }
         .logo p { font-size: 14px; opacity: 0.9; }
         .user-info { background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 50px; display: flex; align-items: center; gap: 15px; }
         .logout-btn { background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-weight: bold; }
-        
         .search-section { background: white; padding: 20px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .search-title { font-size: 18px; font-weight: bold; color: #1a4a5f; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .search-box { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
@@ -80,21 +70,17 @@
         .search-results { margin-top: 20px; display: none; }
         .search-results.show { display: block; }
         .search-result-card { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-right: 4px solid #1a4a5f; }
-        
         .welcome-banner { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); color: #155724; padding: 15px 25px; border-radius: 16px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; border-right: 5px solid #28a745; }
         .sessions-count { background: #155724; color: white; padding: 8px 20px; border-radius: 40px; }
-        
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .stat-card { background: white; padding: 20px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-3px); }
         .stat-info h3 { font-size: 28px; font-weight: 800; color: #1a4a5f; }
         .stat-info p { color: #666; font-size: 14px; }
         .stat-icon { font-size: 40px; color: #1a4a5f; opacity: 0.6; }
-        
         .panel { display: none; background: white; border-radius: 20px; padding: 25px; animation: fadeIn 0.3s ease; }
         .panel.active-panel { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
-        
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
         input, select, textarea { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 14px; }
@@ -106,65 +92,51 @@
         .btn-warning { background: #ffc107; color: #333; }
         .btn-sm { padding: 6px 12px; font-size: 13px; margin: 3px; }
         .btn-primary { background: #17a2b8; }
-        
         .table-responsive { overflow-x: auto; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: right; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; color: #1a4a5f; }
-        
         .session-card { background: #f8f9fa; padding: 20px; border-radius: 16px; margin-bottom: 20px; border-right: 5px solid #1a4a5f; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .session-card h4 { font-size: 20px; margin-bottom: 15px; color: #1a4a5f; }
         .info-row { display: flex; flex-wrap: wrap; gap: 15px; margin: 15px 0; }
         .info-badge { background: white; padding: 8px 15px; border-radius: 25px; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        
         .delete-btn { color: #dc3545; background: transparent; border: none; cursor: pointer; font-size: 16px; padding: 5px 10px; }
         .delete-btn:hover { background: #dc3545; color: white; border-radius: 8px; }
-        
         .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; }
         .role-admin { background: #1a4a5f; color: white; }
         .role-lawyer { background: #28a745; color: white; }
         .role-super { background: #dc3545; color: white; }
-        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; justify-content: center; align-items: center; }
         .modal-content { background: white; border-radius: 20px; padding: 25px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
         .close-modal { background: #dc3545; margin-top: 20px; cursor: pointer; }
-        
         .court-options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .court-btn { background: #e9ecef; color: #333; padding: 8px 16px; border-radius: 25px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
         .court-btn:hover { background: #1a4a5f; color: white; }
         .court-btn.selected { background: #1a4a5f; color: white; }
-        
         .report-simple { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
         .admin-work-card, .judgment-record-card, .enforcement-card, .expert-card { background: #f8f9fa; padding: 20px; border-radius: 16px; margin-bottom: 20px; border-right: 5px solid #1a4a5f; }
         .work-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
         .status-pending { background: #ffc107; color: #333; }
         .status-completed { background: #28a745; color: white; }
         .status-overdue { background: #dc3545; color: white; }
-        
         .year-months { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
         .year-btn, .month-btn { background: #e9ecef; padding: 8px 20px; border-radius: 25px; cursor: pointer; transition: all 0.2s; }
         .year-btn.active, .month-btn.active { background: #1a4a5f; color: white; }
-        
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 15px; }
         .day-card { background: #f8f9fa; padding: 12px 8px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
         .day-card:hover { background: #1a4a5f; color: white; transform: scale(1.05); }
         .day-card.has-session { background: #d4edda; border-right: 3px solid #28a745; }
         .day-card.today { background: #ffc107; color: #333; font-weight: bold; }
-        
         .week-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 10px; text-align: center; font-weight: bold; }
         .week-day-name { background: #1a4a5f; color: white; padding: 8px; border-radius: 8px; }
-        
         .archive-categories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px; }
         .archive-cat-btn { background: #e9ecef; padding: 8px 20px; border-radius: 25px; cursor: pointer; transition: all 0.2s; border: 1px solid #ddd; }
         .archive-cat-btn.active { background: #1a4a5f; color: white; }
-        
         .internal-search { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
         .opponent-section { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-top: 10px; }
         .opponent-section-title { font-weight: bold; margin-bottom: 10px; color: #1a4a5f; }
-        
         .export-btn { background: #28a745; margin-right: 10px; }
         .notification-toast { position: fixed; bottom: 20px; left: 20px; background: #1a4a5f; color: white; padding: 12px 20px; border-radius: 12px; display: none; z-index: 1000; }
-        
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar-header h2, .sidebar-header p, .sidebar-menu-item span { display: none; }
@@ -449,7 +421,7 @@
     let adminWorks = [], judgmentRecords = [], enforcements = [], experts = [];
     let isMaintenanceMode = false;
     let maintenanceEndTime = null;
-    let activeSearchTerm = '', closedSearchTerm = '';
+    let activeSearchTerm = '';
     let sessionTimeout = null;
     let maintenanceInterval = null;
 
@@ -463,7 +435,6 @@
         { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }
     ];
 
-    // Helper Functions
     function showNotification(msg) {
         let toast = document.getElementById('notificationToast');
         toast.innerText = msg;
@@ -498,47 +469,30 @@
     function isHesham() { return currentUser && currentUser.id === "admin_hesham"; }
     function canDeleteEverywhere() { return isSuperAdmin(); }
     
-    // صلاحية رؤية الموظفين - حسام لا يظهر لأي حد غير نفسه
     function isVisibleToCurrentUser(employee) {
         if (!currentUser) return false;
-        // حسام لا يظهر لأي حد غير نفسه
-        if (employee.id === "admin_hesham") {
-            return isHesham();
-        }
-        // جورج يرى كل الموظفين ما عدا حسام (تم معالجته أعلاه)
-        if (employee.id === "admin_george") {
-            return true;
-        }
-        // باقي الموظفين يظهرون للجميع
+        if (employee.id === "admin_hesham") return isHesham();
         return true;
     }
     
-    // صلاحية تعديل الموظفين
     function canModifyEmployee(employee) {
         if (!currentUser) return false;
-        // لا يمكن تعديل حسام أبداً
         if (employee.id === "admin_hesham") return false;
-        // سوبر أدمن (حسام) يعدل أي حد
         if (isSuperAdmin()) return true;
-        // جورج يعدل الموظفين العاديين فقط
         if (isGeorge() && !employee.isFixed) return true;
         return false;
     }
     
-    // صلاحية حذف الموظفين
     function canDeleteEmployee(employee) {
         if (!currentUser) return false;
-        // لا يمكن حذف حسام أو جورج
         if (employee.id === "admin_hesham" || employee.id === "admin_george") return false;
-        // سوبر أدمن فقط يحذف
         return isSuperAdmin();
     }
 
-    // Session timeout
     function setSessionTimeout() {
         if (sessionTimeout) clearTimeout(sessionTimeout);
         sessionTimeout = setTimeout(() => {
-            if (currentUser) { logout(); showNotification('⏰ انتهت مدة الجلسة (10 دقائق)، يرجى تسجيل الدخول مرة أخرى'); }
+            if (currentUser) { logout(); showNotification('⏰ انتهت مدة الجلسة (10 دقائق)'); }
         }, 10 * 60 * 1000);
     }
 
@@ -550,7 +504,6 @@
         });
     }
 
-    // Tab switching - مع حفظ آخر تاب مفتوح
     function switchToTab(tabId, saveToStorage = true) {
         document.querySelectorAll('.sidebar-menu-item').forEach(item => {
             item.classList.remove('active');
@@ -564,14 +517,10 @@
 
     function bindSidebarButtons() {
         document.querySelectorAll('.sidebar-menu-item').forEach(item => {
-            item.onclick = () => { 
-                let tabId = item.getAttribute('data-tab'); 
-                if (tabId) switchToTab(tabId, true); 
-            };
+            item.onclick = () => { let tabId = item.getAttribute('data-tab'); if (tabId) switchToTab(tabId, true); };
         });
     }
 
-    // Court Options
     function updateCourtOptions() {
         let container = document.getElementById('courtOptions');
         if (!container) return;
@@ -617,7 +566,6 @@
         };
     }
 
-    // Search Functions
     function performSearch() {
         let searchType = document.getElementById('searchType').value;
         let resultsDiv = document.getElementById('searchResults');
@@ -678,7 +626,6 @@
         renderActiveCases();
     }
 
-    // Tomorrow Sessions
     function getTomorrowSessions() {
         let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(0, 0, 0, 0);
         let tomorrowEnd = new Date(tomorrow); tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
@@ -696,7 +643,6 @@
         container.innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div></div>`).join('');
     }
 
-    // Past Sessions
     function renderPastSessions() {
         let container = document.getElementById('pastSessionsList');
         if (!container) return;
@@ -811,7 +757,6 @@
         updateStats();
     }
 
-    // Active Cases
     function renderActiveCases() {
         let container = document.getElementById('activeCasesList');
         if (!container) return;
@@ -885,7 +830,6 @@
         updateStats();
     }
 
-    // Closed Cases
     function renderClosedCases() {
         let container = document.getElementById('closedCasesList');
         if (!container) return;
@@ -893,13 +837,11 @@
         container.innerHTML = closedCases.map(c => `<div class="session-card"><h4>✅ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${getClientName(c.clientId)} (${c.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span></div><p><strong>الحكم:</strong> ${c.judgment}</p>${canDeleteEverywhere() ? `<button onclick="deleteClosedCase('${c.id}')" class="delete-btn">🗑️ حذف</button>` : ''}</div>`).join('');
     }
 
-    // Admin Works
     function renderAdminWorks() {
         let container = document.getElementById('adminWorksList');
         if (!container) return;
         if (!adminWorks.length) { container.innerHTML = '<p>لا توجد أعمال إدارية</p>'; return; }
         container.innerHTML = adminWorks.map(w => {
-            let caseData = activeCases.find(c => c.id == w.caseId);
             let statusClass = w.status === 'pending' ? 'status-pending' : 'status-completed';
             return `<div class="admin-work-card"><h4>📋 ${w.type}</h4><div class="info-row"><span class="info-badge">القضية: ${w.caseNumber} (${w.caseYear})</span><span class="info-badge">تاريخ المعاد: ${w.dueDate ? new Date(w.dueDate).toLocaleDateString() : 'غير محدد'}</span></div><p><span class="work-status ${statusClass}">${w.status === 'pending' ? 'قيد الانتظار' : 'مكتمل'}</span></p>${w.status === 'pending' ? `<button onclick="completeAdminWork('${w.id}')" class="btn-success btn-sm">✅ إكمال</button>` : ''}</div>`;
         }).join('');
@@ -910,7 +852,6 @@
         if (work) { work.status = 'completed'; work.completedAt = new Date().toISOString(); database.ref('adminWorks').set(adminWorks); showNotification('تم إكمال العمل الإداري'); renderAdminWorks(); }
     }
 
-    // Judgment Records
     function renderJudgmentRecords() {
         let container = document.getElementById('judgmentRecordsList');
         if (!container) return;
@@ -918,7 +859,6 @@
         container.innerHTML = judgmentRecords.map(r => `<div class="judgment-record-card"><h4>⚖️ ${r.type}</h4><div class="info-row"><span class="info-badge">القضية: ${r.caseNumber} (${r.caseYear})</span></div><p><span class="work-status status-pending">قيد الانتظار</span></p></div>`).join('');
     }
 
-    // Enforcements
     function renderEnforcements() {
         let container = document.getElementById('enforcementsList');
         if (!container) return;
@@ -948,7 +888,6 @@
 
     function deleteEnforcement(id) { if (confirm('هل أنت متأكد؟')) { enforcements = enforcements.filter(e => e.id != id); database.ref('enforcements').set(enforcements); showNotification('تم الحذف'); renderEnforcements(); } }
 
-    // Experts
     function renderExperts() {
         let container = document.getElementById('expertsList');
         if (!container) return;
@@ -978,12 +917,11 @@
 
     function deleteExpert(id) { if (confirm('هل أنت متأكد؟')) { experts = experts.filter(e => e.id != id); database.ref('experts').set(experts); showNotification('تم الحذف'); renderExperts(); } }
 
-    // Archive
     function renderArchive() {
         let container = document.getElementById('archiveCategories');
         if (!container) return;
         let addBtn = document.getElementById('addCircuitBtn');
-        if (addBtn) addBtn.style.display = (isSuperAdmin()) ? 'inline-block' : 'none';
+        if (addBtn) addBtn.style.display = isSuperAdmin() ? 'inline-block' : 'none';
         container.innerHTML = `<div class="archive-categories">${archiveCategories.map(cat => `<span class="archive-cat-btn" data-circuit="${cat.circuit}" onclick="filterArchive('${cat.circuit}')">${cat.name}</span>`).join('')}</div>`;
         filterArchive('مدني');
     }
@@ -1009,7 +947,6 @@
         }
     }
 
-    // Clients
     function renderClientsTable() {
         let tbody = document.querySelector('#clientsTable tbody');
         if (!tbody) return;
@@ -1026,7 +963,6 @@
         if (select) select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     }
 
-    // Employees - مع إخفاء حسام لأي حد غير نفسه
     function renderEmployeesTable() {
         let tbody = document.querySelector('#employeesTable tbody');
         if (!tbody) return;
@@ -1039,8 +975,7 @@
             if (canModify) actions += `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
             if (canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
             if (!canModify && !canDel) actions = 'لا يمكن التعديل';
-            // عرض كلمة المرور فقط للسوبر أدمن
-            let passwordDisplay = (isSuperAdmin()) ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
+            let passwordDisplay = isSuperAdmin() ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
             return `<tr><td>${emp.username}${passwordDisplay}</td><td>${emp.role}</td><td>${emp.password}</td><td>${actions}</td></tr>`;
         }).join('');
     }
@@ -1050,8 +985,6 @@
         if (!newPassword) return;
         let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
         if (!emp) return;
-        
-        // التحقق من الصلاحية
         if (emp.id === "admin_hesham" && !isHesham()) {
             showNotification('❌ لا يمكن تغيير كلمة سر المدير الأساسي إلا بواسطة حسام نفسه');
             return;
@@ -1060,7 +993,6 @@
             showNotification('❌ غير مسموح لك بتغيير كلمة سر جورج');
             return;
         }
-        
         emp.password = newPassword;
         if (emp.isFixed) {
             database.ref('fixedAdmins/' + empId).update({ password: newPassword });
@@ -1157,7 +1089,6 @@
         document.getElementById('detailsModal').style.display = 'flex';
     }
 
-    // Stats and Reports
     function updateStats() {
         document.getElementById('totalActiveCases').innerText = activeCases.length;
         document.getElementById('totalClosedCases').innerText = closedCases.length;
@@ -1167,7 +1098,6 @@
         document.getElementById('reportTotalClosed').innerText = closedCases.length;
         document.getElementById('reportTotalClients').innerText = clients.length;
         
-        // Weekly report
         let weekDays = ['السبت', 'الأحد', 'الإثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
         let today = new Date();
         let startOfWeek = new Date(today);
@@ -1211,7 +1141,7 @@
         } catch (e) { showNotification('حدث خطأ أثناء تصدير البيانات'); }
     }
 
-    // Maintenance - فقط حسام (سوبر أدمن) يتحكم
+    // Maintenance
     function enableMaintenance(durationHours = null) {
         if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; }
         let endTime = durationHours ? new Date(Date.now() + durationHours * 3600000).toISOString() : null;
@@ -1275,7 +1205,6 @@
     }
 
     function checkMaintenance() {
-        // سوبر أدمن (حسام) يقدر يدخل حتى لو الصيانة شغالة
         if (isSuperAdmin()) {
             document.getElementById('maintenanceScreen').style.display = 'none';
             return true;
@@ -1286,7 +1215,6 @@
                 return true; 
             }
             document.getElementById('maintenanceScreen').style.display = 'flex';
-            // تحديث المؤقت
             let timerDiv = document.getElementById('maintenanceTimer');
             if (timerDiv && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) {
                 let remaining = new Date(maintenanceEndTime) - new Date();
@@ -1303,7 +1231,6 @@
         return true;
     }
 
-    // Load Data from Firebase
     function loadDataFromFirebase() {
         database.ref('activeCases').on('value', (s) => { activeCases = s.val() ? Object.values(s.val()) : []; updateStats(); renderActiveCases(); renderPastSessions(); renderTomorrowSessions(); renderAdvancedAgenda(); });
         database.ref('closedCases').on('value', (s) => { closedCases = s.val() ? Object.values(s.val()) : []; updateStats(); renderClosedCases(); renderArchive(); });
@@ -1335,7 +1262,6 @@
         });
     }
 
-    // Login/Logout
     async function attemptLogin() {
         let username = document.getElementById('loginUsername').value.trim();
         let password = document.getElementById('loginPassword').value;
@@ -1360,7 +1286,10 @@
                 initStatCards(); 
                 renderArchive(); 
                 bindSidebarButtons();
-                // استعادة آخر تاب مفتوح بعد الريfresh
+                let employeesTabItem = document.getElementById('employeesTabItem');
+                let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
+                if (employeesTabItem) employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
+                if (maintenanceMenuItem) maintenanceMenuItem.style.display = isSuperAdmin() ? 'flex' : 'none';
                 let lastTab = localStorage.getItem('lastOpenTab');
                 if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
                     switchToTab(lastTab, false);
@@ -1391,7 +1320,10 @@
                 initStatCards(); 
                 renderArchive(); 
                 bindSidebarButtons();
-                // استعادة آخر تاب مفتوح بعد الريfresh
+                let employeesTabItem = document.getElementById('employeesTabItem');
+                let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
+                if (employeesTabItem) employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
+                if (maintenanceMenuItem) maintenanceMenuItem.style.display = isSuperAdmin() ? 'flex' : 'none';
                 let lastTab = localStorage.getItem('lastOpenTab');
                 if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) {
                     switchToTab(lastTab, false);
@@ -1409,7 +1341,6 @@
     function logout() {
         currentUser = null;
         localStorage.removeItem('law_currentUser');
-        // لا نحذف lastOpenTab عشان يرجع لنفس المكان بعد الدخول تاني
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('dashboardContent').style.display = 'none';
         showNotification('تم تسجيل الخروج');
@@ -1417,7 +1348,6 @@
         if (maintenanceInterval) clearInterval(maintenanceInterval);
     }
 
-    // Form Submissions
     document.getElementById('newCaseForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
         let clientId = document.getElementById('caseClient').value;
@@ -1466,22 +1396,6 @@
         e.target.reset();
     });
 
-    // تحديد ظهور تبويب الموظفين حسب الصلاحية
-    function renderTabsBasedOnRole() {
-        let employeesTabItem = document.getElementById('employeesTabItem');
-        let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
-        
-        if (employeesTabItem) {
-            employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
-        }
-        if (maintenanceMenuItem) {
-            maintenanceMenuItem.style.display = isSuperAdmin() ? 'flex' : 'none';
-        }
-        
-        bindSidebarButtons();
-    }
-
-    // Initialize
     window.selectYear = selectYear;
     window.selectMonth = selectMonth;
     window.showDaySessions = showDaySessions;
