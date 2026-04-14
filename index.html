@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
-        /* جميع الأنماط كما هي - لم يتم التعديل عليها */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; }
         .dashboard-container { display: flex; min-height: 100vh; }
@@ -132,16 +131,18 @@
         .opponent-section-title { font-weight: bold; margin-bottom: 10px; color: #1a4a5f; }
         .export-btn { background: #28a745; margin-right: 10px; }
         .notification-toast { position: fixed; bottom: 20px; left: 20px; background: #1a4a5f; color: white; padding: 12px 20px; border-radius: 12px; display: none; z-index: 1000; }
-        .mini-agenda { background: white; border: 1px solid #ddd; border-radius: 12px; padding: 10px; margin-top: 10px; }
-        .mini-agenda .days-grid { gap: 4px; }
-        .mini-agenda .day-card { padding: 6px 4px; font-size: 12px; }
-        .mini-agenda .week-day-name { padding: 4px; font-size: 10px; }
+        .multi-client-item { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .multi-client-item select { flex: 2; }
+        .multi-client-item input { flex: 2; }
+        .multi-client-item button { width: 35px; padding: 8px; margin: 0; }
+        .add-client-btn { background: #28a745; margin-top: 10px; }
         @media (max-width: 768px) {
             .sidebar { width: 70px; }
             .sidebar-header h2, .sidebar-header p, .sidebar-menu-item span { display: none; }
             .sidebar-menu-item { justify-content: center; padding: 14px; }
             .main-content { margin-right: 70px; }
             .panel { padding: 15px; }
+            .multi-client-item { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -285,8 +286,18 @@
                                 <input type="text" id="otherCircuit" placeholder="اكتب اسم الدائرة" style="display:none; margin-top:10px;">
                             </div>
                             <div class="form-group"><label>تاريخ الجلسة الأولى <span style="color:red">*</span></label><input type="datetime-local" id="firstSessionDate" required></div>
-                            <div class="form-group"><label>الموكل <span style="color:red">*</span></label><select id="caseClient" required><option value="">اختر موكل</option></select></div>
-                            <div class="form-group"><label>صفة الموكل <span style="color:red">*</span></label>
+                            
+                            <!-- الموكل الرئيسي مع بحث -->
+                            <div class="form-group">
+                                <label>الموكل الرئيسي <span style="color:red">*</span></label>
+                                <select id="caseClient" required style="width:100%">
+                                    <option value="">اختر موكل</option>
+                                </select>
+                                <input type="text" id="clientSearchInput" placeholder="🔍 بحث عن موكل..." style="margin-top:5px;" onkeyup="filterClients()">
+                            </div>
+                            
+                            <!-- صفة الموكل الرئيسي -->
+                            <div class="form-group"><label>صفة الموكل الرئيسي <span style="color:red">*</span></label>
                                 <select id="clientRole" required>
                                     <option value="">اختر الصفة</option>
                                     <option value="مدعي">مدعي</option>
@@ -302,6 +313,16 @@
                                     <option value="معترض ضده">معترض ضده</option>
                                 </select>
                             </div>
+                            
+                            <!-- موكلين مشاركين (اختياري) -->
+                            <div class="form-group">
+                                <label><i class="fas fa-users"></i> موكلين مشاركين (اختياري)</label>
+                                <div id="additionalClientsContainer"></div>
+                                <button type="button" onclick="addAdditionalClient()" class="btn-sm btn-success add-client-btn" style="margin-top:5px;">
+                                    <i class="fas fa-plus"></i> إضافة موكل مشارك
+                                </button>
+                            </div>
+                            
                             <div class="opponent-section">
                                 <div class="opponent-section-title"><i class="fas fa-gavel"></i> الخصم الأول <span style="color:red">*</span></div>
                                 <div class="form-group"><label>اسم الخصم</label><input type="text" id="opponentName" required></div>
@@ -371,7 +392,7 @@
                             <div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div>
                             <button type="submit">➕ إضافة موظف</button>
                         </form>
-                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>كلمة المرور</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+                        <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>كلمة المرور</th><th>إجراءات</th><tr></thead><tbody></tbody></table></div>
                     </div>
                     
                     <div id="maintenancePanel" class="panel">
@@ -423,6 +444,7 @@
     let activeSearchTerm = '';
     let sessionTimeout = null;
     let maintenanceInterval = null;
+    let additionalClientsList = [];
 
     let archiveCategories = [
         { id: "مدني", name: "⚖️ مدني", circuit: "مدني" },
@@ -461,6 +483,20 @@
         let client = clients.find(cl => cl.id == clientId);
         return client ? client.name : 'غير محدد';
     }
+    
+    function getAllClientsNames(caseData) {
+        let names = [];
+        if (caseData.clientId) {
+            names.push(getClientName(caseData.clientId));
+        }
+        if (caseData.additionalClients && caseData.additionalClients.length) {
+            caseData.additionalClients.forEach(c => {
+                if (c.clientId) names.push(getClientName(c.clientId));
+                else if (c.clientName) names.push(c.clientName);
+            });
+        }
+        return names;
+    }
 
     function getAllSessions(caseData) {
         let sessions = [];
@@ -492,6 +528,7 @@
         return {
             ...caseData,
             clientName: getClientName(caseData.clientId),
+            allClientsNames: getAllClientsNames(caseData),
             allSessions: getAllSessions(caseData)
         };
     }
@@ -500,8 +537,20 @@
     function isSuperAdmin() { return currentUser && currentUser.superAdmin === true; }
     function isGeorge() { return currentUser && currentUser.id === "admin_george"; }
     function isHesham() { return currentUser && currentUser.id === "admin_hesham"; }
-    function canDeleteEverywhere() { return isSuperAdmin() || isGeorge(); }
-    function canChangeAnyPassword() { return isSuperAdmin() || isGeorge(); }
+    
+    function canDeleteEverywhere() { 
+        if (!currentUser) return false;
+        if (isSuperAdmin()) return true;
+        if (isGeorge()) return true;
+        return false;
+    }
+    
+    function canChangeAnyPassword() { 
+        if (!currentUser) return false;
+        if (isSuperAdmin()) return true;
+        if (isGeorge()) return true;
+        return false;
+    }
     
     function isVisibleToCurrentUser(employee) {
         if (!currentUser) return false;
@@ -514,16 +563,17 @@
         if (!currentUser) return false;
         if (employee.id === "admin_hesham") return false;
         if (isSuperAdmin()) return true;
-        if (isGeorge() && !employee.isFixed) return true;
+        if (isGeorge()) return true;
         return false;
     }
     
     function canDeleteEmployee(employee) {
         if (!currentUser) return false;
         if (employee.id === "admin_hesham") return false;
-        if (employee.id === "admin_george" && !isSuperAdmin()) return false;
-        if (employee.username === "undefined" || !employee.username) return false;
-        return isSuperAdmin() || isGeorge();
+        if (isGeorge() && employee.id === "admin_george") return false;
+        if (isSuperAdmin()) return true;
+        if (isGeorge()) return true;
+        return false;
     }
 
     function setSessionTimeout() {
@@ -603,6 +653,58 @@
         };
     }
 
+    function filterClients() {
+        let searchText = document.getElementById('clientSearchInput').value.toLowerCase();
+        let select = document.getElementById('caseClient');
+        let options = select.options;
+        
+        for (let i = 0; i < options.length; i++) {
+            let optionText = options[i].text.toLowerCase();
+            if (optionText.includes(searchText) || searchText === '') {
+                options[i].style.display = '';
+            } else {
+                options[i].style.display = 'none';
+            }
+        }
+    }
+    
+    function addAdditionalClient() {
+        let container = document.getElementById('additionalClientsContainer');
+        let clientId = Date.now();
+        let div = document.createElement('div');
+        div.className = 'multi-client-item';
+        div.id = `client_${clientId}`;
+        div.innerHTML = `
+            <select name="additionalClient" class="additional-client-select" style="flex:2;">
+                <option value="">اختر موكل مشارك</option>
+                ${clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+            </select>
+            <input type="text" placeholder="أو اكتب اسم موكل جديد" class="additional-client-name" style="flex:2;">
+            <button type="button" onclick="removeAdditionalClient(${clientId})" class="btn-danger btn-sm" style="width:35px;">✖</button>
+        `;
+        container.appendChild(div);
+    }
+    
+    function removeAdditionalClient(id) {
+        let div = document.getElementById(`client_${id}`);
+        if (div) div.remove();
+    }
+    
+    function getAdditionalClientsData() {
+        let clientsData = [];
+        let items = document.querySelectorAll('#additionalClientsContainer .multi-client-item');
+        items.forEach(item => {
+            let select = item.querySelector('.additional-client-select');
+            let nameInput = item.querySelector('.additional-client-name');
+            if (select.value) {
+                clientsData.push({ clientId: select.value, clientName: getClientName(select.value), role: '' });
+            } else if (nameInput.value.trim()) {
+                clientsData.push({ clientId: null, clientName: nameInput.value.trim(), role: '' });
+            }
+        });
+        return clientsData;
+    }
+
     function performSearch() {
         let searchType = document.getElementById('searchType').value;
         let resultsDiv = document.getElementById('searchResults');
@@ -611,14 +713,20 @@
             let caseNum = document.getElementById('searchCaseNumber').value.trim();
             let caseYr = document.getElementById('searchCaseYear').value.trim();
             if (!caseNum && !caseYr) { showNotification('يرجى إدخال رقم القضية أو السنة'); return; }
-            let activeRes = activeCases.filter(c => (!caseNum || c.number === caseNum) && (!caseYr || c.year === caseYr)).map(c => ({ ...c, caseType: 'active', clientName: getClientName(c.clientId) }));
-            let closedRes = closedCases.filter(c => (!caseNum || c.number === caseNum) && (!caseYr || c.year === caseYr)).map(c => ({ ...c, caseType: 'closed', clientName: getClientName(c.clientId) }));
+            let activeRes = activeCases.filter(c => (!caseNum || c.number === caseNum) && (!caseYr || c.year === caseYr)).map(c => ({ ...c, caseType: 'active', clientName: getClientName(c.clientId), allClients: getAllClientsNames(c) }));
+            let closedRes = closedCases.filter(c => (!caseNum || c.number === caseNum) && (!caseYr || c.year === caseYr)).map(c => ({ ...c, caseType: 'closed', clientName: getClientName(c.clientId), allClients: getAllClientsNames(c) }));
             results = [...activeRes, ...closedRes];
         } else {
             let clientName = document.getElementById('searchClientName').value.trim().toLowerCase();
             if (!clientName) { showNotification('يرجى إدخال اسم الموكل'); return; }
-            let activeRes = activeCases.filter(c => { let cl = clients.find(cl => cl.id == c.clientId); return cl && cl.name.toLowerCase().includes(clientName); }).map(c => ({ ...c, caseType: 'active', clientName: getClientName(c.clientId) }));
-            let closedRes = closedCases.filter(c => { let cl = clients.find(cl => cl.id == c.clientId); return cl && cl.name.toLowerCase().includes(clientName); }).map(c => ({ ...c, caseType: 'closed', clientName: getClientName(c.clientId) }));
+            let activeRes = activeCases.filter(c => {
+                let allNames = getAllClientsNames(c);
+                return allNames.some(n => n.toLowerCase().includes(clientName));
+            }).map(c => ({ ...c, caseType: 'active', clientName: getClientName(c.clientId), allClients: getAllClientsNames(c) }));
+            let closedRes = closedCases.filter(c => {
+                let allNames = getAllClientsNames(c);
+                return allNames.some(n => n.toLowerCase().includes(clientName));
+            }).map(c => ({ ...c, caseType: 'closed', clientName: getClientName(c.clientId), allClients: getAllClientsNames(c) }));
             results = [...activeRes, ...closedRes];
         }
         if (results.length === 0) resultsDiv.innerHTML = '<p style="text-align:center; color:#666;">❌ لا توجد نتائج مطابقة</p>';
@@ -626,7 +734,8 @@
             resultsDiv.innerHTML = `<h4>🔍 نتائج البحث (${results.length})</h4>` + results.map(c => {
                 let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد');
                 let typeBadge = c.caseType === 'active' ? '<span style="background:#1a4a5f; color:white; padding:2px 10px; border-radius:20px; font-size:12px;">📂 قضايا المكتب</span>' : '<span style="background:#28a745; color:white; padding:2px 10px; border-radius:20px; font-size:12px;">✅ قضية منتهية</span>';
-                return `<div class="search-result-card">${typeBadge}<br><strong>⚖️ ${c.number} (${c.year}) - ${c.court}</strong><br>👤 الموكل: ${c.clientName} (${c.clientRole})<br>⚖️ الخصم: ${c.opponentName} (${c.opponentRole})<br>📝 موضوع القضية: ${c.subject || 'غير محدد'}<br>📅 الجلسة: ${sessionDate}<br>📝 آخر قرار: ${c.decision || 'لا يوجد'}<br><button onclick="viewFullCase('${c.id}', '${c.caseType}')" class="btn-sm btn-primary" style="margin-top:10px;">📋 عرض القضية كاملة</button></div>`;
+                let clientsHtml = `<div class="info-badge"><i class="fas fa-users"></i> الموكلين: ${c.allClients.join(' - ')}</div>`;
+                return `<div class="search-result-card">${typeBadge}<br><strong>⚖️ ${c.number} (${c.year}) - ${c.court}</strong><br>${clientsHtml}<br>⚖️ الخصم: ${c.opponentName} (${c.opponentRole})<br>📝 موضوع القضية: ${c.subject || 'غير محدد'}<br>📅 الجلسة: ${sessionDate}<br>📝 آخر قرار: ${c.decision || 'لا يوجد'}<br><button onclick="viewFullCase('${c.id}', '${c.caseType}')" class="btn-sm btn-primary" style="margin-top:10px;">📋 عرض القضية كاملة</button></div>`;
             }).join('');
         }
         resultsDiv.classList.add('show');
@@ -663,20 +772,48 @@
     }
 
     function getTomorrowSessions() {
-        let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(0, 0, 0, 0);
-        let tomorrowEnd = new Date(tomorrow); tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+        let tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        let tomorrowEnd = new Date(tomorrow);
+        tomorrowEnd.setDate(tomorrowEnd.getDate() + 1);
+        
         return activeCases.filter(c => {
-            let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
+            let sessionDate = null;
+            if (c.nextSessionDate && !c.nextSessionProcessed) {
+                sessionDate = new Date(c.nextSessionDate);
+            } else if (c.firstSessionDate && !c.firstSessionProcessed) {
+                sessionDate = new Date(c.firstSessionDate);
+            }
             return sessionDate && sessionDate >= tomorrow && sessionDate < tomorrowEnd;
-        }).map(s => ({ ...s, sessionDate: s.nextSessionDate ? new Date(s.nextSessionDate) : new Date(s.firstSessionDate), clientName: getClientName(s.clientId) }));
+        }).map(s => ({ 
+            ...s, 
+            sessionDate: s.nextSessionDate && !s.nextSessionProcessed ? new Date(s.nextSessionDate) : new Date(s.firstSessionDate), 
+            clientName: getClientName(s.clientId),
+            allClients: getAllClientsNames(s)
+        }));
     }
 
     function renderTomorrowSessions() {
         let container = document.getElementById('tomorrowSessionsList');
         if (!container) return;
         let sessions = getTomorrowSessions();
-        if (sessions.length === 0) { container.innerHTML = '<div class="session-card"><p style="text-align:center">📅 لا توجد جلسات غداً</p></div>'; return; }
-        container.innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${s.circuit || 'غير محددة'}</span><span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join('');
+        if (sessions.length === 0) { 
+            container.innerHTML = '<div class="session-card"><p style="text-align:center">📅 لا توجد جلسات غداً</p></div>'; 
+            return; 
+        }
+        container.innerHTML = sessions.map(s => `<div class="session-card">
+            <h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4>
+            <div class="info-row">
+                <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${s.allClients.join(' - ')}</span>
+                <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span>
+                <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${s.circuit || 'غير محددة'}</span>
+                <span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span>
+            </div>
+            <p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p>
+            <p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p>
+            <button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button>
+        </div>`).join('');
     }
 
     let tempCallback = null;
@@ -754,33 +891,71 @@
         };
     }
 
+    // دالة ماتم في الجلسات المعدلة - تظهر الجلسات اللي فاتت (النهارده وامبارح وأي جلسة قديمة)
     function renderPastSessions() {
         let container = document.getElementById('pastSessionsList');
         if (!container) return;
+        
         let now = new Date();
+        now.setHours(0, 0, 0, 0);
+        
         let pastSessions = [];
+        
         activeCases.forEach(c => {
-            if (c.firstSessionDate && new Date(c.firstSessionDate) <= now && !c.firstSessionProcessed) {
-                pastSessions.push({ ...c, sessionType: 'first', sessionDate: new Date(c.firstSessionDate), clientName: getClientName(c.clientId), oldDecision: c.firstSessionDecision || '' });
+            // جلسة أولى
+            if (c.firstSessionDate) {
+                let sessionDate = new Date(c.firstSessionDate);
+                sessionDate.setHours(0, 0, 0, 0);
+                if (sessionDate <= now && !c.firstSessionProcessed) {
+                    pastSessions.push({ 
+                        ...c, 
+                        sessionType: 'first', 
+                        sessionDate: new Date(c.firstSessionDate), 
+                        clientName: getClientName(c.clientId),
+                        allClients: getAllClientsNames(c),
+                        oldDecision: c.firstSessionDecision || '' 
+                    });
+                }
             }
-            if (c.nextSessionDate && new Date(c.nextSessionDate) <= now && !c.nextSessionProcessed) {
-                pastSessions.push({ ...c, sessionType: 'next', sessionDate: new Date(c.nextSessionDate), clientName: getClientName(c.clientId), oldDecision: c.nextSessionDecision || '' });
+            
+            // جلسة تانية (مؤجلة)
+            if (c.nextSessionDate) {
+                let sessionDate = new Date(c.nextSessionDate);
+                sessionDate.setHours(0, 0, 0, 0);
+                if (sessionDate <= now && !c.nextSessionProcessed) {
+                    pastSessions.push({ 
+                        ...c, 
+                        sessionType: 'next', 
+                        sessionDate: new Date(c.nextSessionDate), 
+                        clientName: getClientName(c.clientId),
+                        allClients: getAllClientsNames(c),
+                        oldDecision: c.nextSessionDecision || '' 
+                    });
+                }
             }
         });
+        
         pastSessions.sort((a, b) => b.sessionDate - a.sessionDate);
-        if (pastSessions.length === 0) { container.innerHTML = '<p>📭 لا توجد جلسات سابقة تحتاج إلى تسجيل قرار</p>'; return; }
+        
+        if (pastSessions.length === 0) { 
+            container.innerHTML = '<p>📭 لا توجد جلسات سابقة تحتاج إلى تسجيل قرار</p>'; 
+            return; 
+        }
+        
         container.innerHTML = pastSessions.map(s => `
             <div class="session-card" style="border-right-color: #ffc107;">
                 <h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4>
                 <div class="info-row">
                     <span class="info-badge"><i class="fas fa-calendar"></i> تاريخ الجلسة: ${s.sessionDate.toLocaleString('ar-EG')}</span>
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${s.clientName} (${s.clientRole})</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${s.allClients.join(' - ')}</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span>
                     <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${s.circuit || 'غير محددة'}</span>
                 </div>
                 <p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p>
                 <p><strong>القرار السابق:</strong> ${s.oldDecision || 'لا يوجد'}</p>
-                <div class="form-group"><label>📝 قرار الجلسة:</label><input type="text" id="decision_${s.id}_${s.sessionType}" placeholder="أدخل قرار الجلسة" style="width:100%"></div>
+                <div class="form-group"><label>📝 قرار الجلسة:</label>
+                    <input type="text" id="decision_${s.id}_${s.sessionType}" placeholder="أدخل قرار الجلسة" style="width:100%">
+                </div>
                 <div>
                     <button class="btn-warning btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'new')">📅 جلسة جديدة</button>
                     <button class="btn-danger btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'close')">🏁 إنهاء القضية</button>
@@ -922,7 +1097,7 @@
         updateStats();
     }
 
-    // ========== دالة عرض القضية كاملة ==========
+    // ========== عرض القضية كاملة ==========
     window.viewFullCase = function(caseId, caseType) {
         let caseData = null;
         if (caseType === 'active') {
@@ -952,9 +1127,9 @@
         
         let nextSessionDate = '';
         if (caseType === 'active') {
-            if (caseData.nextSessionDate) {
+            if (caseData.nextSessionDate && !caseData.nextSessionProcessed) {
                 nextSessionDate = new Date(caseData.nextSessionDate).toLocaleString('ar-EG');
-            } else if (caseData.firstSessionDate) {
+            } else if (caseData.firstSessionDate && !caseData.firstSessionProcessed) {
                 nextSessionDate = new Date(caseData.firstSessionDate).toLocaleString('ar-EG');
             } else {
                 nextSessionDate = 'لم تحدد';
@@ -968,7 +1143,7 @@
                 <span class="info-badge"><i class="fas fa-gavel"></i> الدائرة: ${caseData.circuit || 'غير محدد'}</span>
             </div>
             <div class="info-row">
-                <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${fullData.clientName} (${caseData.clientRole})</span>
+                <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${fullData.allClientsNames.join(' - ')}</span>
                 <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${caseData.opponentName} (${caseData.opponentRole})</span>
             </div>
             ${caseData.opponent2Name ? `<div class="info-row"><span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${caseData.opponent2Name} (${caseData.opponent2Role || '-'})</span></div>` : ''}
@@ -1062,15 +1237,18 @@
         let container = document.getElementById('activeCasesList');
         if (!container) return;
         let filtered = activeCases;
-        if (activeSearchTerm) filtered = activeCases.filter(c => c.number.toLowerCase().includes(activeSearchTerm) || getClientName(c.clientId).toLowerCase().includes(activeSearchTerm));
+        if (activeSearchTerm) filtered = activeCases.filter(c => {
+            let allNames = getAllClientsNames(c);
+            return c.number.toLowerCase().includes(activeSearchTerm) || allNames.some(n => n.toLowerCase().includes(activeSearchTerm));
+        });
         if (!filtered.length) { container.innerHTML = '<p>لا توجد قضايا</p>'; return; }
         container.innerHTML = filtered.map(c => {
-            let clientName = getClientName(c.clientId);
-            let nextSession = c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد');
+            let allClients = getAllClientsNames(c);
+            let nextSession = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد');
             return `<div class="session-card">
                 <h4>⚖️ ${c.number} (${c.year}) - ${c.court}</h4>
                 <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${allClients.join(' - ')}</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span>
                     ${c.opponent2Name ? `<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${c.opponent2Name} (${c.opponent2Role || '-'})</span>` : ''}
                     <span class="info-badge"><i class="fas fa-calendar"></i> الجلسة القادمة: ${nextSession}</span>
@@ -1123,8 +1301,26 @@
         }
     }
 
-    function deleteActiveCase(id) { if (confirm('هل أنت متأكد؟')) { activeCases = activeCases.filter(c => c.id != id); database.ref('activeCases').set(activeCases); showNotification('تم الحذف'); } }
-    function deleteClosedCase(id) { if (confirm('هل أنت متأكد من حذف القضية المنتهية؟')) { closedCases = closedCases.filter(c => c.id != id); database.ref('closedCases').set(closedCases); showNotification('تم الحذف'); renderArchive(); } }
+    function deleteActiveCase(id) { 
+        if (confirm('هل أنت متأكد من حذف هذه القضية؟')) { 
+            activeCases = activeCases.filter(c => c.id != id); 
+            database.ref('activeCases').set(activeCases); 
+            showNotification('✅ تم حذف القضية'); 
+            renderActiveCases();
+            updateStats();
+        } 
+    }
+    
+    function deleteClosedCase(id) { 
+        if (confirm('هل أنت متأكد من حذف هذه القضية المنتهية؟')) { 
+            closedCases = closedCases.filter(c => c.id != id); 
+            database.ref('closedCases').set(closedCases); 
+            showNotification('✅ تم حذف القضية'); 
+            renderArchive();
+            renderClosedCases();
+            updateStats();
+        } 
+    }
 
     function chooseCircuitForClosedCase(caseId) {
         let caseData = activeCases.find(c => c.id == caseId);
@@ -1177,11 +1373,11 @@
         if (!container) return;
         if (!closedCases.length) { container.innerHTML = '<p>لا توجد قضايا منتهية</p>'; return; }
         container.innerHTML = closedCases.map(c => {
-            let clientName = getClientName(c.clientId);
+            let allClients = getAllClientsNames(c);
             return `<div class="session-card">
                 <h4>✅ ${c.number} (${c.year}) - ${c.court}</h4>
                 <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${allClients.join(' - ')}</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span>
                     <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit || 'غير محددة'}</span>
                 </div>
@@ -1212,7 +1408,7 @@
                     <span class="info-badge"><i class="fas fa-gavel"></i> الدائرة: ${caseData?.circuit || 'غير محدد'}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${caseData?.clientName || 'غير محدد'} (${caseData?.clientRole || '-'})</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${caseData?.allClientsNames?.join(' - ') || 'غير محدد'}</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${caseData?.opponentName || 'غير محدد'} (${caseData?.opponentRole || '-'})</span>
                 </div>
                 <p><strong><i class="fas fa-file-alt"></i> موضوع القضية:</strong> ${caseData?.subject || 'غير محدد'}</p>
@@ -1248,7 +1444,7 @@
                     <span class="info-badge"><i class="fas fa-gavel"></i> الدائرة: ${caseData?.circuit || 'غير محدد'}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${caseData?.clientName || 'غير محدد'} (${caseData?.clientRole || '-'})</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${caseData?.allClientsNames?.join(' - ') || 'غير محدد'}</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${caseData?.opponentName || 'غير محدد'} (${caseData?.opponentRole || '-'})</span>
                 </div>
                 <p><strong><i class="fas fa-file-alt"></i> موضوع القضية:</strong> ${caseData?.subject || 'غير محدد'}</p>
@@ -1336,7 +1532,7 @@
                     <span class="info-badge"><i class="fas fa-gavel"></i> الدائرة: ${caseData?.circuit || 'غير محدد'}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${e.clientName} (${caseData?.clientRole || '-'})</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${caseData?.allClientsNames?.join(' - ') || 'غير محدد'}</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${e.opponentName} (${caseData?.opponentRole || '-'})</span>
                 </div>
                 <p><strong><i class="fas fa-file-alt"></i> موضوع القضية:</strong> ${caseData?.subject || 'غير محدد'}</p>
@@ -1448,7 +1644,7 @@
                     <span class="info-badge"><i class="fas fa-gavel"></i> الدائرة: ${caseData?.circuit || 'غير محدد'}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${e.clientName} (${caseData?.clientRole || '-'})</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${caseData?.allClientsNames?.join(' - ') || 'غير محدد'}</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${e.opponentName} (${caseData?.opponentRole || '-'})</span>
                 </div>
                 <p><strong><i class="fas fa-file-alt"></i> موضوع القضية:</strong> ${caseData?.subject || 'غير محدد'}</p>
@@ -1585,13 +1781,13 @@
         let container = document.getElementById('archiveCasesList');
         if (!filtered.length) { container.innerHTML = '<p style="text-align:center; padding:20px;">📂 لا توجد قضايا منتهية في هذا التصنيف</p>'; return; }
         container.innerHTML = filtered.map(c => {
-            let clientName = getClientName(c.clientId);
+            let allClients = getAllClientsNames(c);
             let opponent2Html = c.opponent2Name ? `<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${c.opponent2Name} (${c.opponent2Role || '-'})</span>` : '';
             let showDelete = canDeleteEverywhere() ? `<button onclick="deleteClosedCase('${c.id}')" class="delete-btn" style="margin-top:10px;">🗑️ حذف القضية</button>` : '';
             return `<div class="session-card">
                 <h4>✅ ${c.number} (${c.year}) - ${c.court}</h4>
                 <div class="info-row">
-                    <span class="info-badge"><i class="fas fa-user"></i> الموكل: ${clientName} (${c.clientRole})</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${allClients.join(' - ')}</span>
                     <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${c.opponentName} (${c.opponentRole})</span>
                     ${opponent2Html}
                     <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${c.circuit}</span>
@@ -1626,7 +1822,8 @@
         let tbody = document.querySelector('#clientsTable tbody');
         if (!tbody) return;
         tbody.innerHTML = clients.map(cl => {
-            let total = activeCases.filter(c => c.clientId == cl.id).length + closedCases.filter(c => c.clientId == cl.id).length;
+            let total = activeCases.filter(c => c.clientId == cl.id || (c.additionalClients && c.additionalClients.some(ac => ac.clientId == cl.id))).length + 
+                       closedCases.filter(c => c.clientId == cl.id || (c.additionalClients && c.additionalClients.some(ac => ac.clientId == cl.id))).length;
             let showDelete = canDeleteEverywhere() ? `<button class="delete-btn" onclick="deleteClient('${cl.id}')">🗑️</button>` : 'لا يمكن الحذف';
             return `<tr><td style="text-align:right">${cl.name}</td><td style="text-align:right">${cl.phone}</td><td style="text-align:right">${total}</td><td style="text-align:right">${showDelete}</td></tr>`;
         }).join('');
@@ -1636,7 +1833,16 @@
 
     function populateSelects() {
         let select = document.getElementById('caseClient');
-        if (select) select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        if (select) {
+            let currentVal = select.value;
+            select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            if (currentVal) select.value = currentVal;
+        }
+        document.querySelectorAll('.additional-client-select').forEach(sel => {
+            let currentVal = sel.value;
+            sel.innerHTML = '<option value="">اختر موكل مشارك</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            if (currentVal) sel.value = currentVal;
+        });
     }
 
     function renderEmployeesTable() {
@@ -1737,15 +1943,12 @@
         for (let i = 0; i < firstDayIndex; i++) daysHtml += '<div></div>';
         for (let d = 1; d <= daysInMonth; d++) {
             let date = new Date(year, month, d);
-            let hasSessions = activeCases.some(c => {
-                let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
-                return sessionDate && sessionDate.toDateString() === date.toDateString();
-            });
-            let isToday = date.toDateString() === today.toDateString();
             let sessionCount = activeCases.filter(c => {
-                let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
+                let sessionDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null);
                 return sessionDate && sessionDate.toDateString() === date.toDateString();
             }).length;
+            let hasSessions = sessionCount > 0;
+            let isToday = date.toDateString() === today.toDateString();
             daysHtml += `<div class="day-card ${hasSessions ? 'has-session' : ''} ${isToday ? 'today' : ''}" onclick="showDaySessions(${year},${month},${d})">${d}${sessionCount > 0 ? `<br><small>${sessionCount} جلسة</small>` : ''}</div>`;
         }
         daysHtml += '</div>';
@@ -1755,12 +1958,28 @@
     function showDaySessions(year, month, day) {
         let date = new Date(year, month, day);
         let sessions = activeCases.filter(c => {
-            let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
+            let sessionDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null);
             return sessionDate && sessionDate.toDateString() === date.toDateString();
-        }).map(s => ({ ...s, clientName: getClientName(s.clientId) }));
-        if (sessions.length === 0) document.getElementById('modalBody').innerHTML = '<p>لا توجد جلسات في هذا اليوم</p>';
-        else {
-            document.getElementById('modalBody').innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">الموكل: ${s.clientName} (${s.clientRole})</span><span class="info-badge">الخصم: ${s.opponentName} (${s.opponentRole})</span><span class="info-badge">الدائرة: ${s.circuit || 'غير محددة'}</span><span class="info-badge">الساعة: ${new Date(s.nextSessionDate || s.firstSessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join('');
+        }).map(s => ({ ...s, allClients: getAllClientsNames(s) }));
+        
+        if (sessions.length === 0) {
+            document.getElementById('modalBody').innerHTML = '<p>لا توجد جلسات في هذا اليوم</p>';
+        } else {
+            document.getElementById('modalBody').innerHTML = sessions.map(s => `
+                <div class="session-card" style="margin-bottom:15px;">
+                    <h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4>
+                    <div class="info-row">
+                        <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${s.allClients.join(' - ')}</span>
+                        <span class="info-badge"><i class="fas fa-gavel"></i> الخصم: ${s.opponentName} (${s.opponentRole})</span>
+                        ${s.opponent2Name ? `<span class="info-badge"><i class="fas fa-users"></i> خصم ثاني: ${s.opponent2Name} (${s.opponent2Role || '-'})</span>` : ''}
+                        <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${s.circuit || 'غير محددة'}</span>
+                        <span class="info-badge"><i class="fas fa-clock"></i> الساعة: ${new Date(s.nextSessionDate || s.firstSessionDate).toLocaleTimeString('ar-EG')}</span>
+                    </div>
+                    <p><strong><i class="fas fa-file-alt"></i> موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p>
+                    <p><strong><i class="fas fa-sticky-note"></i> آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p>
+                    <button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button>
+                </div>
+            `).join('');
         }
         document.getElementById('modalTitle').innerHTML = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}`;
         document.getElementById('detailsModal').style.display = 'flex';
@@ -1788,7 +2007,7 @@
             let dayEnd = new Date(day);
             dayEnd.setDate(dayEnd.getDate() + 1);
             let count = activeCases.filter(c => {
-                let sessionDate = c.nextSessionDate ? new Date(c.nextSessionDate) : (c.firstSessionDate ? new Date(c.firstSessionDate) : null);
+                let sessionDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null);
                 return sessionDate && sessionDate >= day && sessionDate < dayEnd;
             }).length;
             weeklyHtml += `<p><strong>${weekDays[i]} ${day.toLocaleDateString('ar-EG')}:</strong> ${count} جلسة${count > 1 ? 'ات' : ''}</p>`;
@@ -1799,7 +2018,8 @@
 
     function updateWelcomeMessage() {
         document.getElementById('welcomeMessage').innerHTML = `مرحباً بك يا أستاذ ${currentUser?.username} 👋`;
-        document.getElementById('tomorrowSessionsCount').innerHTML = getTomorrowSessions().length ? `📋 لديك غداً ${getTomorrowSessions().length} جلسة` : `✅ لا توجد جلسات غداً`;
+        let count = getTomorrowSessions().length;
+        document.getElementById('tomorrowSessionsCount').innerHTML = count ? `📋 لديك غداً ${count} جلسة${count > 1 ? 'ات' : ''}` : `✅ لا توجد جلسات غداً`;
     }
 
     function initStatCards() {
@@ -1810,7 +2030,17 @@
 
     function exportToExcel() {
         try {
-            let activeData = activeCases.map(c => ({ 'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الدائرة': c.circuit || '', 'الموكل': getClientName(c.clientId), 'صفة الموكل': c.clientRole, 'الخصم': c.opponentName, 'موضوع القضية': c.subject || '', 'الجلسة القادمة': c.nextSessionDate ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : '') }));
+            let activeData = activeCases.map(c => ({ 
+                'رقم القضية': c.number, 
+                'السنة': c.year, 
+                'المحكمة': c.court, 
+                'الدائرة': c.circuit || '', 
+                'الموكلين': getAllClientsNames(c).join(' - '),
+                'صفة الموكل الرئيسي': c.clientRole,
+                'الخصم': c.opponentName, 
+                'موضوع القضية': c.subject || '', 
+                'الجلسة القادمة': c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : '') 
+            }));
             let wb = XLSX.utils.book_new();
             if (activeData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(activeData), 'قضايا المكتب');
             XLSX.writeFile(wb, `مكتب_الخواجا_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
@@ -2030,7 +2260,6 @@
     function logout() {
         currentUser = null;
         localStorage.removeItem('law_currentUser');
-        // لا نحذف lastOpenTab عشان يرجع لنفس المكان بعد الدخول تاني
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('dashboardContent').style.display = 'none';
         showNotification('تم تسجيل الخروج');
@@ -2086,13 +2315,31 @@
         if (caseCircuit === 'أخرى') { caseCircuit = document.getElementById('otherCircuit').value; if (!caseCircuit) { alert('يرجى إدخال اسم الدائرة'); return; } }
         let opponentName = document.getElementById('opponentName').value;
         let opponentRole = document.getElementById('opponentRole').value;
+        let additionalClients = getAdditionalClientsData();
+        
         if (!clientId || !firstDate || !clientRole || !caseNumber || !caseYear || !caseCourt || !caseCircuit || !opponentName || !opponentRole || !caseSubject) { alert('يرجى ملء جميع الحقول المطلوبة'); return; }
-        activeCases.push({ id: Date.now().toString(), number: caseNumber, year: caseYear, court: caseCourt, circuit: caseCircuit, subject: caseSubject, clientId, clientRole, opponentName, opponentRole, opponent2Name: document.getElementById('opponent2Name').value, opponent2Role: document.getElementById('opponent2Role').value, decision: document.getElementById('caseDecision').value, firstSessionDate: firstDate, firstSessionDecision: '', firstSessionProcessed: false, nextSessionDate: '', nextSessionDecision: '', nextSessionProcessed: false, pastSessions: [], createdAt: new Date().toISOString() });
+        
+        activeCases.push({ 
+            id: Date.now().toString(), 
+            number: caseNumber, year: caseYear, court: caseCourt, circuit: caseCircuit, subject: caseSubject, 
+            clientId: clientId, clientRole: clientRole,
+            additionalClients: additionalClients,
+            opponentName: opponentName, opponentRole: opponentRole, 
+            opponent2Name: document.getElementById('opponent2Name').value, 
+            opponent2Role: document.getElementById('opponent2Role').value, 
+            decision: document.getElementById('caseDecision').value, 
+            firstSessionDate: firstDate, 
+            firstSessionDecision: '', firstSessionProcessed: false, 
+            nextSessionDate: '', nextSessionDecision: '', nextSessionProcessed: false, 
+            pastSessions: [], 
+            createdAt: new Date().toISOString() 
+        });
         database.ref('activeCases').set(activeCases);
         e.target.reset();
         document.getElementById('caseCourt').value = '';
         document.getElementById('otherCircuit').style.display = 'none';
         document.getElementById('caseCircuit').value = '';
+        document.getElementById('additionalClientsContainer').innerHTML = '';
         showNotification('تم إضافة القضية');
         resetSessionTimer();
     });
@@ -2167,6 +2414,9 @@
     window.exportToExcel = exportToExcel;
     window.attemptLogin = attemptLogin;
     window.logout = logout;
+    window.addAdditionalClient = addAdditionalClient;
+    window.removeAdditionalClient = removeAdditionalClient;
+    window.filterClients = filterClients;
 
     checkLoginStatus();
 </script>
