@@ -13,20 +13,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; }
         .dashboard-container { display: flex; min-height: 100vh; }
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, #0b2b40 0%, #1a4a5f 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: -4px 0 20px rgba(0,0,0,0.1);
-        }
+        .sidebar { width: 280px; background: linear-gradient(180deg, #0b2b40 0%, #1a4a5f 100%); color: white; display: flex; flex-direction: column; position: fixed; right: 0; top: 0; bottom: 0; overflow-y: auto; z-index: 100; box-shadow: -4px 0 20px rgba(0,0,0,0.1); }
         .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
         .sidebar-header h2 { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
         .sidebar-header p { font-size: 12px; opacity: 0.7; }
@@ -287,7 +274,6 @@
                             </div>
                             <div class="form-group"><label>تاريخ الجلسة الأولى <span style="color:red">*</span></label><input type="datetime-local" id="firstSessionDate" required></div>
                             
-                            <!-- الموكل الرئيسي مع بحث -->
                             <div class="form-group">
                                 <label>الموكل الرئيسي <span style="color:red">*</span></label>
                                 <select id="caseClient" required style="width:100%">
@@ -313,7 +299,6 @@
                                 </select>
                             </div>
                             
-                            <!-- موكلين مشاركين -->
                             <div class="form-group">
                                 <label><i class="fas fa-users"></i> موكلين مشاركين (اختياري)</label>
                                 <div id="additionalClientsContainer"></div>
@@ -322,7 +307,6 @@
                                 </button>
                             </div>
                             
-                            <!-- الخصوم (متعددين) -->
                             <div class="form-group">
                                 <label><i class="fas fa-gavel"></i> الخصوم <span style="color:red">*</span> (الخصم الأول إجباري)</label>
                                 <div id="opponentsContainer"></div>
@@ -513,7 +497,6 @@
         if (caseData.opponents && caseData.opponents.length) {
             opponents = caseData.opponents;
         } else if (caseData.opponentName) {
-            // للتوافق مع البيانات القديمة
             opponents = [{ name: caseData.opponentName, role: caseData.opponentRole }];
             if (caseData.opponent2Name) {
                 opponents.push({ name: caseData.opponent2Name, role: caseData.opponent2Role || '' });
@@ -656,7 +639,7 @@
         }
     }
 
-    // ========== توكيلات التنفيذ (من القضايا المنتهية فقط) ==========
+    // ========== توكيلات التنفيذ ==========
     function searchEnforcements() {
         enforcementsSearchTerm = document.getElementById('enforcementSearchInput').value.trim().toLowerCase();
         renderEnforcements();
@@ -692,7 +675,7 @@
             let caseCircuit = caseData?.circuit || 'غير محدد';
             let caseDecision = caseData?.decision || 'لا يوجد';
             let allClients = caseData ? getAllClientsNames(caseData) : [e.clientName];
-            let allOpponents = caseData ? getAllOpponents(caseData) : [{ name: e.opponentName, role: '' }];
+            let allOpponents = caseData ? getAllOpponents(caseData) : [{ name: e.opponentName || 'غير محدد', role: '' }];
             
             let isTomorrow = false;
             if (e.date) {
@@ -725,25 +708,48 @@
         }).join('');
     }
 
+    function filterClosedCases() {
+        let searchText = document.getElementById('closedCaseSearchInput')?.value.toLowerCase();
+        if (!searchText) return;
+        let select = document.getElementById('enforcementCase');
+        if (!select) return;
+        let options = select.options;
+        
+        for (let i = 0; i < options.length; i++) {
+            let optionText = options[i].text.toLowerCase();
+            if (optionText.includes(searchText) || searchText === '') {
+                options[i].style.display = '';
+            } else {
+                options[i].style.display = 'none';
+            }
+        }
+    }
+
     function addEnforcement() {
         let closedCasesList = closedCases.map(c => ({
             id: c.id,
             number: c.number,
             year: c.year,
             clientName: getClientName(c.clientId),
-            opponentName: c.opponentName
+            allOpponents: getAllOpponents(c)
         }));
         
         let modalBody = `<h4>➕ إضافة توكيل تنفيذ (من القضايا المنتهية)</h4>
-            <div class="form-group"><label>اختر القضية المنتهية</label>
-            <select id="enforcementCase">
-                <option value="">-- اختر قضية --</option>
-                ${closedCasesList.map(c => `<option value="${c.id}">${c.number} (${c.year}) - ${c.clientName}</option>`).join('')}
-            </select></div>
+            <div class="form-group">
+                <label>🔍 بحث عن قضية منتهية</label>
+                <input type="text" id="closedCaseSearchInput" placeholder="بحث برقم القضية أو اسم الموكل..." style="margin-bottom:10px;" onkeyup="filterClosedCases()">
+            </div>
+            <div class="form-group">
+                <label>اختر القضية المنتهية <span style="color:red">*</span></label>
+                <select id="enforcementCase" required style="width:100%">
+                    <option value="">-- اختر قضية --</option>
+                    ${closedCasesList.map(c => `<option value="${c.id}">${c.number} (${c.year}) - ${c.clientName}</option>`).join('')}
+                </select>
+            </div>
             <div class="form-group"><label>الموكل</label><input type="text" id="enforcementClientName" readonly style="background:#f0f0f0"></div>
-            <div class="form-group"><label>الخصم</label><input type="text" id="enforcementOpponentName" readonly style="background:#f0f0f0"></div>
+            <div class="form-group"><label>الخصوم</label><input type="text" id="enforcementOpponents" readonly style="background:#f0f0f0"></div>
             <div class="form-group"><label>رقم القضية</label><input type="text" id="enforcementCaseNumber" readonly style="background:#f0f0f0"></div>
-            <div class="form-group"><label>المطلوب في التنفيذ</label><textarea id="enforcementRequest" rows="3"></textarea></div>
+            <div class="form-group"><label>المطلوب في التنفيذ <span style="color:red">*</span></label><textarea id="enforcementRequest" rows="3" required></textarea></div>
             <div class="form-group"><label>تاريخ التنفيذ</label><input type="datetime-local" id="enforcementDate"></div>
             <div class="form-group"><label>الإجراءات السابقة</label><textarea id="enforcementPrevious" rows="3"></textarea></div>
             <div class="form-group"><label>ملاحظات</label><textarea id="enforcementNotes" rows="2"></textarea></div>
@@ -759,8 +765,10 @@
             if (caseId) {
                 let caseData = closedCases.find(c => c.id == caseId);
                 if (caseData) {
-                    document.getElementById('enforcementClientName').value = getClientName(caseData.clientId);
-                    document.getElementById('enforcementOpponentName').value = caseData.opponentName;
+                    let allClients = getAllClientsNames(caseData);
+                    let allOpponents = getAllOpponents(caseData);
+                    document.getElementById('enforcementClientName').value = allClients.join(' - ');
+                    document.getElementById('enforcementOpponents').value = allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ');
                     document.getElementById('enforcementCaseNumber').value = `${caseData.number} (${caseData.year})`;
                 }
             }
@@ -776,13 +784,16 @@
         let request = document.getElementById('enforcementRequest').value;
         if (!request) { showNotification('يرجى إدخال المطلوب في التنفيذ'); return; }
         
+        let allClients = getAllClientsNames(caseData);
+        let allOpponents = getAllOpponents(caseData);
+        
         enforcements.push({
             id: Date.now().toString(),
             caseId: caseId,
             caseNumber: caseData.number,
             caseYear: caseData.year,
-            clientName: document.getElementById('enforcementClientName').value,
-            opponentName: caseData.opponentName,
+            clientName: allClients.join(' - '),
+            opponentName: allOpponents.map(o => o.name).join(' - '),
             request: request,
             date: document.getElementById('enforcementDate').value || new Date().toISOString(),
             previousActions: document.getElementById('enforcementPrevious').value,
@@ -839,7 +850,58 @@
         } 
     }
 
-    // ========== بقية الدوال (البحث، الأجندة، إلخ) ==========
+    // ========== إعادة القضية المنتهية لجلسة جديدة ==========
+    window.returnClosedCaseToNewSession = function(caseId) {
+        let caseData = closedCases.find(c => c.id == caseId);
+        if (!caseData) { 
+            showNotification('❌ القضية غير موجودة'); 
+            return; 
+        }
+        
+        showMiniAgenda(function(newDate) {
+            if (!newDate) return;
+            
+            let editCourt = confirm('هل تريد تعديل المحكمة أو الدائرة؟');
+            let newCourt = caseData.court;
+            let newCircuit = caseData.circuit;
+            if (editCourt) {
+                newCourt = prompt('أدخل المحكمة الجديدة:', caseData.court);
+                newCircuit = prompt('أدخل الدائرة الجديدة:', caseData.circuit || '');
+            }
+            
+            let newCase = {
+                ...caseData,
+                id: Date.now().toString(),
+                nextSessionDate: newDate,
+                nextSessionProcessed: false,
+                nextSessionDecision: '',
+                firstSessionProcessed: true,
+                closedAt: null,
+                judgment: null,
+                createdAt: new Date().toISOString()
+            };
+            
+            if (newCourt) newCase.court = newCourt;
+            if (newCircuit) newCase.circuit = newCircuit;
+            
+            delete newCase.closedAt;
+            delete newCase.judgment;
+            
+            activeCases.push(newCase);
+            closedCases = closedCases.filter(c => c.id != caseId);
+            
+            database.ref('activeCases').set(activeCases);
+            database.ref('closedCases').set(closedCases);
+            
+            showNotification(`✅ تم إعادة القضية إلى قضايا المكتب مع جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`);
+            
+            closeModal();
+            renderActiveCases();
+            renderClosedCases();
+            renderArchive();
+            updateStats();
+        });
+    };    // ========== البحث العام ==========
     function performSearch() {
         let searchType = document.getElementById('searchType').value;
         let resultsDiv = document.getElementById('searchResults');
@@ -1026,6 +1088,7 @@
         };
     }
 
+    // ========== ماتم في الجلسات (يعرض الجلسات الفائتة) ==========
     function renderPastSessions() {
         let container = document.getElementById('pastSessionsList');
         if (!container) return;
@@ -1286,7 +1349,7 @@
             ${sessionsHtml}
             <hr>
             <div class="admin-actions">
-                ${caseType === 'active' ? `<button onclick="addNewSessionFromModal('${caseId}')" class="btn-warning btn-sm">📅 إضافة جلسة جديدة</button>` : ''}
+                ${caseType === 'active' ? `<button onclick="addNewSessionFromModal('${caseId}')" class="btn-warning btn-sm">📅 إضافة جلسة جديدة</button>` : `<button onclick="returnClosedCaseToNewSession('${caseId}')" class="btn-warning btn-sm">🔄 إعادة القضية لجلسة جديدة</button>`}
                 <button onclick="addAdminWorkFromModal('${caseId}')" class="btn-primary btn-sm">📋 أعمال إدارية</button>
                 <button onclick="addJudgmentFromModal('${caseId}')" class="btn-primary btn-sm">⚖️ سجل أحكام</button>
                 <button onclick="addExpertFromModal('${caseId}')" class="btn-primary btn-sm">👨‍⚖️ خبير</button>
@@ -1297,6 +1360,159 @@
         document.getElementById('modalBody').innerHTML = modalBody;
         document.getElementById('detailsModal').style.display = 'flex';
     };
+
+    // ========== إضافة أعمال إدارية (من أي قضية) ==========
+    function addAdminWorkFromModal(caseId) {
+        let caseData = activeCases.find(c => c.id == caseId);
+        let wasClosed = false;
+        
+        if (!caseData) {
+            caseData = closedCases.find(c => c.id == caseId);
+            wasClosed = true;
+        }
+        
+        if (!caseData) { 
+            showNotification('❌ القضية غير موجودة'); 
+            return; 
+        }
+        
+        let workType = prompt('أدخل نوع العمل الإداري:', 'سحب حكم');
+        let dueDate = prompt('أدخل تاريخ المعاد (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
+        if (!workType || !dueDate) return;
+        
+        adminWorks.push({ 
+            id: Date.now().toString(), 
+            caseId: caseId, 
+            caseNumber: caseData.number, 
+            caseYear: caseData.year, 
+            type: workType, 
+            dueDate, 
+            notes: '', 
+            status: 'pending', 
+            createdAt: new Date().toISOString() 
+        });
+        
+        if (wasClosed) {
+            let newCase = { ...caseData, id: Date.now().toString(), createdAt: new Date().toISOString() };
+            delete newCase.closedAt;
+            delete newCase.judgment;
+            activeCases.push(newCase);
+            closedCases = closedCases.filter(c => c.id != caseId);
+            database.ref('activeCases').set(activeCases);
+            database.ref('closedCases').set(closedCases);
+            showNotification(`✅ تم نقل القضية إلى قضايا المكتب وإضافة العمل الإداري: ${workType}`);
+        }
+        
+        database.ref('adminWorks').set(adminWorks);
+        closeModal();
+        renderAdminWorks();
+        renderActiveCases();
+        renderClosedCases();
+        renderArchive();
+    }
+
+    // ========== إضافة سجل أحكام (من أي قضية) ==========
+    function addJudgmentFromModal(caseId) {
+        let caseData = activeCases.find(c => c.id == caseId);
+        let wasClosed = false;
+        
+        if (!caseData) {
+            caseData = closedCases.find(c => c.id == caseId);
+            wasClosed = true;
+        }
+        
+        if (!caseData) { 
+            showNotification('❌ القضية غير موجودة'); 
+            return; 
+        }
+        
+        let judgmentType = prompt('أدخل نوع الحكم:', 'يلزم معارضة');
+        if (!judgmentType) return;
+        
+        judgmentRecords.push({ 
+            id: Date.now().toString(), 
+            caseId: caseId, 
+            caseNumber: caseData.number, 
+            caseYear: caseData.year, 
+            type: judgmentType, 
+            newSessionDate: '', 
+            notes: '', 
+            status: 'pending', 
+            createdAt: new Date().toISOString() 
+        });
+        
+        if (wasClosed) {
+            let newCase = { ...caseData, id: Date.now().toString(), createdAt: new Date().toISOString() };
+            delete newCase.closedAt;
+            delete newCase.judgment;
+            activeCases.push(newCase);
+            closedCases = closedCases.filter(c => c.id != caseId);
+            database.ref('activeCases').set(activeCases);
+            database.ref('closedCases').set(closedCases);
+            showNotification(`✅ تم نقل القضية إلى قضايا المكتب وإضافة سجل الحكم: ${judgmentType}`);
+        }
+        
+        database.ref('judgmentRecords').set(judgmentRecords);
+        closeModal();
+        renderJudgmentRecords();
+        renderActiveCases();
+        renderClosedCases();
+        renderArchive();
+    }
+
+    // ========== إضافة خبير (من أي قضية) ==========
+    function addExpertFromModal(caseId) {
+        let caseData = activeCases.find(c => c.id == caseId);
+        let wasClosed = false;
+        
+        if (!caseData) {
+            caseData = closedCases.find(c => c.id == caseId);
+            wasClosed = true;
+        }
+        
+        if (!caseData) { 
+            showNotification('❌ القضية غير موجودة'); 
+            return; 
+        }
+        
+        showMiniAgenda(function(expertDate) {
+            if (!expertDate) return;
+            let request = prompt('أدخل المطلوب من الخبير:', '');
+            
+            experts.push({ 
+                id: Date.now().toString(), 
+                caseId: caseId, 
+                caseNumber: caseData.number, 
+                caseYear: caseData.year, 
+                clientName: getClientName(caseData.clientId), 
+                opponentName: caseData.opponentName, 
+                expertDate, 
+                request: request || '', 
+                inspections: '', 
+                notes: '', 
+                status: 'pending', 
+                createdAt: new Date().toISOString() 
+            });
+            
+            if (wasClosed) {
+                let newCase = { ...caseData, id: Date.now().toString(), createdAt: new Date().toISOString() };
+                delete newCase.closedAt;
+                delete newCase.judgment;
+                activeCases.push(newCase);
+                closedCases = closedCases.filter(c => c.id != caseId);
+                database.ref('activeCases').set(activeCases);
+                database.ref('closedCases').set(closedCases);
+                showNotification(`✅ تم نقل القضية إلى قضايا المكتب وإضافة موعد خبير في ${new Date(expertDate).toLocaleString('ar-EG')}`);
+            }
+            
+            database.ref('experts').set(experts);
+            closeModal();
+            renderExperts();
+            renderActiveCases();
+            renderClosedCases();
+            renderArchive();
+        });
+    }
 
     function addNewSessionFromModal(caseId) {
         let caseIndex = activeCases.findIndex(c => c.id == caseId);
@@ -1319,45 +1535,6 @@
             renderActiveCases();
             renderTomorrowSessions();
             renderAdvancedAgenda();
-        });
-    }
-
-    function addAdminWorkFromModal(caseId) {
-        let caseData = activeCases.find(c => c.id == caseId);
-        if (!caseData) { showNotification('القضية غير موجودة'); return; }
-        let workType = prompt('أدخل نوع العمل الإداري:', 'سحب حكم');
-        let dueDate = prompt('أدخل تاريخ المعاد (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
-        if (!workType || !dueDate) return;
-        adminWorks.push({ id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, type: workType, dueDate, notes: '', status: 'pending', createdAt: new Date().toISOString() });
-        database.ref('adminWorks').set(adminWorks);
-        showNotification(`✅ تم إضافة العمل الإداري: ${workType}`);
-        closeModal();
-        renderAdminWorks();
-    }
-
-    function addJudgmentFromModal(caseId) {
-        let caseData = activeCases.find(c => c.id == caseId);
-        if (!caseData) { showNotification('القضية غير موجودة'); return; }
-        let judgmentType = prompt('أدخل نوع الحكم:', 'يلزم معارضة');
-        if (!judgmentType) return;
-        judgmentRecords.push({ id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, type: judgmentType, newSessionDate: '', notes: '', status: 'pending', createdAt: new Date().toISOString() });
-        database.ref('judgmentRecords').set(judgmentRecords);
-        showNotification(`✅ تم إضافة سجل الحكم: ${judgmentType}`);
-        closeModal();
-        renderJudgmentRecords();
-    }
-
-    function addExpertFromModal(caseId) {
-        let caseData = activeCases.find(c => c.id == caseId);
-        if (!caseData) { showNotification('القضية غير موجودة'); return; }
-        showMiniAgenda(function(expertDate) {
-            if (!expertDate) return;
-            let request = prompt('أدخل المطلوب من الخبير:', '');
-            experts.push({ id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: getClientName(caseData.clientId), opponentName: caseData.opponentName, expertDate, request: request || '', inspections: '', notes: '', status: 'pending', createdAt: new Date().toISOString() });
-            database.ref('experts').set(experts);
-            showNotification(`✅ تم إرسال القضية للخبير في ${new Date(expertDate).toLocaleString('ar-EG')}`);
-            closeModal();
-            renderExperts();
         });
     }
 
@@ -2522,6 +2699,7 @@
     window.addJudgmentFromModal = addJudgmentFromModal;
     window.addExpertFromModal = addExpertFromModal;
     window.closeCaseFromModal = closeCaseFromModal;
+    window.returnClosedCaseToNewSession = returnClosedCaseToNewSession;
     window.editCase = editCase;
     window.saveCaseEdit = saveCaseEdit;
     window.chooseCircuitForClosedCase = chooseCircuitForClosedCase;
@@ -2537,6 +2715,7 @@
     window.deleteEnforcement = deleteEnforcement;
     window.searchEnforcements = searchEnforcements;
     window.clearEnforcementSearch = clearEnforcementSearch;
+    window.filterClosedCases = filterClosedCases;
     window.addExpert = addExpert;
     window.saveExpert = saveExpert;
     window.editExpert = editExpert;
