@@ -311,16 +311,59 @@
     function getAdditionalClientsData() { let clientsData = []; document.querySelectorAll('#additionalClientsContainer .multi-item').forEach(item => { let select = item.querySelector('.additional-client-select'); let nameInput = item.querySelector('.additional-client-name'); if (select.value) clientsData.push({ clientId: select.value, clientName: getClientName(select.value), role: '' }); else if (nameInput.value.trim()) clientsData.push({ clientId: null, clientName: nameInput.value.trim(), role: '' }); }); return clientsData; }
     function filterClients() { let searchText = document.getElementById('clientSearchInput').value.toLowerCase(); let select = document.getElementById('caseClient'); for (let i = 0; i < select.options.length; i++) { let optionText = select.options[i].text.toLowerCase(); select.options[i].style.display = (optionText.includes(searchText) || searchText === '') ? '' : 'none'; } }
 
-    // صلاحيات
-    function isSuperAdmin() { return currentUser && currentUser.id === "admin_hesham"; }
+    // ==================== صلاحيات محدثة ====================
+    function isSuperAdmin() { return currentUser && currentUser.id === "admin_hesham"; } // فقط حسام
     function isAdmin() { return currentUser && (currentUser.role === 'مدير' || isSuperAdmin()); }
     function isGeorge() { return currentUser && currentUser.id === "admin_george"; }
     function isHesham() { return currentUser && currentUser.id === "admin_hesham"; }
     function canDeleteEverywhere() { return isSuperAdmin() || isGeorge(); }
-    function canChangeAnyPassword() { return isSuperAdmin() || isGeorge(); }
-    function isVisibleToCurrentUser(employee) { if (!currentUser) return false; if (employee.id === "admin_hesham") return isHesham(); if (employee.username === "undefined" || !employee.username) return false; return true; }
-    function canModifyEmployee(employee) { if (!currentUser) return false; if (employee.id === "admin_hesham") return false; if (isSuperAdmin()) return true; if (isGeorge() && !employee.isFixed) return true; return false; }
-    function canDeleteEmployee(employee) { if (!currentUser) return false; if (employee.id === "admin_hesham") return false; if (employee.id === "admin_george" && !isSuperAdmin()) return false; if (employee.username === "undefined" || !employee.username) return false; return isSuperAdmin() || isGeorge(); }
+    
+    // من يستطيع تغيير كلمة السر لأي مستخدم - حسام وجورج
+    function canChangeAnyPassword() { 
+        return isSuperAdmin() || isGeorge(); 
+    }
+    
+    // من يستطيع تغيير كلمة سر مستخدم معين
+    function canChangePasswordFor(employee) {
+        if (!currentUser) return false;
+        if (isSuperAdmin()) return true;  // حسام يغير لأي حد
+        if (isGeorge()) {
+            // جورج يغير لأي حد ما عدا حسام
+            return employee.id !== "admin_hesham";
+        }
+        // المدير العادي يغير فقط للموظفين العاديين
+        return isAdmin() && !employee.isFixed && employee.id !== currentUser?.id;
+    }
+    
+    // من يستطيع تغيير اليوزر (اسم المستخدم) - فقط حسام لنفسه
+    function canChangeUsername(employee) {
+        return isSuperAdmin() && employee.id === currentUser?.id;
+    }
+    
+    // رؤية المستخدمين في القائمة
+    function isVisibleToCurrentUser(employee) {
+        if (!currentUser) return false;
+        // حسام لا يظهر إلا لحسام نفسه
+        if (employee.id === "admin_hesham") return isHesham();
+        if (employee.username === "undefined" || !employee.username) return false;
+        return true;
+    }
+    
+    function canModifyEmployee(employee) {
+        if (!currentUser) return false;
+        if (employee.id === "admin_hesham") return false; // لا يمكن تعديل حسام (لكن يمكن تغيير كلمة سره عبر الدالة المخصصة)
+        if (isSuperAdmin()) return true;
+        if (isGeorge() && !employee.isFixed) return true;
+        return false;
+    }
+    
+    function canDeleteEmployee(employee) {
+        if (!currentUser) return false;
+        if (employee.id === "admin_hesham") return false;
+        if (employee.id === "admin_george" && !isSuperAdmin()) return false;
+        if (employee.username === "undefined" || !employee.username) return false;
+        return isSuperAdmin() || isGeorge();
+    }
 
     // جلسة المستخدم
     function setSessionTimeout() { if (sessionTimeout) clearTimeout(sessionTimeout); sessionTimeout = setTimeout(() => { if (currentUser) { logout(); showNotification('⏰ انتهت مدة الجلسة (10 دقائق)'); } }, 10 * 60 * 1000); }
@@ -481,22 +524,20 @@
     let tempCallback = null;
     function showMiniAgenda(callback) { tempCallback = callback; let today = new Date(); let currentYear = today.getFullYear(); let currentMonth = today.getMonth(); function renderMiniCalendar(year, month) { let daysInMonth = new Date(year, month + 1, 0).getDate(); let firstDayIndex = new Date(year, month, 1).getDay(); let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let daysHtml = '<div class="week-days-grid">' + weekDays.map(day => `<div class="week-day-name">${day}</div>`).join('') + '</div><div class="days-grid">'; for (let i = 0; i < firstDayIndex; i++) daysHtml += '<div></div>'; for (let d = 1; d <= daysInMonth; d++) { let date = new Date(year, month, d); let isToday = date.toDateString() === today.toDateString(); daysHtml += `<div class="day-card ${isToday ? 'today' : ''}" onclick="selectDateFromAgenda(${year},${month},${d})">${d}</div>`; } daysHtml += '</div>'; document.getElementById('miniAgendaDays').innerHTML = daysHtml; } let months = ['يناير', 'فبراير', 'مارس', 'بريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']; let modalBody = `<h4>📅 اختر تاريخ الجلسة الجديدة</h4><div class="year-months"><button onclick="changeMiniMonth(-1)" class="btn-sm btn-primary">◀ السابق</button><span id="miniMonthYear">${months[currentMonth]} ${currentYear}</span><button onclick="changeMiniMonth(1)" class="btn-sm btn-primary">التالي ▶</button></div><div id="miniAgendaDays"></div><div class="form-group"><label>أو اكتب التاريخ يدوياً:</label><input type="datetime-local" id="manualDateInput"></div><button onclick="confirmDateSelection()" class="btn-success">تأكيد التاريخ</button><button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = 'اختر تاريخ الجلسة'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; window.currentMiniYear = currentYear; window.currentMiniMonth = currentMonth; window.miniMonths = months; renderMiniCalendar(currentYear, currentMonth); window.changeMiniMonth = function(delta) { let newDate = new Date(currentYear, currentMonth + delta, 1); currentYear = newDate.getFullYear(); currentMonth = newDate.getMonth(); window.currentMiniYear = currentYear; window.currentMiniMonth = currentMonth; document.getElementById('miniMonthYear').innerHTML = `${miniMonths[currentMonth]} ${currentYear}`; renderMiniCalendar(currentYear, currentMonth); }; window.selectDateFromAgenda = function(year, month, day) { let selected = new Date(year, month, day); document.getElementById('manualDateInput').value = selected.toISOString().slice(0,16); }; window.confirmDateSelection = function() { let manualDate = document.getElementById('manualDateInput').value; if (manualDate) { if (tempCallback) tempCallback(manualDate); closeModal(); } else showNotification('❌ يرجى اختيار تاريخ'); }; }
 
-    // ==================== ماتم في الجلسات (بعد التعديل - يجيب جلسات النهاردة كمان) ====================
+    // ==================== ماتم في الجلسات ====================
     function renderPastSessions() {
         let container = document.getElementById('pastSessionsList');
         if (!container) return;
         
         let now = new Date();
-        now.setHours(0, 0, 0, 0);  // تاريخ اليوم بدون وقت
+        now.setHours(0, 0, 0, 0);
         
         let pastSessions = [];
         
         activeCases.forEach(c => {
-            // جلسة أولى
             if (c.firstSessionDate && !c.firstSessionProcessed) {
                 let sessionDate = new Date(c.firstSessionDate);
                 sessionDate.setHours(0, 0, 0, 0);
-                // جلب الجلسات اللي تاريخها <= اليوم (تشمل النهاردة)
                 if (sessionDate <= now) {
                     pastSessions.push({
                         ...c,
@@ -509,11 +550,9 @@
                 }
             }
             
-            // جلسة تالية
             if (c.nextSessionDate && !c.nextSessionProcessed) {
                 let sessionDate = new Date(c.nextSessionDate);
                 sessionDate.setHours(0, 0, 0, 0);
-                // جلب الجلسات اللي تاريخها <= اليوم (تشمل النهاردة)
                 if (sessionDate <= now) {
                     pastSessions.push({
                         ...c,
@@ -527,7 +566,6 @@
             }
         });
         
-        // ترتيب من الأحدث إلى الأقدم
         pastSessions.sort((a, b) => b.sessionDate - a.sessionDate);
         
         if (pastSessions.length === 0) {
@@ -625,10 +663,179 @@
     function deleteClient(id) { if (confirm('حذف الموكل سيؤثر على القضايا المرتبطة؟')) { clients = clients.filter(c=>c.id!=id); database.ref('clients').set(clients); showNotification('تم حذف الموكل'); } }
     function populateSelects() { let select = document.getElementById('caseClient'); if (select) { let currentVal = select.value; select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join(''); if (currentVal) select.value = currentVal; } document.querySelectorAll('.additional-client-select').forEach(sel => { let currentVal = sel.value; sel.innerHTML = '<option value="">اختر موكل مشارك</option>' + clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join(''); if (currentVal) sel.value = currentVal; }); }
 
-    // الموظفين
-    function renderEmployeesTable() { let tbody = document.querySelector('#employeesTable tbody'); if (!tbody) return; let allEmployees = [...fixedAdmins, ...employees]; let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp) && emp.username && emp.username !== "undefined"); tbody.innerHTML = visible.map(emp => { let canModify = canModifyEmployee(emp); let canDel = canDeleteEmployee(emp); let actions = ''; if (canModify) actions += `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `; if (canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`; if (!canModify && !canDel) actions = 'لا يمكن التعديل'; let passwordDisplay = isSuperAdmin() ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : ''; return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${emp.password}</td><td style="text-align:right">${actions}</td>`; }).join(''); }
-    function changePassword(empId) { if (!canChangeAnyPassword() && currentUser?.id !== empId) { showNotification('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم'); return; } let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:'); if (!newPassword) { showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); return; } let emp = [...fixedAdmins, ...employees].find(e=>e.id==empId); if (!emp) { showNotification('❌ المستخدم غير موجود'); return; } if (emp.id === "admin_hesham" && !isHesham()) { showNotification('❌ لا يمكن تغيير كلمة سر المدير الأساسي إلا بواسطة حسام نفسه'); return; } emp.password = newPassword; if (emp.isFixed) database.ref('fixedAdmins/'+empId).update({ password: newPassword }); else database.ref('employees/'+empId).update({ password: newPassword }); showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`); if (emp.id === currentUser?.id) { showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة'); setTimeout(() => logout(), 2000); } renderEmployeesTable(); }
-    function deleteEmployee(id) { if (id === "admin_hesham") { showNotification('لا يمكن حذف المدير الأساسي'); return; } if (id === "admin_george" && !isSuperAdmin()) { showNotification('لا يمكن حذف هذا المستخدم'); return; } if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) { employees = employees.filter(e=>e.id!=id); database.ref('employees').set(employees); showNotification('تم حذف الموظف'); renderEmployeesTable(); } }
+    // ==================== الموظفين (مع الصلاحيات المحدثة) ====================
+    function renderEmployeesTable() {
+        let tbody = document.querySelector('#employeesTable tbody');
+        if (!tbody) return;
+        
+        // استخدام Map لتوحيد المستخدمين ومنع التكرار
+        const employeesMap = new Map();
+        
+        fixedAdmins.forEach(emp => {
+            if (emp && emp.id && emp.username && emp.username !== "undefined") {
+                employeesMap.set(emp.id, { ...emp, source: 'fixed' });
+            }
+        });
+        
+        employees.forEach(emp => {
+            if (emp && emp.id && emp.username && emp.username !== "undefined") {
+                if (!employeesMap.has(emp.id)) {
+                    employeesMap.set(emp.id, { ...emp, source: 'employee' });
+                }
+            }
+        });
+        
+        let allEmployees = Array.from(employeesMap.values());
+        let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp));
+        
+        tbody.innerHTML = visible.map(emp => {
+            let canModify = canModifyEmployee(emp);
+            let canDel = canDeleteEmployee(emp);
+            let canChangePass = canChangePasswordFor(emp);
+            let canChangeUser = canChangeUsername(emp);
+            
+            let actions = '';
+            if (canChangeUser) {
+                actions += `<button class="btn-primary btn-sm" onclick="changeUsername('${emp.id}')">✏️ تغيير اليوزر</button> `;
+            }
+            if (canChangePass) {
+                actions += `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
+            }
+            if (canDel) {
+                actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
+            }
+            if (!canChangePass && !canDel && !canChangeUser) actions = 'لا يمكن التعديل';
+            
+            let passwordDisplay = isSuperAdmin() ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
+            
+            return `<tr>
+                <td style="text-align:right">${emp.username}${passwordDisplay}</td>
+                <td style="text-align:right">${emp.role || 'محامي'}</td>
+                <td style="text-align:right">${emp.password || '••••••'}</td>
+                <td style="text-align:right">${actions}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // تغيير كلمة السر (محدث)
+    function changePassword(empId) {
+        if (!canChangePasswordFor({ id: empId })) {
+            showNotification('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم');
+            return;
+        }
+        
+        let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
+        if (!newPassword || newPassword.length === 0) { 
+            showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); 
+            return; 
+        }
+        
+        let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
+        if (!emp) { 
+            showNotification('❌ المستخدم غير موجود'); 
+            return; 
+        }
+        
+        emp.password = newPassword;
+        
+        if (emp.isFixed) {
+            database.ref('fixedAdmins/' + empId).update({ password: newPassword })
+                .then(() => {
+                    showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`);
+                    if (emp.id === currentUser?.id) {
+                        currentUser.password = newPassword;
+                        localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+                        showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة');
+                        setTimeout(() => logout(), 3000);
+                    }
+                    renderEmployeesTable();
+                })
+                .catch(err => showNotification('❌ خطأ في حفظ كلمة السر الجديدة'));
+        } else {
+            database.ref('employees/' + empId).update({ password: newPassword })
+                .then(() => {
+                    showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`);
+                    if (emp.id === currentUser?.id) {
+                        currentUser.password = newPassword;
+                        localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+                        showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة');
+                        setTimeout(() => logout(), 3000);
+                    }
+                    renderEmployeesTable();
+                })
+                .catch(err => showNotification('❌ خطأ في حفظ كلمة السر الجديدة'));
+        }
+    }
+
+    // تغيير اسم المستخدم (اليوزر) - فقط لحسام لنفسه
+    function changeUsername(empId) {
+        if (!canChangeUsername({ id: empId })) {
+            showNotification('❌ غير مسموح لك بتغيير اسم المستخدم لهذا الحساب');
+            return;
+        }
+        
+        let newUsername = prompt('✏️ أدخل اسم المستخدم الجديد:');
+        if (!newUsername || newUsername.trim().length === 0) { 
+            showNotification('❌ لم يتم إدخال اسم مستخدم جديد'); 
+            return; 
+        }
+        
+        newUsername = newUsername.trim();
+        
+        // التحقق من عدم وجود اسم مستخدم مكرر
+        let allExisting = [...fixedAdmins, ...employees];
+        if (allExisting.some(e => e.id !== empId && e.username === newUsername)) {
+            showNotification('❌ اسم المستخدم موجود بالفعل، يرجى اختيار اسم آخر');
+            return;
+        }
+        
+        let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
+        if (!emp) { 
+            showNotification('❌ المستخدم غير موجود'); 
+            return; 
+        }
+        
+        let oldUsername = emp.username;
+        emp.username = newUsername;
+        
+        if (emp.isFixed) {
+            database.ref('fixedAdmins/' + empId).update({ username: newUsername })
+                .then(() => {
+                    showNotification(`✅ تم تغيير اسم المستخدم من "${oldUsername}" إلى "${newUsername}"`);
+                    if (emp.id === currentUser?.id) {
+                        currentUser.username = newUsername;
+                        localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+                        document.getElementById('currentUserName').innerText = newUsername;
+                        showNotification('⚠️ تم تغيير اسم المستخدم الخاص بك');
+                    }
+                    renderEmployeesTable();
+                })
+                .catch(err => showNotification('❌ خطأ في حفظ اسم المستخدم الجديد'));
+        } else {
+            database.ref('employees/' + empId).update({ username: newUsername })
+                .then(() => {
+                    showNotification(`✅ تم تغيير اسم المستخدم من "${oldUsername}" إلى "${newUsername}"`);
+                    if (emp.id === currentUser?.id) {
+                        currentUser.username = newUsername;
+                        localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+                        document.getElementById('currentUserName').innerText = newUsername;
+                    }
+                    renderEmployeesTable();
+                })
+                .catch(err => showNotification('❌ خطأ في حفظ اسم المستخدم الجديد'));
+        }
+    }
+
+    function deleteEmployee(id) {
+        if (id === "admin_hesham") { showNotification('لا يمكن حذف المدير الأساسي'); return; }
+        if (id === "admin_george" && !isSuperAdmin()) { showNotification('لا يمكن حذف هذا المستخدم'); return; }
+        if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
+            employees = employees.filter(e => e.id != id);
+            database.ref('employees').set(employees);
+            showNotification('تم حذف الموظف');
+            renderEmployeesTable();
+        }
+    }
 
     // الأجندة المتقدمة
     let currentYearAgenda = new Date().getFullYear();
@@ -645,7 +852,7 @@
     function initStatCards() { document.querySelectorAll('.stat-card').forEach(card => { card.onclick = () => { let tabName = card.getAttribute('data-tab'); if (tabName) switchToTab(tabName, true); }; }); }
     function exportToExcel() { try { let activeData = activeCases.map(c => ({ 'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الدائرة': c.circuit||'', 'الموكلين': getAllClientsNames(c).join(' - '), 'صفة الموكل الرئيسي': c.clientRole, 'الخصوم': getAllOpponents(c).map(o=>`${o.name} (${o.role||'-'})`).join(' - '), 'موضوع القضية': c.subject||'', 'الجلسة القادمة': c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : '') })); let wb = XLSX.utils.book_new(); if (activeData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(activeData), 'قضايا المكتب'); XLSX.writeFile(wb, `مكتب_الخواجا_${new Date().toLocaleDateString('ar-EG')}.xlsx`); showNotification('تم تصدير البيانات بنجاح'); } catch(e) { showNotification('حدث خطأ أثناء تصدير البيانات'); } }
 
-    // وضع الصيانة
+    // وضع الصيانة (يظهر فقط لحسام)
     function enableMaintenance(durationHours = null) { if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; } let endTime = durationHours ? new Date(Date.now() + durationHours*3600000).toISOString() : null; database.ref('maintenance').set({ isActive: true, endTime, startedBy: currentUser.username, startedAt: new Date().toISOString() }); showNotification(`تم تعطيل الموقع للصيانة${durationHours ? ` لمدة ${durationHours} ساعة` : ''}`); }
     function disableMaintenance() { if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; } database.ref('maintenance').set({ isActive: false, endTime: null, endedBy: currentUser.username, endedAt: new Date().toISOString() }); showNotification('تم تشغيل الموقع مرة أخرى'); }
     function setupMaintenanceControls() { if (!isSuperAdmin()) return; let toggleBtn = document.getElementById('toggleMaintenanceBtn'); let durationSelect = document.getElementById('maintenanceDuration'); let statusSpan = document.getElementById('maintenanceStatusSpan'); let infoDiv = document.getElementById('maintenanceInfo'); if (toggleBtn) toggleBtn.onclick = () => { if (isMaintenanceMode) disableMaintenance(); else enableMaintenance(parseInt(durationSelect?.value) || null); }; database.ref('maintenance').on('value', (snapshot) => { const data = snapshot.val(); isMaintenanceMode = data?.isActive || false; maintenanceEndTime = data?.endTime; if (toggleBtn) { if (isMaintenanceMode) { toggleBtn.innerHTML = '🔓 تشغيل الموقع'; toggleBtn.className = 'btn-success'; if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-overdue">🔴 الموقع معطل</span>'; } else { toggleBtn.innerHTML = '🔧 تعطيل الموقع (صيانة)'; toggleBtn.className = 'btn-warning'; if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-completed">🟢 الموقع يعمل</span>'; } } if (infoDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) { let remaining = new Date(maintenanceEndTime) - new Date(); let hours = Math.floor(remaining/3600000); let minutes = Math.floor((remaining%3600000)/60000); infoDiv.innerHTML = `<small><i class="fas fa-clock"></i> تنتهي الصيانة بعد: ${hours} ساعة ${minutes} دقيقة</small>`; if (maintenanceInterval) clearInterval(maintenanceInterval); maintenanceInterval = setInterval(() => { if (isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) <= new Date()) { disableMaintenance(); if (maintenanceInterval) clearInterval(maintenanceInterval); } }, 60000); } else if (infoDiv) { infoDiv.innerHTML = ''; if (maintenanceInterval) clearInterval(maintenanceInterval); } checkMaintenance(); }); }
@@ -678,7 +885,7 @@
     document.getElementById('employeeForm')?.addEventListener('submit', (e) => { e.preventDefault(); if (!isAdmin()) { showNotification('غير مسموح لك بإضافة موظفين'); return; } let uname = document.getElementById('empUsername').value.trim(); let pwd = document.getElementById('empPassword').value; let role = document.getElementById('empRole').value; if (!uname || !pwd) { showNotification('يرجى إدخال اسم المستخدم وكلمة المرور'); return; } let allExisting = [...employees, ...fixedAdmins]; if (allExisting.find(e=>e.username===uname)) { showNotification('اسم المستخدم موجود بالفعل'); return; } let newEmp = { id: Date.now().toString(), username: uname, password: pwd, role: role }; employees.push(newEmp); database.ref('employees').set(employees); renderEmployeesTable(); showNotification(`✅ تم إضافة الموظف ${uname} بنجاح\n📝 كلمة المرور: ${pwd}`); e.target.reset(); });
 
     // تعريف الدوال في النطاق العام
-    window.selectYear = selectYear; window.selectMonth = selectMonth; window.showDaySessions = showDaySessions; window.processPastSession = processPastSession; window.viewFullCase = viewFullCase; window.addNewSessionFromModal = addNewSessionFromModal; window.addAdminWorkFromModal = addAdminWorkFromModal; window.addJudgmentFromModal = addJudgmentFromModal; window.addExpertFromModal = addExpertFromModal; window.closeCaseFromModal = closeCaseFromModal; window.returnClosedCaseToNewSession = returnClosedCaseToNewSession; window.editCase = editCase; window.saveCaseEdit = saveCaseEdit; window.chooseCircuitForClosedCase = chooseCircuitForClosedCase; window.saveCaseWithCircuit = saveCaseWithCircuit; window.completeAdminWork = completeAdminWork; window.returnCaseFromJudgment = returnCaseFromJudgment; window.editJudgmentRecord = editJudgmentRecord; window.updateJudgmentRecord = updateJudgmentRecord; window.addEnforcement = addEnforcement; window.saveEnforcement = saveEnforcement; window.editEnforcement = editEnforcement; window.updateEnforcement = updateEnforcement; window.deleteEnforcement = deleteEnforcement; window.showArchiveEnforcementModal = showArchiveEnforcementModal; window.confirmArchiveEnforcement = confirmArchiveEnforcement; window.addExpert = addExpert; window.saveExpert = saveExpert; window.editExpert = editExpert; window.updateExpert = updateExpert; window.deleteExpert = deleteExpert; window.returnExpertToCase = returnExpertToCase; window.completeExpert = completeExpert; window.filterArchive = filterArchive; window.addArchiveCircuit = addArchiveCircuit; window.searchArchive = searchArchive; window.clearArchiveSearch = clearArchiveSearch; window.deleteClient = deleteClient; window.deleteActiveCase = deleteActiveCase; window.deleteClosedCase = deleteClosedCase; window.changePassword = changePassword; window.deleteEmployee = deleteEmployee; window.performSearch = performSearch; window.clearSearch = clearSearch; window.searchActiveCases = searchActiveCases; window.clearActiveSearch = clearActiveSearch; window.exportToExcel = exportToExcel; window.attemptLogin = attemptLogin; window.logout = logout; window.addAdditionalClient = addAdditionalClient; window.removeAdditionalClient = removeAdditionalClient; window.filterClients = filterClients; window.addOpponent = addOpponent; window.removeOpponent = removeOpponent; window.closeNotificationModal = closeNotificationModal;
+    window.selectYear = selectYear; window.selectMonth = selectMonth; window.showDaySessions = showDaySessions; window.processPastSession = processPastSession; window.viewFullCase = viewFullCase; window.addNewSessionFromModal = addNewSessionFromModal; window.addAdminWorkFromModal = addAdminWorkFromModal; window.addJudgmentFromModal = addJudgmentFromModal; window.addExpertFromModal = addExpertFromModal; window.closeCaseFromModal = closeCaseFromModal; window.returnClosedCaseToNewSession = returnClosedCaseToNewSession; window.editCase = editCase; window.saveCaseEdit = saveCaseEdit; window.chooseCircuitForClosedCase = chooseCircuitForClosedCase; window.saveCaseWithCircuit = saveCaseWithCircuit; window.completeAdminWork = completeAdminWork; window.returnCaseFromJudgment = returnCaseFromJudgment; window.editJudgmentRecord = editJudgmentRecord; window.updateJudgmentRecord = updateJudgmentRecord; window.addEnforcement = addEnforcement; window.saveEnforcement = saveEnforcement; window.editEnforcement = editEnforcement; window.updateEnforcement = updateEnforcement; window.deleteEnforcement = deleteEnforcement; window.showArchiveEnforcementModal = showArchiveEnforcementModal; window.confirmArchiveEnforcement = confirmArchiveEnforcement; window.addExpert = addExpert; window.saveExpert = saveExpert; window.editExpert = editExpert; window.updateExpert = updateExpert; window.deleteExpert = deleteExpert; window.returnExpertToCase = returnExpertToCase; window.completeExpert = completeExpert; window.filterArchive = filterArchive; window.addArchiveCircuit = addArchiveCircuit; window.searchArchive = searchArchive; window.clearArchiveSearch = clearArchiveSearch; window.deleteClient = deleteClient; window.deleteActiveCase = deleteActiveCase; window.deleteClosedCase = deleteClosedCase; window.changePassword = changePassword; window.changeUsername = changeUsername; window.deleteEmployee = deleteEmployee; window.performSearch = performSearch; window.clearSearch = clearSearch; window.searchActiveCases = searchActiveCases; window.clearActiveSearch = clearActiveSearch; window.exportToExcel = exportToExcel; window.attemptLogin = attemptLogin; window.logout = logout; window.addAdditionalClient = addAdditionalClient; window.removeAdditionalClient = removeAdditionalClient; window.filterClients = filterClients; window.addOpponent = addOpponent; window.removeOpponent = removeOpponent; window.closeNotificationModal = closeNotificationModal;
 
     // PWA
     (function registerPWA() { function generateIcon(size, bgColor='#1a4a5f', iconColor='#ffc107', text='⚖️') { return new Promise(resolve=>{ const canvas=document.createElement('canvas'); canvas.width=size; canvas.height=size; const ctx=canvas.getContext('2d'); ctx.fillStyle=bgColor; ctx.fillRect(0,0,size,size); ctx.fillStyle=iconColor; ctx.font=`${size*0.5}px "Tajawal","Arial"`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,size/2,size/2); canvas.toBlob(blob=>resolve({size, url:URL.createObjectURL(blob)})); }); } async function generateIcons(){ let sizes=[72,96,128,144,152,192,384,512]; let icons=await Promise.all(sizes.map(s=>generateIcon(s))); return icons.map(icon=>({src:icon.url,sizes:`${icon.size}x${icon.size}`,type:'image/png',purpose:'any maskable'})); } async function createManifest(){ let icons=await generateIcons(); let manifest={name:'مكتب الخواجا للمحاماة',short_name:'الخواجا',start_url:'/',display:'standalone',theme_color:'#1a4a5f',background_color:'#0b2b40',lang:'ar',dir:'rtl',icons}; let manifestBlob=new Blob([JSON.stringify(manifest,null,2)],{type:'application/json'}); let manifestURL=URL.createObjectURL(manifestBlob); let manifestLink=document.createElement('link'); manifestLink.rel='manifest'; manifestLink.href=manifestURL; document.head.appendChild(manifestLink); } function registerServiceWorker(){ if('serviceWorker' in navigator){ let swCode=`const CACHE_NAME='lawfirm-v1'; const urlsToCache=['/','/index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css','https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap','https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js','https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js','https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js']; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(urlsToCache)))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))); self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key))))));`; let swBlob=new Blob([swCode],{type:'application/javascript'}); let swURL=URL.createObjectURL(swBlob); navigator.serviceWorker.register(swURL).then(reg=>console.log('SW registered:',reg)).catch(err=>console.error('SW failed:',err)); } } createManifest().then(()=>registerServiceWorker()).catch(err=>console.error('PWA error:',err)); })();
