@@ -1,14 +1,12 @@
 {
   "name": "مكتب الخواجا للمحاماة",
   "short_name": "الخواجا",
-  "description": "نظام إدارة قضايا المحاماة - مكتب الخواجا",
+  "description": "نظام إدارة قضايا المحاماة",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a4a5f",
   "theme_color": "#1a4a5f",
+  "background_color": "#ffffff",
   "orientation": "portrait",
-  "lang": "ar",
-  "dir": "rtl",
   "icons": [
     {
       "src": "icons/icon-72.png",
