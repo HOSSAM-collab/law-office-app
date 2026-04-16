@@ -449,7 +449,6 @@
         { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }
     ];
 
-    // Helper Functions
     function showNotification(msg) {
         let toast = document.getElementById('notificationToast');
         toast.innerText = msg;
@@ -541,7 +540,6 @@
         };
     }
 
-    // Opponents Functions
     function addOpponent() {
         let container = document.getElementById('opponentsContainer');
         let opponentId = Date.now();
@@ -587,7 +585,6 @@
         return opponents;
     }
 
-    // Additional Clients Functions
     function addAdditionalClient() {
         let container = document.getElementById('additionalClientsContainer');
         let clientId = Date.now();
@@ -639,7 +636,6 @@
         }
     }
 
-    // ========== توكيلات التنفيذ ==========
     function searchEnforcements() {
         enforcementsSearchTerm = document.getElementById('enforcementSearchInput').value.trim().toLowerCase();
         renderEnforcements();
@@ -706,9 +702,7 @@
                 </div>
             </div>`;
         }).join('');
-    }
-
-    function filterClosedCases() {
+    }    function filterClosedCases() {
         let searchText = document.getElementById('closedCaseSearchInput')?.value.toLowerCase();
         if (!searchText) return;
         let select = document.getElementById('enforcementCase');
@@ -850,7 +844,6 @@
         } 
     }
 
-    // ========== إعادة القضية المنتهية لجلسة جديدة ==========
     window.returnClosedCaseToNewSession = function(caseId) {
         let caseData = closedCases.find(c => c.id == caseId);
         if (!caseData) { 
@@ -901,7 +894,8 @@
             renderArchive();
             updateStats();
         });
-    };    // ========== البحث العام ==========
+    };
+
     function performSearch() {
         let searchType = document.getElementById('searchType').value;
         let resultsDiv = document.getElementById('searchResults');
@@ -1088,7 +1082,6 @@
         };
     }
 
-    // ========== ماتم في الجلسات (يعرض الجلسات الفائتة) ==========
     function renderPastSessions() {
         let container = document.getElementById('pastSessionsList');
         if (!container) return;
@@ -1294,7 +1287,6 @@
         updateStats();
     }
 
-    // ========== عرض القضية كاملة ==========
     window.viewFullCase = function(caseId, caseType) {
         let caseData = null;
         if (caseType === 'active') {
@@ -1361,7 +1353,6 @@
         document.getElementById('detailsModal').style.display = 'flex';
     };
 
-    // ========== إضافة أعمال إدارية (من أي قضية) ==========
     function addAdminWorkFromModal(caseId) {
         let caseData = activeCases.find(c => c.id == caseId);
         let wasClosed = false;
@@ -1411,7 +1402,6 @@
         renderArchive();
     }
 
-    // ========== إضافة سجل أحكام (من أي قضية) ==========
     function addJudgmentFromModal(caseId) {
         let caseData = activeCases.find(c => c.id == caseId);
         let wasClosed = false;
@@ -1460,7 +1450,6 @@
         renderArchive();
     }
 
-    // ========== إضافة خبير (من أي قضية) ==========
     function addExpertFromModal(caseId) {
         let caseData = activeCases.find(c => c.id == caseId);
         let wasClosed = false;
@@ -2047,8 +2036,26 @@
     function renderEmployeesTable() {
         let tbody = document.querySelector('#employeesTable tbody');
         if (!tbody) return;
-        let allEmployees = [...fixedAdmins, ...employees];
-        let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp) && emp.username && emp.username !== "undefined");
+        
+        const employeesMap = new Map();
+        
+        fixedAdmins.forEach(emp => {
+            if (emp && emp.id && emp.username && emp.username !== "undefined") {
+                employeesMap.set(emp.id, { ...emp, source: 'fixed' });
+            }
+        });
+        
+        employees.forEach(emp => {
+            if (emp && emp.id && emp.username && emp.username !== "undefined") {
+                if (!employeesMap.has(emp.id)) {
+                    employeesMap.set(emp.id, { ...emp, source: 'employee' });
+                }
+            }
+        });
+        
+        let allEmployees = Array.from(employeesMap.values());
+        let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp));
+        
         tbody.innerHTML = visible.map(emp => {
             let canModify = canModifyEmployee(emp);
             let canDel = canDeleteEmployee(emp);
@@ -2057,7 +2064,12 @@
             if (canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
             if (!canModify && !canDel) actions = 'لا يمكن التعديل';
             let passwordDisplay = isSuperAdmin() ? `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>` : '';
-            return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role}</td><td style="text-align:right">${emp.password}</td><td style="text-align:right">${actions}</td></tr>`;
+            return `<tr>
+                <td style="text-align:right">${emp.username}${passwordDisplay}</td>
+                <td style="text-align:right">${emp.role || 'محامي'}</td>
+                <td style="text-align:right">${emp.password || '••••••'}</td>
+                <td style="text-align:right">${actions}</td>
+            </tr>`;
         }).join('');
     }
 
@@ -2066,26 +2078,53 @@
             showNotification('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم');
             return;
         }
+        
         let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
-        if (!newPassword || newPassword.length === 0) { showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); return; }
+        if (!newPassword || newPassword.length === 0) { 
+            showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); 
+            return; 
+        }
+        
         let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
-        if (!emp) { showNotification('❌ المستخدم غير موجود'); return; }
+        if (!emp) { 
+            showNotification('❌ المستخدم غير موجود'); 
+            return; 
+        }
+        
         if (emp.id === "admin_hesham" && !isHesham()) {
             showNotification('❌ لا يمكن تغيير كلمة سر المدير الأساسي إلا بواسطة حسام نفسه');
             return;
         }
+        
         emp.password = newPassword;
+        
         if (emp.isFixed) {
-            database.ref('fixedAdmins/' + empId).update({ password: newPassword });
+            database.ref('fixedAdmins/' + empId).update({ password: newPassword })
+                .then(() => {
+                    showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`);
+                    if (emp.id === currentUser?.id) {
+                        currentUser.password = newPassword;
+                        localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+                        showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة');
+                        setTimeout(() => logout(), 3000);
+                    }
+                    renderEmployeesTable();
+                })
+                .catch(err => showNotification('❌ خطأ في حفظ كلمة السر الجديدة'));
         } else {
-            database.ref('employees/' + empId).update({ password: newPassword });
+            database.ref('employees/' + empId).update({ password: newPassword })
+                .then(() => {
+                    showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`);
+                    if (emp.id === currentUser?.id) {
+                        currentUser.password = newPassword;
+                        localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+                        showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة');
+                        setTimeout(() => logout(), 3000);
+                    }
+                    renderEmployeesTable();
+                })
+                .catch(err => showNotification('❌ خطأ في حفظ كلمة السر الجديدة'));
         }
-        showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`);
-        if (emp.id === currentUser?.id) {
-            showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة');
-            setTimeout(() => logout(), 2000);
-        }
-        renderEmployeesTable();
     }
 
     function deleteEmployee(id) {
@@ -2099,7 +2138,6 @@
         }
     }
 
-    // ========== الصلاحيات ==========
     function isAdmin() { return currentUser && (currentUser.role === 'مدير' || currentUser.superAdmin === true); }
     function isSuperAdmin() { return currentUser && currentUser.superAdmin === true; }
     function isGeorge() { return currentUser && currentUser.id === "admin_george"; }
@@ -2143,7 +2181,6 @@
         return false;
     }
 
-    // ========== بقية الدوال الأساسية ==========
     function updateCourtOptions() {
         let container = document.getElementById('courtOptions');
         if (!container) return;
@@ -2221,7 +2258,6 @@
         });
     }
 
-    // Advanced Agenda
     let currentYear = new Date().getFullYear();
     let currentMonth = new Date().getMonth();
 
@@ -2368,7 +2404,6 @@
         } catch (e) { showNotification('حدث خطأ أثناء تصدير البيانات'); }
     }
 
-    // Maintenance
     function enableMaintenance(durationHours = null) {
         if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; }
         let endTime = durationHours ? new Date(Date.now() + durationHours * 3600000).toISOString() : null;
