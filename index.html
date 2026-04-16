@@ -481,8 +481,82 @@
     let tempCallback = null;
     function showMiniAgenda(callback) { tempCallback = callback; let today = new Date(); let currentYear = today.getFullYear(); let currentMonth = today.getMonth(); function renderMiniCalendar(year, month) { let daysInMonth = new Date(year, month + 1, 0).getDate(); let firstDayIndex = new Date(year, month, 1).getDay(); let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let daysHtml = '<div class="week-days-grid">' + weekDays.map(day => `<div class="week-day-name">${day}</div>`).join('') + '</div><div class="days-grid">'; for (let i = 0; i < firstDayIndex; i++) daysHtml += '<div></div>'; for (let d = 1; d <= daysInMonth; d++) { let date = new Date(year, month, d); let isToday = date.toDateString() === today.toDateString(); daysHtml += `<div class="day-card ${isToday ? 'today' : ''}" onclick="selectDateFromAgenda(${year},${month},${d})">${d}</div>`; } daysHtml += '</div>'; document.getElementById('miniAgendaDays').innerHTML = daysHtml; } let months = ['يناير', 'فبراير', 'مارس', 'بريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']; let modalBody = `<h4>📅 اختر تاريخ الجلسة الجديدة</h4><div class="year-months"><button onclick="changeMiniMonth(-1)" class="btn-sm btn-primary">◀ السابق</button><span id="miniMonthYear">${months[currentMonth]} ${currentYear}</span><button onclick="changeMiniMonth(1)" class="btn-sm btn-primary">التالي ▶</button></div><div id="miniAgendaDays"></div><div class="form-group"><label>أو اكتب التاريخ يدوياً:</label><input type="datetime-local" id="manualDateInput"></div><button onclick="confirmDateSelection()" class="btn-success">تأكيد التاريخ</button><button onclick="closeModal()" class="btn-secondary btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = 'اختر تاريخ الجلسة'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; window.currentMiniYear = currentYear; window.currentMiniMonth = currentMonth; window.miniMonths = months; renderMiniCalendar(currentYear, currentMonth); window.changeMiniMonth = function(delta) { let newDate = new Date(currentYear, currentMonth + delta, 1); currentYear = newDate.getFullYear(); currentMonth = newDate.getMonth(); window.currentMiniYear = currentYear; window.currentMiniMonth = currentMonth; document.getElementById('miniMonthYear').innerHTML = `${miniMonths[currentMonth]} ${currentYear}`; renderMiniCalendar(currentYear, currentMonth); }; window.selectDateFromAgenda = function(year, month, day) { let selected = new Date(year, month, day); document.getElementById('manualDateInput').value = selected.toISOString().slice(0,16); }; window.confirmDateSelection = function() { let manualDate = document.getElementById('manualDateInput').value; if (manualDate) { if (tempCallback) tempCallback(manualDate); closeModal(); } else showNotification('❌ يرجى اختيار تاريخ'); }; }
 
-    // ماتم في الجلسات
-    function renderPastSessions() { let container = document.getElementById('pastSessionsList'); if (!container) return; let now = new Date(); now.setHours(0,0,0); let pastSessions = []; activeCases.forEach(c => { if (c.firstSessionDate && new Date(c.firstSessionDate) <= now && !c.firstSessionProcessed) pastSessions.push({ ...c, sessionType: 'first', sessionDate: new Date(c.firstSessionDate), allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c), oldDecision: c.firstSessionDecision || '' }); if (c.nextSessionDate && new Date(c.nextSessionDate) <= now && !c.nextSessionProcessed) pastSessions.push({ ...c, sessionType: 'next', sessionDate: new Date(c.nextSessionDate), allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c), oldDecision: c.nextSessionDecision || '' }); }); pastSessions.sort((a,b) => b.sessionDate - a.sessionDate); if (!pastSessions.length) { container.innerHTML = '<p>📭 لا توجد جلسات سابقة تحتاج إلى تسجيل قرار</p>'; return; } container.innerHTML = pastSessions.map(s => `<div class="session-card" style="border-right-color:#ffc107;"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">📅 ${s.sessionDate.toLocaleString('ar-EG')}</span><span class="info-badge">👥 الموكلين: ${s.allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${s.allOpponents.map(o=>`${o.name} (${o.role||'-'})`).join(' - ')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject||'غير محدد'}</p><p><strong>القرار السابق:</strong> ${s.oldDecision||'لا يوجد'}</p><div class="form-group"><label>📝 قرار الجلسة:</label><input type="text" id="decision_${s.id}_${s.sessionType}"></div><div><button class="btn-warning btn-sm" onclick="processPastSession('${s.id}','${s.sessionType}','new')">📅 جلسة جديدة</button><button class="btn-danger btn-sm" onclick="processPastSession('${s.id}','${s.sessionType}','close')">🏁 إنهاء القضية</button><button class="btn-primary btn-sm" onclick="processPastSession('${s.id}','${s.sessionType}','admin')">📋 أعمال إدارية</button><button class="btn-primary btn-sm" onclick="processPastSession('${s.id}','${s.sessionType}','judgment')">⚖️ سجل أحكام</button><button class="btn-primary btn-sm" onclick="processPastSession('${s.id}','${s.sessionType}','expert')">👨‍⚖️ خبير</button></div></div>`).join(''); }
+    // ==================== ماتم في الجلسات (بعد التعديل - يجيب جلسات النهاردة كمان) ====================
+    function renderPastSessions() {
+        let container = document.getElementById('pastSessionsList');
+        if (!container) return;
+        
+        let now = new Date();
+        now.setHours(0, 0, 0, 0);  // تاريخ اليوم بدون وقت
+        
+        let pastSessions = [];
+        
+        activeCases.forEach(c => {
+            // جلسة أولى
+            if (c.firstSessionDate && !c.firstSessionProcessed) {
+                let sessionDate = new Date(c.firstSessionDate);
+                sessionDate.setHours(0, 0, 0, 0);
+                // جلب الجلسات اللي تاريخها <= اليوم (تشمل النهاردة)
+                if (sessionDate <= now) {
+                    pastSessions.push({
+                        ...c,
+                        sessionType: 'first',
+                        sessionDate: new Date(c.firstSessionDate),
+                        allClients: getAllClientsNames(c),
+                        allOpponents: getAllOpponents(c),
+                        oldDecision: c.firstSessionDecision || ''
+                    });
+                }
+            }
+            
+            // جلسة تالية
+            if (c.nextSessionDate && !c.nextSessionProcessed) {
+                let sessionDate = new Date(c.nextSessionDate);
+                sessionDate.setHours(0, 0, 0, 0);
+                // جلب الجلسات اللي تاريخها <= اليوم (تشمل النهاردة)
+                if (sessionDate <= now) {
+                    pastSessions.push({
+                        ...c,
+                        sessionType: 'next',
+                        sessionDate: new Date(c.nextSessionDate),
+                        allClients: getAllClientsNames(c),
+                        allOpponents: getAllOpponents(c),
+                        oldDecision: c.nextSessionDecision || ''
+                    });
+                }
+            }
+        });
+        
+        // ترتيب من الأحدث إلى الأقدم
+        pastSessions.sort((a, b) => b.sessionDate - a.sessionDate);
+        
+        if (pastSessions.length === 0) {
+            container.innerHTML = '<p>📭 لا توجد جلسات سابقة تحتاج إلى تسجيل قرار</p>';
+            return;
+        }
+        
+        container.innerHTML = pastSessions.map(s => `
+            <div class="session-card" style="border-right-color: #ffc107;">
+                <h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4>
+                <div class="info-row">
+                    <span class="info-badge"><i class="fas fa-calendar"></i> تاريخ الجلسة: ${s.sessionDate.toLocaleString('ar-EG')}</span>
+                    <span class="info-badge"><i class="fas fa-users"></i> الموكلين: ${s.allClients.join(' - ')}</span>
+                    <span class="info-badge"><i class="fas fa-gavel"></i> الخصوم: ${s.allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span>
+                    <span class="info-badge"><i class="fas fa-building"></i> الدائرة: ${s.circuit || 'غير محددة'}</span>
+                </div>
+                <p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p>
+                <p><strong>القرار السابق:</strong> ${s.oldDecision || 'لا يوجد'}</p>
+                <div class="form-group"><label>📝 قرار الجلسة:</label><input type="text" id="decision_${s.id}_${s.sessionType}" placeholder="أدخل قرار الجلسة" style="width:100%"></div>
+                <div>
+                    <button class="btn-warning btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'new')">📅 جلسة جديدة</button>
+                    <button class="btn-danger btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'close')">🏁 إنهاء القضية</button>
+                    <button class="btn-primary btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'admin')">📋 أعمال إدارية</button>
+                    <button class="btn-primary btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'judgment')">⚖️ سجل أحكام</button>
+                    <button class="btn-primary btn-sm" onclick="processPastSession('${s.id}', '${s.sessionType}', 'expert')">👨‍⚖️ خبير</button>
+                </div>
+            </div>
+        `).join('');
+    }
 
     function processPastSession(caseId, sessionType, action) { let caseIndex = activeCases.findIndex(c => c.id == caseId); if (caseIndex === -1) { showNotification('❌ القضية غير موجودة'); return; } let decisionInput = document.getElementById(`decision_${caseId}_${sessionType}`); let decision = decisionInput ? decisionInput.value : ''; if (!decision) { showNotification('❌ يرجى إدخال قرار الجلسة أولاً'); return; } if (!activeCases[caseIndex].pastSessions) activeCases[caseIndex].pastSessions = []; activeCases[caseIndex].pastSessions.push({ date: sessionType === 'first' ? activeCases[caseIndex].firstSessionDate : activeCases[caseIndex].nextSessionDate, decision: decision, type: sessionType, processedAt: new Date().toISOString() }); if (sessionType === 'first') { activeCases[caseIndex].firstSessionDecision = decision; activeCases[caseIndex].firstSessionProcessed = true; } else { activeCases[caseIndex].nextSessionDecision = decision; activeCases[caseIndex].nextSessionProcessed = true; } activeCases[caseIndex].decision = decision; if (action === 'new') { showMiniAgenda(function(newDate) { if (!newDate) { if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false; else activeCases[caseIndex].nextSessionProcessed = false; activeCases[caseIndex].pastSessions.pop(); database.ref('activeCases').set(activeCases); showNotification('❌ تم إلغاء العملية'); return; } let editCourt = confirm('هل تريد تعديل المحكمة أو الدائرة؟'); if (editCourt) { let newCourt = prompt('المحكمة الجديدة:', activeCases[caseIndex].court); let newCircuit = prompt('الدائرة الجديدة:', activeCases[caseIndex].circuit || ''); if (newCourt) activeCases[caseIndex].court = newCourt; if (newCircuit) activeCases[caseIndex].circuit = newCircuit; } activeCases[caseIndex].nextSessionDate = newDate; activeCases[caseIndex].nextSessionProcessed = false; activeCases[caseIndex].nextSessionDecision = ''; database.ref('activeCases').set(activeCases); showNotification(`✅ تم تسجيل القرار: "${decision}" وتم تحديد جلسة جديدة في ${new Date(newDate).toLocaleString('ar-EG')}`); renderActiveCases(); renderPastSessions(); renderTomorrowSessions(); renderAdvancedAgenda(); updateStats(); checkForNewNotifications(); }); } else if (action === 'close') { let judgment = prompt('أدخل منطوق الحكم النهائي للقضية:'); if (!judgment) { if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false; else activeCases[caseIndex].nextSessionProcessed = false; activeCases[caseIndex].pastSessions.pop(); database.ref('activeCases').set(activeCases); return; } let circuit = prompt('الدائرة للأرشيف:', activeCases[caseIndex].circuit || 'مدني'); let closedCase = { ...activeCases[caseIndex], circuit: circuit || 'مدني', judgment, closedAt: new Date().toISOString() }; closedCases.push(closedCase); activeCases.splice(caseIndex,1); database.ref('activeCases').set(activeCases); database.ref('closedCases').set(closedCases); showNotification(`✅ تم إنهاء القضية ونقلها للقضايا المنتهية`); renderActiveCases(); renderPastSessions(); renderClosedCases(); renderArchive(); updateStats(); checkForNewNotifications(); } else if (action === 'admin') { let workType = prompt('نوع العمل الإداري:', 'سحب حكم'); let dueDate = prompt('تاريخ المعاد (YYYY-MM-DD):', new Date().toISOString().slice(0,10)); if (!workType || !dueDate) { if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false; else activeCases[caseIndex].nextSessionProcessed = false; activeCases[caseIndex].pastSessions.pop(); database.ref('activeCases').set(activeCases); return; } adminWorks.push({ id: Date.now().toString(), caseId, caseNumber: activeCases[caseIndex].number, caseYear: activeCases[caseIndex].year, type: workType, dueDate, notes: '', status: 'pending', createdAt: new Date().toISOString() }); database.ref('activeCases').set(activeCases); database.ref('adminWorks').set(adminWorks); showNotification(`✅ تم إضافة العمل الإداري: ${workType}`); renderAdminWorks(); } else if (action === 'judgment') { let judgmentType = prompt('نوع الحكم:', 'يلزم معارضة'); if (!judgmentType) { if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false; else activeCases[caseIndex].nextSessionProcessed = false; activeCases[caseIndex].pastSessions.pop(); database.ref('activeCases').set(activeCases); return; } judgmentRecords.push({ id: Date.now().toString(), caseId, caseNumber: activeCases[caseIndex].number, caseYear: activeCases[caseIndex].year, type: judgmentType, newSessionDate: '', notes: '', status: 'pending', createdAt: new Date().toISOString() }); database.ref('activeCases').set(activeCases); database.ref('judgmentRecords').set(judgmentRecords); showNotification(`✅ تم إضافة سجل الحكم: ${judgmentType}`); renderJudgmentRecords(); } else if (action === 'expert') { showMiniAgenda(function(expertDate) { if (!expertDate) { if (sessionType === 'first') activeCases[caseIndex].firstSessionProcessed = false; else activeCases[caseIndex].nextSessionProcessed = false; activeCases[caseIndex].pastSessions.pop(); database.ref('activeCases').set(activeCases); return; } let request = prompt('المطلوب من الخبير:', ''); experts.push({ id: Date.now().toString(), caseId, caseNumber: activeCases[caseIndex].number, caseYear: activeCases[caseIndex].year, clientName: getClientName(activeCases[caseIndex].clientId), opponentName: activeCases[caseIndex].opponentName, expertDate, request: request || '', inspections: '', notes: '', status: 'pending', createdAt: new Date().toISOString() }); database.ref('activeCases').set(activeCases); database.ref('experts').set(experts); showNotification(`✅ تم إرسال القضية للخبير في ${new Date(expertDate).toLocaleString('ar-EG')}`); renderExperts(); checkForNewNotifications(); }); } renderActiveCases(); renderPastSessions(); renderTomorrowSessions(); renderAdminWorks(); renderJudgmentRecords(); renderExperts(); renderClosedCases(); renderArchive(); updateStats(); checkForNewNotifications(); }
 
@@ -547,7 +621,7 @@
     function addArchiveCircuit() { if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية'); return; } let newCircuit = prompt('أدخل اسم الدائرة الجديدة:'); if (newCircuit && newCircuit.trim()) { let circuitName = newCircuit.trim(); if (!archiveCategories.find(c=>c.circuit===circuitName)) { archiveCategories.push({ id: circuitName.replace(/\s/g,'_'), name: circuitName, circuit: circuitName, count: 0 }); renderArchive(); showNotification(`تم إضافة دائرة "${circuitName}"`); } else showNotification('هذه الدائرة موجودة بالفعل'); } }
 
     // إدارة الموكلين
-    function renderClientsTable() { let tbody = document.querySelector('#clientsTable tbody'); if (!tbody) return; tbody.innerHTML = clients.map(cl => { let total = activeCases.filter(c=>c.clientId==cl.id || (c.additionalClients&&c.additionalClients.some(ac=>ac.clientId==cl.id))).length + closedCases.filter(c=>c.clientId==cl.id || (c.additionalClients&&c.additionalClients.some(ac=>ac.clientId==cl.id))).length; let showDelete = canDeleteEverywhere() ? `<button class="delete-btn" onclick="deleteClient('${cl.id}')">🗑️</button>` : 'لا يمكن الحذف'; return `<tr><td>${cl.name}</td><td>${cl.phone}</td><td>${total}</td><td>${showDelete}</td>`; }).join(''); }
+    function renderClientsTable() { let tbody = document.querySelector('#clientsTable tbody'); if (!tbody) return; tbody.innerHTML = clients.map(cl => { let total = activeCases.filter(c=>c.clientId==cl.id || (c.additionalClients&&c.additionalClients.some(ac=>ac.clientId==cl.id))).length + closedCases.filter(c=>c.clientId==cl.id || (c.additionalClients&&c.additionalClients.some(ac=>ac.clientId==cl.id))).length; let showDelete = canDeleteEverywhere() ? `<button class="delete-btn" onclick="deleteClient('${cl.id}')">🗑️</button>` : 'لا يمكن الحذف'; return `<tr><td style="text-align:right">${cl.name}</td><td style="text-align:right">${cl.phone}</td><td style="text-align:right">${total}</td><td style="text-align:right">${showDelete}</td>`; }).join(''); }
     function deleteClient(id) { if (confirm('حذف الموكل سيؤثر على القضايا المرتبطة؟')) { clients = clients.filter(c=>c.id!=id); database.ref('clients').set(clients); showNotification('تم حذف الموكل'); } }
     function populateSelects() { let select = document.getElementById('caseClient'); if (select) { let currentVal = select.value; select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join(''); if (currentVal) select.value = currentVal; } document.querySelectorAll('.additional-client-select').forEach(sel => { let currentVal = sel.value; sel.innerHTML = '<option value="">اختر موكل مشارك</option>' + clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join(''); if (currentVal) sel.value = currentVal; }); }
 
