@@ -1,7 +1,7 @@
 {
   "name": "مكتب الخواجا للمحاماة",
   "short_name": "الخواجا",
-  "description": "نظام إدارة القضايا والجلسات",
+  "description": "نظام إدارة القضايا والجلسات لمكتب المحاماة",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#1E3A8A",
