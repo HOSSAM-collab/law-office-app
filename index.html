@@ -217,7 +217,42 @@
                 </div>
                 
                 <div id="panelsContainer">
-                    <div id="dashboardPanel" class="panel active-panel"><div style="text-align:center; padding:20px;"><i class="fas fa-gavel" style="font-size:48px; color:#1a4a5f;"></i><h3 style="color:#1a4a5f;">مكتب الخواجا للمحاماة</h3><p style="color:#666;">نظام إدارة القضايا والجلسات</p></div></div>
+                    <div id="dashboardPanel" class="panel active-panel">
+                        <div style="text-align:center; padding:20px;">
+                            <i class="fas fa-gavel" style="font-size:48px; color:#1a4a5f;"></i>
+                            <h3 style="color:#1a4a5f;">مكتب الخواجا للمحاماة</h3>
+                            <p style="color:#666;">نظام إدارة القضايا والجلسات</p>
+                        </div>
+
+                        <!-- ساعة الميزان -->
+                        <div style="position: relative; width: 220px; height: 220px; margin: 30px auto;">
+                            <!-- أيقونة الميزان الكبيرة -->
+                            <i class="fas fa-balance-scale" style="font-size: 140px; color: #ffc107; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; text-shadow: 0 0 10px rgba(255,193,7,0.5);"></i>
+                            
+                            <!-- الأرقام -->
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;">
+                                <span style="position: absolute; top: 5%; left: 50%; transform: translate(-50%, -50%); font-size: 18px; font-weight: bold; color: #1a4a5f;">12</span>
+                                <span style="position: absolute; top: 50%; right: 0%; transform: translate(50%, -50%); font-size: 18px; font-weight: bold; color: #1a4a5f;">3</span>
+                                <span style="position: absolute; bottom: 5%; left: 50%; transform: translate(-50%, 50%); font-size: 18px; font-weight: bold; color: #1a4a5f;">6</span>
+                                <span style="position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); font-size: 18px; font-weight: bold; color: #1a4a5f;">9</span>
+                            </div>
+                            
+                            <!-- العقارب -->
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; z-index: 2;">
+                                <div id="hourHandScale" style="position: absolute; bottom: 50%; left: 50%; transform-origin: 50% 100%; width: 5px; height: 50px; background: #0b2b40; border-radius: 4px; transform: translateX(-50%) rotate(0deg); z-index: 3;"></div>
+                                <div id="minuteHandScale" style="position: absolute; bottom: 50%; left: 50%; transform-origin: 50% 100%; width: 3px; height: 75px; background: #1a4a5f; border-radius: 3px; transform: translateX(-50%) rotate(0deg); z-index: 3;"></div>
+                                <div id="secondHandScale" style="position: absolute; bottom: 50%; left: 50%; transform-origin: 50% 100%; width: 2px; height: 90px; background: #dc3545; border-radius: 2px; transform: translateX(-50%) rotate(0deg); z-index: 3;"></div>
+                                <div style="width: 10px; height: 10px; background: #1a4a5f; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 4;"></div>
+                            </div>
+                        </div>
+
+                        <!-- التاريخ -->
+                        <div id="liveDateScale" style="text-align: center; margin-top: 15px; font-size: 16px; font-weight: bold; color: #1a4a5f;">--</div>
+                        <div style="text-align: center; margin-top: 8px; font-size: 13px; color: #1a4a5f;">
+                            <i class="fas fa-gavel"></i> توقيت العدالة <i class="fas fa-balance-scale"></i>
+                        </div>
+                    </div>
+                    
                     <div id="newCasePanel" class="panel"><h3>➕ إضافة قضية جديدة</h3><form id="newCaseForm"><div class="form-group"><label>رقم القضية *</label><input type="text" id="caseNumber" required></div><div class="form-group"><label>سنة القضية *</label><input type="text" id="caseYear" placeholder="مثال: 2025" required></div><div class="form-group"><label>موضوع القضية *</label><input type="text" id="caseSubject" required></div><div class="form-group"><label>المحكمة *</label><div class="court-options" id="courtOptions"></div><input type="text" id="caseCourt" style="display:none;"></div><div class="form-group"><label>الدائرة *</label><select id="caseCircuit" required onchange="toggleOtherCircuit()"><option value="">اختر الدائرة</option><option value="مدني">مدني</option><option value="مدني كلي">مدني كلي</option><option value="مدني مستأنف">مدني مستأنف</option><option value="جنح">جنح</option><option value="صحة توقيع">صحة توقيع</option><option value="أسرة المراغة">أسرة المراغة</option><option value="أسرة سوهاج">أسرة سوهاج</option><option value="أخرى">أخرى +</option></select><input type="text" id="otherCircuit" placeholder="اكتب اسم الدائرة" style="display:none;"></div><div class="form-group"><label>تاريخ الجلسة الأولى *</label><input type="datetime-local" id="firstSessionDate" required></div><div class="form-group"><label>الموكل الرئيسي *</label><select id="caseClient" required><option value="">اختر موكل</option></select><input type="text" id="clientSearchInput" placeholder="🔍 بحث عن موكل..." onkeyup="filterClients()"></div><div class="form-group"><label>صفة الموكل الرئيسي *</label><select id="clientRole" required><option value="">اختر الصفة</option><option value="مدعي">مدعي</option><option value="مدعي عليه">مدعي عليه</option><option value="متهم">متهم</option><option value="مجني عليه">مجني عليه</option><option value="شاكي">شاكي</option><option value="مشكو في حقه">مشكو في حقه</option><option value="سلطته الاتهام">سلطته الاتهام</option><option value="مستأنف">مستأنف</option><option value="مستأنف ضده">مستأنف ضده</option><option value="معترض">معترض</option><option value="معترض ضده">معترض ضده</option></select></div><div class="form-group"><label><i class="fas fa-users"></i> موكلين مشاركين (اختياري)</label><div id="additionalClientsContainer"></div><button type="button" onclick="addAdditionalClient()" class="btn-sm btn-success add-btn"><i class="fas fa-plus"></i> إضافة موكل مشارك</button></div><div class="form-group"><label><i class="fas fa-gavel"></i> الخصوم * (الخصم الأول إجباري)</label><div id="opponentsContainer"></div><button type="button" onclick="addOpponent()" class="btn-sm btn-success add-btn"><i class="fas fa-plus"></i> إضافة خصم آخر</button></div><div class="form-group"><label>القرار</label><textarea id="caseDecision" rows="3" placeholder="القرار أو ملاحظات على القضية"></textarea></div><button type="submit">✅ إضافة قضية</button></form></div>
                     <div id="activeCasesPanel" class="panel"><h3>📂 قضايا المكتب</h3><div class="internal-search"><input type="text" id="activeSearchInput" placeholder="🔍 بحث في قضايا المكتب..."><button onclick="searchActiveCases()" class="btn-sm">بحث</button><button onclick="clearActiveSearch()" class="btn-sm btn-warning">مسح</button></div><div id="activeCasesList"></div></div>
                     <div id="tomorrowSessionsPanel" class="panel"><h3>📅 جلسات الغد</h3><div id="tomorrowSessionsList"></div></div>
@@ -2090,7 +2125,6 @@
         let oldPassword = emp.password;
         let updatedAt = new Date().toISOString();
         
-        // تحديث البيانات محلياً أولاً
         emp.password = newPassword;
         emp.updatedAt = updatedAt;
         
@@ -2478,6 +2512,39 @@
             renderArchive();
         });
     }
+
+    // الساعة والتاريخ
+    function updateScaleClock() {
+        let now = new Date();
+        let hours = now.getHours() % 12;
+        let minutes = now.getMinutes();
+        let seconds = now.getSeconds();
+
+        let hourDeg = (hours * 30) + (minutes * 0.5);
+        let minuteDeg = (minutes * 6) + (seconds * 0.1);
+        let secondDeg = seconds * 6;
+
+        let hourHand = document.getElementById('hourHandScale');
+        let minuteHand = document.getElementById('minuteHandScale');
+        let secondHand = document.getElementById('secondHandScale');
+
+        if (hourHand) hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+        if (minuteHand) minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+        if (secondHand) secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+    }
+
+    function updateScaleDate() {
+        let now = new Date();
+        let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        let dateString = now.toLocaleDateString('ar-EG', options);
+        let dateDiv = document.getElementById('liveDateScale');
+        if (dateDiv) dateDiv.innerHTML = `📅 ${dateString}`;
+    }
+
+    setInterval(updateScaleClock, 1000);
+    setInterval(updateScaleDate, 1000);
+    updateScaleClock();
+    updateScaleDate();
 
     // تسجيل الدخول
     async function attemptLogin() {
