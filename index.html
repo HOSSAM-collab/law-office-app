@@ -223,8 +223,7 @@
                             <h3 style="color:#1a4a5f;">مكتب الخواجا للمحاماة</h3>
                             <p style="color:#666;">نظام إدارة القضايا والجلسات</p>
                         </div>
-
-                        <!-- ساعة الميزان - لون أسود + أرقام كاملة -->
+                        <!-- ساعة الميزان -->
                         <div style="position: relative; width: 260px; height: 260px; margin: 30px auto;">
                             <i class="fas fa-balance-scale" style="font-size: 160px; color: #1a1a1a; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; text-shadow: 0 0 5px rgba(0,0,0,0.3); filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));"></i>
                             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;">
@@ -552,7 +551,7 @@
         }; 
     }
 
-    // البحث العام (مختصر)
+    // البحث العام
     function performSearch() { 
         let searchType = document.getElementById('searchType').value; 
         let resultsDiv = document.getElementById('searchResults'); 
@@ -1722,7 +1721,134 @@
         });
     }
 
-    // الموظفين (مع إصلاح تغيير كلمة السر واليوزر)
+    // الموظفين (بالتعديلات الجديدة)
+    async function reloadUsersFromFirebase() {
+        try {
+            const fixedSnapshot = await database.ref('fixedAdmins').once('value');
+            const fixedData = fixedSnapshot.val();
+            if (fixedData) {
+                fixedAdmins = Object.values(fixedData);
+            } else {
+                fixedAdmins = [
+                    { id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, superAdmin: true },
+                    { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }
+                ];
+                const adminsObj = {};
+                fixedAdmins.forEach(admin => { adminsObj[admin.id] = admin; });
+                await database.ref('fixedAdmins').set(adminsObj);
+            }
+            const empSnapshot = await database.ref('employees').once('value');
+            const empData = empSnapshot.val();
+            employees = empData ? Object.values(empData) : [];
+            renderEmployeesTable();
+            console.log('تم إعادة تحميل بيانات المستخدمين من Firebase');
+        } catch (error) {
+            console.error('خطأ في إعادة تحميل المستخدمين:', error);
+        }
+    }
+
+    async function changePassword(empId) {
+        if (!canChangePasswordFor({ id: empId })) {
+            showNotification('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم');
+            return;
+        }
+        let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
+        if (!newPassword || newPassword.length === 0) { 
+            showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); 
+            return; 
+        }
+        let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
+        if (!emp) { 
+            showNotification('❌ المستخدم غير موجود'); 
+            return; 
+        }
+        let oldPassword = emp.password;
+        const updatedAt = new Date().toISOString();
+        
+        emp.password = newPassword;
+        emp.updatedAt = updatedAt;
+        
+        let refPath = emp.isFixed ? `fixedAdmins/${empId}` : `employees/${empId}`;
+        
+        try {
+            await database.ref(refPath).update({ password: newPassword, updatedAt });
+            await reloadUsersFromFirebase();
+            
+            showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`);
+            
+            if (emp.id === currentUser?.id) {
+                showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج الآن');
+                logout();
+            } else {
+                renderEmployeesTable();
+            }
+        } catch (err) {
+            console.error(err);
+            emp.password = oldPassword;
+            showNotification('❌ خطأ في حفظ كلمة السر الجديدة');
+        }
+    }
+    
+    async function changeUsername(empId) {
+        if (!canChangeUsername({ id: empId })) { 
+            showNotification('❌ غير مسموح لك بتغيير اسم المستخدم لهذا الحساب'); 
+            return; 
+        }
+        let newUsername = prompt('✏️ أدخل اسم المستخدم الجديد:');
+        if (!newUsername || newUsername.trim().length === 0) { 
+            showNotification('❌ لم يتم إدخال اسم مستخدم جديد'); 
+            return; 
+        }
+        newUsername = newUsername.trim();
+        let allExisting = [...fixedAdmins, ...employees];
+        if (allExisting.some(e => e.id !== empId && e.username === newUsername)) { 
+            showNotification('❌ اسم المستخدم موجود بالفعل'); 
+            return; 
+        }
+        let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
+        if (!emp) { 
+            showNotification('❌ المستخدم غير موجود'); 
+            return; 
+        }
+        let oldUsername = emp.username;
+        const updatedAt = new Date().toISOString();
+        
+        emp.username = newUsername;
+        emp.updatedAt = updatedAt;
+        
+        let refPath = emp.isFixed ? `fixedAdmins/${empId}` : `employees/${empId}`;
+        
+        try {
+            await database.ref(refPath).update({ username: newUsername, updatedAt });
+            await reloadUsersFromFirebase();
+            
+            showNotification(`✅ تم تغيير اسم المستخدم من "${oldUsername}" إلى "${newUsername}"`);
+            
+            if (emp.id === currentUser?.id) {
+                currentUser.username = newUsername;
+                currentUser.updatedAt = updatedAt;
+                localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+                document.getElementById('currentUserName').innerText = newUsername;
+            }
+            renderEmployeesTable();
+        } catch (err) {
+            console.error(err);
+            emp.username = oldUsername;
+            showNotification('❌ خطأ في حفظ اسم المستخدم الجديد');
+        }
+    }
+    
+    function deleteEmployee(id) {
+        if (id === "admin_hesham") { showNotification('لا يمكن حذف المدير الأساسي'); return; }
+        if (id === "admin_george" && !isSuperAdmin()) { showNotification('لا يمكن حذف هذا المستخدم'); return; }
+        if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
+            employees = employees.filter(e => e.id != id);
+            database.ref('employees').set(employees);
+            showNotification('تم حذف الموظف');
+            renderEmployeesTable();
+        }
+    }
+    
     function renderEmployeesTable() {
         let tbody = document.querySelector('#employeesTable tbody');
         if (!tbody) return;
@@ -1756,149 +1882,6 @@
             }
             return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role || 'محامي'}</td><td style="text-align:right">${emp.password || '••••••'}</td><td style="text-align:right">${actions}</td></tr>`;
         }).join('');
-    }
-    
-    // دالة تغيير كلمة السر - النسخة النهائية
-    function changePassword(empId) {
-        if (!canChangePasswordFor({ id: empId })) {
-            showNotification('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم');
-            return;
-        }
-        let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
-        if (!newPassword || newPassword.length === 0) { 
-            showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); 
-            return; 
-        }
-        let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
-        if (!emp) { 
-            showNotification('❌ المستخدم غير موجود'); 
-            return; 
-        }
-        let oldPassword = emp.password;
-        let updatedAt = new Date().toISOString();
-        
-        // تحديث محلي
-        emp.password = newPassword;
-        emp.updatedAt = updatedAt;
-        if (emp.isFixed) {
-            let idx = fixedAdmins.findIndex(e => e.id == empId);
-            if (idx !== -1) {
-                fixedAdmins[idx].password = newPassword;
-                fixedAdmins[idx].updatedAt = updatedAt;
-            }
-        } else {
-            let idx = employees.findIndex(e => e.id == empId);
-            if (idx !== -1) {
-                employees[idx].password = newPassword;
-                employees[idx].updatedAt = updatedAt;
-            }
-        }
-        
-        // تحديث Firebase
-        let updatePromise = emp.isFixed ? 
-            database.ref('fixedAdmins/' + empId).update({ password: newPassword, updatedAt }) :
-            database.ref('employees/' + empId).update({ password: newPassword, updatedAt });
-        
-        updatePromise.then(() => {
-            showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`);
-            if (emp.id === currentUser?.id) {
-                currentUser.password = newPassword;
-                currentUser.updatedAt = updatedAt;
-                localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
-                showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج لإعادة الدخول بالكلمة الجديدة');
-                setTimeout(() => logout(), 3000);
-            }
-            renderEmployeesTable();
-        }).catch(err => { 
-            emp.password = oldPassword;
-            if (emp.isFixed) {
-                let idx = fixedAdmins.findIndex(e => e.id == empId);
-                if (idx !== -1) fixedAdmins[idx].password = oldPassword;
-            } else {
-                let idx = employees.findIndex(e => e.id == empId);
-                if (idx !== -1) employees[idx].password = oldPassword;
-            }
-            showNotification('❌ خطأ في حفظ كلمة السر الجديدة'); 
-            console.error(err); 
-        });
-    }
-    
-    // دالة تغيير اسم المستخدم - النسخة النهائية
-    function changeUsername(empId) {
-        if (!canChangeUsername({ id: empId })) { 
-            showNotification('❌ غير مسموح لك بتغيير اسم المستخدم لهذا الحساب'); 
-            return; 
-        }
-        let newUsername = prompt('✏️ أدخل اسم المستخدم الجديد:');
-        if (!newUsername || newUsername.trim().length === 0) { 
-            showNotification('❌ لم يتم إدخال اسم مستخدم جديد'); 
-            return; 
-        }
-        newUsername = newUsername.trim();
-        let allExisting = [...fixedAdmins, ...employees];
-        if (allExisting.some(e => e.id !== empId && e.username === newUsername)) { 
-            showNotification('❌ اسم المستخدم موجود بالفعل'); 
-            return; 
-        }
-        let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
-        if (!emp) { 
-            showNotification('❌ المستخدم غير موجود'); 
-            return; 
-        }
-        let oldUsername = emp.username;
-        let updatedAt = new Date().toISOString();
-        
-        emp.username = newUsername;
-        emp.updatedAt = updatedAt;
-        if (emp.isFixed) {
-            let idx = fixedAdmins.findIndex(e => e.id == empId);
-            if (idx !== -1) {
-                fixedAdmins[idx].username = newUsername;
-                fixedAdmins[idx].updatedAt = updatedAt;
-            }
-        } else {
-            let idx = employees.findIndex(e => e.id == empId);
-            if (idx !== -1) {
-                employees[idx].username = newUsername;
-                employees[idx].updatedAt = updatedAt;
-            }
-        }
-        
-        let updatePromise = emp.isFixed ? 
-            database.ref('fixedAdmins/' + empId).update({ username: newUsername, updatedAt }) :
-            database.ref('employees/' + empId).update({ username: newUsername, updatedAt });
-        
-        updatePromise.then(() => {
-            showNotification(`✅ تم تغيير اسم المستخدم من "${oldUsername}" إلى "${newUsername}"`);
-            if (emp.id === currentUser?.id) {
-                currentUser.username = newUsername;
-                currentUser.updatedAt = updatedAt;
-                localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
-                document.getElementById('currentUserName').innerText = newUsername;
-            }
-            renderEmployeesTable();
-        }).catch(err => { 
-            emp.username = oldUsername;
-            if (emp.isFixed) {
-                let idx = fixedAdmins.findIndex(e => e.id == empId);
-                if (idx !== -1) fixedAdmins[idx].username = oldUsername;
-            } else {
-                let idx = employees.findIndex(e => e.id == empId);
-                if (idx !== -1) employees[idx].username = oldUsername;
-            }
-            showNotification('❌ خطأ في حفظ اسم المستخدم الجديد'); 
-        });
-    }
-    
-    function deleteEmployee(id) {
-        if (id === "admin_hesham") { showNotification('لا يمكن حذف المدير الأساسي'); return; }
-        if (id === "admin_george" && !isSuperAdmin()) { showNotification('لا يمكن حذف هذا المستخدم'); return; }
-        if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
-            employees = employees.filter(e => e.id != id);
-            database.ref('employees').set(employees);
-            showNotification('تم حذف الموظف');
-            renderEmployeesTable();
-        }
     }
 
     // الأجندة المتقدمة (مختصرة)
@@ -2163,7 +2146,7 @@
     updateScaleClock();
     updateScaleDate();
 
-    // تسجيل الدخول
+    // تسجيل الدخول (معدل لقراءة أحدث البيانات)
     async function attemptLogin() {
         let username = document.getElementById('loginUsername').value.trim();
         let password = document.getElementById('loginPassword').value;
@@ -2174,6 +2157,7 @@
             let fixedAdminsList = fixedAdminsData ? Object.values(fixedAdminsData) : [];
             let fixedAdmin = fixedAdminsList.find(e => e.username === username && e.password === password);
             if (fixedAdmin) {
+                fixedAdmins = fixedAdminsList;
                 currentUser = fixedAdmin;
                 localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
                 document.getElementById('loginScreen').style.display = 'none';
@@ -2210,6 +2194,7 @@
             let employeesList = employeesData ? Object.values(employeesData) : [];
             let user = employeesList.find(e => e.username === username && e.password === password);
             if (user) {
+                employees = employeesList;
                 currentUser = user;
                 localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
                 document.getElementById('loginScreen').style.display = 'none';
@@ -2400,6 +2385,7 @@
     window.searchEnforcements = searchEnforcements; window.clearEnforcementSearch = clearEnforcementSearch;
     window.filterClientsForEnforcement = filterClientsForEnforcement; window.selectClientForEnforcement = selectClientForEnforcement;
     window.loadCasesForClient = loadCasesForClient;
+    window.reloadUsersFromFirebase = reloadUsersFromFirebase;
 
     // PWA
     (function registerPWA() {
