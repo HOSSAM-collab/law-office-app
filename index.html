@@ -134,7 +134,6 @@
         .suggestion-item { padding: 8px 12px; border-bottom: 1px solid #eee; cursor: pointer; background: #f8f9fa; transition: background 0.2s; }
         .suggestion-item:hover { background: #1a4a5f !important; color: white !important; }
         #clientSuggestions { position: absolute; background: white; border: 1px solid #ddd; border-radius: 8px; max-height: 200px; overflow-y: auto; width: calc(100% - 30px); z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        /* أنماط صفحة مواعيد الغد */
         .tomorrow-tab { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .tomorrow-tab-btn { background: #e9ecef; color: #333; padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: all 0.2s; border: none; }
         .tomorrow-tab-btn.active { background: #1a4a5f; color: white; }
@@ -235,7 +234,7 @@
                                 <span style="position: absolute; bottom: 7%; left: 20%; transform: translate(-50%, 50%); font-size: 14px; font-weight: bold; color: #1a4a5f;">7</span>
                                 <span style="position: absolute; bottom: 17%; left: 7%; transform: translate(-50%, 50%); font-size: 14px; font-weight: bold; color: #1a4a5f;">8</span>
                                 <span style="position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%); font-size: 16px; font-weight: bold; color: #1a4a5f;">9</span>
-                                <span style="position: absolute; top: 17%; left: 7%; transform: translate(-50%, -50%); font-size: 14px; font-weight: bold; color: #1a4a5f;">10</span>
+                                <span style="position: absolute; top: 17%; left: 7%; transform: translate(-50%, -50%); font-size: 14px; font-weight; bold; color: #1a4a5f;">10</span>
                                 <span style="position: absolute; top: 7%; left: 20%; transform: translate(-50%, -50%); font-size: 14px; font-weight: bold; color: #1a4a5f;">11</span>
                             </div>
                             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; z-index: 2;">
@@ -252,7 +251,6 @@
                     <div id="newCasePanel" class="panel"><h3>➕ إضافة قضية جديدة</h3><form id="newCaseForm"><div class="form-group"><label>رقم القضية *</label><input type="text" id="caseNumber" required></div><div class="form-group"><label>سنة القضية *</label><input type="text" id="caseYear" placeholder="مثال: 2025" required></div><div class="form-group"><label>موضوع القضية *</label><input type="text" id="caseSubject" required></div><div class="form-group"><label>المحكمة *</label><div class="court-options" id="courtOptions"></div><input type="text" id="caseCourt" style="display:none;"></div><div class="form-group"><label>الدائرة *</label><select id="caseCircuit" required onchange="toggleOtherCircuit()"><option value="">اختر الدائرة</option><option value="مدني">مدني</option><option value="مدني كلي">مدني كلي</option><option value="مدني مستأنف">مدني مستأنف</option><option value="جنح">جنح</option><option value="صحة توقيع">صحة توقيع</option><option value="أسرة المراغة">أسرة المراغة</option><option value="أسرة سوهاج">أسرة سوهاج</option><option value="أخرى">أخرى +</option></select><input type="text" id="otherCircuit" placeholder="اكتب اسم الدائرة" style="display:none;"></div><div class="form-group"><label>تاريخ الجلسة الأولى *</label><input type="datetime-local" id="firstSessionDate" required></div><div class="form-group"><label>الموكل الرئيسي *</label><select id="caseClient" required><option value="">اختر موكل</option></select><input type="text" id="clientSearchInput" placeholder="🔍 بحث عن موكل..." onkeyup="filterClients()"></div><div class="form-group"><label>صفة الموكل الرئيسي *</label><select id="clientRole" required><option value="">اختر الصفة</option><option value="مدعي">مدعي</option><option value="مدعي عليه">مدعي عليه</option><option value="متهم">متهم</option><option value="مجني عليه">مجني عليه</option><option value="شاكي">شاكي</option><option value="مشكو في حقه">مشكو في حقه</option><option value="سلطته الاتهام">سلطته الاتهام</option><option value="مستأنف">مستأنف</option><option value="مستأنف ضده">مستأنف ضده</option><option value="معترض">معترض</option><option value="معترض ضده">معترض ضده</option></select></div><div class="form-group"><label><i class="fas fa-users"></i> موكلين مشاركين (اختياري)</label><div id="additionalClientsContainer"></div><button type="button" onclick="addAdditionalClient()" class="btn-sm btn-success add-btn"><i class="fas fa-plus"></i> إضافة موكل مشارك</button></div><div class="form-group"><label><i class="fas fa-gavel"></i> الخصوم * (الخصم الأول إجباري)</label><div id="opponentsContainer"></div><button type="button" onclick="addOpponent()" class="btn-sm btn-success add-btn"><i class="fas fa-plus"></i> إضافة خصم آخر</button></div><div class="form-group"><label>القرار</label><textarea id="caseDecision" rows="3" placeholder="القرار أو ملاحظات على القضية"></textarea></div><button type="submit">✅ إضافة قضية</button></form></div>
                     <div id="activeCasesPanel" class="panel"><h3>📂 قضايا المكتب</h3><div class="internal-search"><input type="text" id="activeSearchInput" placeholder="🔍 بحث في قضايا المكتب..."><button onclick="searchActiveCases()" class="btn-sm">بحث</button><button onclick="clearActiveSearch()" class="btn-sm btn-warning">مسح</button></div><div id="activeCasesList"></div></div>
                     
-                    <!-- صفحة مواعيد الغد - متكاملة -->
                     <div id="tomorrowAppointmentsPanel" class="panel">
                         <h3>📅 مواعيد الغد</h3>
                         <div class="tomorrow-tab">
@@ -272,7 +270,7 @@
                     <div id="advancedAgendaPanel" class="panel"><h3>📅 الأجندة</h3><div id="advancedAgendaList"></div></div>
                     <div id="pastSessionsPanel" class="panel"><h3>📜 ماتم في الجلسات</h3><div id="pastSessionsList"></div></div>
                     <div id="closedCasesPanel" class="panel"><h3>📦 القضايا المنتهية</h3><div id="closedCasesList"></div></div>
-                    <div id="clientsPanel" class="panel"><h3>👥 إدارة الموكلين</h3><form id="clientForm"><div class="form-group"><label>الاسم</label><input type="text" id="clientName" required></div><div class="form-group"><label>الرقم القومي</label><input type="text" id="clientNationalId"></div><div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div><button type="submit">➕ إضافة موكل</button></form><div class="table-responsive"><table id="clientsTable"><thead><td><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></thead><tbody></tbody> </table></div></div>
+                    <div id="clientsPanel" class="panel"><h3>👥 إدارة الموكلين</h3><form id="clientForm"><div class="form-group"><label>الاسم</label><input type="text" id="clientName" required></div><div class="form-group"><label>الرقم القومي</label><input type="text" id="clientNationalId"></div><div class="form-group"><label>الموبايل</label><input type="tel" id="clientPhone" required></div><button type="submit">➕ إضافة موكل</button></form><div class="table-responsive"><table id="clientsTable"><thead><tr><th>الاسم</th><th>الموبايل</th><th>عدد القضايا</th><th>إجراءات</th></thead><tbody></tbody> </table></div></div>
                     <div id="adminWorksPanel" class="panel"><h3>📋 الأعمال الإدارية</h3><div id="adminWorksList"></div></div>
                     <div id="judgmentRecordsPanel" class="panel"><h3>⚖️ سجل الأحكام</h3><div id="judgmentRecordsList"></div></div>
                     <div id="enforcementsPanel" class="panel"><h3>📄 توكيلات التنفيذ</h3><div class="internal-search" style="margin-bottom:15px;"><input type="text" id="enforcementSearchInput" placeholder="🔍 بحث باسم الموكل أو رقم القضية..."><button onclick="searchEnforcements()" class="btn-sm">بحث</button><button onclick="clearEnforcementSearch()" class="btn-sm btn-warning">مسح</button></div><button onclick="addEnforcement()" class="btn-success">➕ إضافة توكيل جديد</button><div id="enforcementsList"></div></div>
@@ -302,6 +300,72 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    // ==================== إضافة بيانات الدخول الأساسية تلقائياً ====================
+    async function initializeDefaultAdmins() {
+        try {
+            const snapshot = await database.ref('fixedAdmins').once('value');
+            if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) {
+                console.log('📝 جاري إضافة بيانات الدخول الأساسية...');
+                const defaultAdmins = {
+                    admin_hesham: {
+                        id: "admin_hesham",
+                        username: "hesham",
+                        password: "123",
+                        role: "مدير",
+                        isFixed: true,
+                        superAdmin: true,
+                        createdAt: new Date().toISOString()
+                    },
+                    admin_george: {
+                        id: "admin_george",
+                        username: "جورج بولس",
+                        password: "0000",
+                        role: "مدير",
+                        isFixed: true,
+                        createdAt: new Date().toISOString()
+                    }
+                };
+                await database.ref('fixedAdmins').set(defaultAdmins);
+                console.log('✅ تم إضافة بيانات الدخول الأساسية');
+                if (typeof showNotification === 'function') {
+                    showNotification('✅ تم إضافة حسابات: hesham/123 و جورج بولس/0000');
+                }
+            } else {
+                console.log('✅ بيانات الدخول موجودة بالفعل');
+            }
+        } catch (error) {
+            console.error('❌ خطأ في إضافة البيانات:', error);
+        }
+    }
+    
+    async function ensureSuperAdminExists() {
+        try {
+            const snapshot = await database.ref('fixedAdmins/admin_hesham').once('value');
+            const adminData = snapshot.val();
+            if (!adminData) {
+                await database.ref('fixedAdmins/admin_hesham').set({
+                    id: "admin_hesham",
+                    username: "hesham",
+                    password: "123",
+                    role: "مدير",
+                    isFixed: true,
+                    superAdmin: true,
+                    createdAt: new Date().toISOString()
+                });
+                console.log('✅ تم إنشاء حساب سوبر أدمن');
+            } else if (!adminData.superAdmin) {
+                await database.ref('fixedAdmins/admin_hesham/superAdmin').set(true);
+                console.log('✅ تم تحديث صلاحية سوبر أدمن');
+            }
+        } catch (error) {
+            console.error('❌ خطأ:', error);
+        }
+    }
+    
+    // استدعاء الدوال
+    initializeDefaultAdmins();
+    ensureSuperAdminExists();
+
     let currentUser = null;
     let fixedAdmins = [];
     let activeCases = [], closedCases = [], clients = [], employees = [], customCourts = [];
@@ -314,7 +378,7 @@
     let sessionTimeout = null;
     let maintenanceInterval = null;
     let notificationCheckInterval = null;
-    let lastNotifiedData = { sessionsIds: '', enforcementsIds: '', expertsIds: '', adminWorksIds: '' };
+    let lastNotifiedData = { allIds: '' };
     let archiveCategories = [];
     let enforcementSearchTerm = '';
     let expertSearchTerm = '';
@@ -331,7 +395,6 @@
     function getAllSessions(caseData) { let sessions = []; if (caseData.firstSessionDate) sessions.push({ date: caseData.firstSessionDate, decision: caseData.firstSessionDecision || 'لم يسجل قرار', type: 'first', processed: caseData.firstSessionProcessed || false }); if (caseData.nextSessionDate) sessions.push({ date: caseData.nextSessionDate, decision: caseData.nextSessionDecision || 'لم يسجل قرار', type: 'next', processed: caseData.nextSessionProcessed || false }); if (caseData.pastSessions && caseData.pastSessions.length) sessions.push(...caseData.pastSessions); return sessions.sort((a, b) => new Date(b.date) - new Date(a.date)); }
     function getFullCaseData(caseId) { let caseData = activeCases.find(c => c.id == caseId) || closedCases.find(c => c.id == caseId); if (!caseData) return null; return { ...caseData, clientName: getClientName(caseData.clientId), allClientsNames: getAllClientsNames(caseData), allOpponents: getAllOpponents(caseData), allSessions: getAllSessions(caseData) }; }
 
-    // دوال الخصوم
     function addOpponent() { let container = document.getElementById('opponentsContainer'); let opponentId = Date.now(); let div = document.createElement('div'); div.className = 'multi-item'; div.id = `opponent_${opponentId}`; div.innerHTML = `<input type="text" placeholder="اسم الخصم" class="opponent-name" style="flex:2;" required><select class="opponent-role" style="flex:2;"><option value="">اختر الصفة</option><option value="مدعي">مدعي</option><option value="مدعي عليه">مدعي عليه</option><option value="متهم">متهم</option><option value="مجني عليه">مجني عليه</option><option value="شاكي">شاكي</option><option value="مشكو في حقه">مشكو في حقه</option><option value="سلطته الاتهام">سلطته الاتهام</option><option value="مستأنف">مستأنف</option><option value="مستأنف ضده">مستأنف ضده</option><option value="معترض">معترض</option><option value="معترض ضده">معترض ضده</option></select><button type="button" onclick="removeOpponent(${opponentId})" class="btn-danger btn-sm">✖</button>`; container.appendChild(div); }
     function removeOpponent(id) { let div = document.getElementById(`opponent_${id}`); if (div) div.remove(); }
     function getOpponentsData() { let opponents = []; document.querySelectorAll('#opponentsContainer .multi-item').forEach(item => { let nameInput = item.querySelector('.opponent-name'); let roleSelect = item.querySelector('.opponent-role'); if (nameInput.value.trim()) opponents.push({ name: nameInput.value.trim(), role: roleSelect.value }); }); return opponents; }
@@ -340,7 +403,6 @@
     function getAdditionalClientsData() { let clientsData = []; document.querySelectorAll('#additionalClientsContainer .multi-item').forEach(item => { let select = item.querySelector('.additional-client-select'); let nameInput = item.querySelector('.additional-client-name'); if (select.value) clientsData.push({ clientId: select.value, clientName: getClientName(select.value), role: '' }); else if (nameInput.value.trim()) clientsData.push({ clientId: null, clientName: nameInput.value.trim(), role: '' }); }); return clientsData; }
     function filterClients() { let searchText = document.getElementById('clientSearchInput').value.toLowerCase(); let select = document.getElementById('caseClient'); for (let i = 0; i < select.options.length; i++) { let optionText = select.options[i].text.toLowerCase(); select.options[i].style.display = (optionText.includes(searchText) || searchText === '') ? '' : 'none'; } }
 
-    // صلاحيات
     function isSuperAdmin() { return currentUser && currentUser.id === "admin_hesham"; }
     function isAdmin() { return currentUser && (currentUser.role === 'مدير' || isSuperAdmin()); }
     function isGeorge() { return currentUser && currentUser.id === "admin_george"; }
@@ -357,13 +419,12 @@
     function switchToTab(tabId, saveToStorage = true) { document.querySelectorAll('.sidebar-menu-item').forEach(item => { item.classList.remove('active'); if (item.getAttribute('data-tab') === tabId) item.classList.add('active'); }); document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active-panel')); let targetPanel = document.getElementById(tabId + 'Panel'); if (targetPanel) targetPanel.classList.add('active-panel'); if (saveToStorage) localStorage.setItem('lastOpenTab', tabId); }
     function bindSidebarButtons() { document.querySelectorAll('.sidebar-menu-item').forEach(item => { item.onclick = () => { let tabId = item.getAttribute('data-tab'); if (tabId) switchToTab(tabId, true); }; }); }
 
-    // دوال المحاكم
     function updateCourtOptions() { let container = document.getElementById('courtOptions'); if (!container) return; let courts = ['المراغة', 'سوهاج', ...customCourts]; container.innerHTML = ''; courts.forEach(court => { let btn = document.createElement('span'); btn.className = 'court-btn'; btn.setAttribute('data-court', court); btn.innerText = court; btn.onclick = () => selectCourt(court); container.appendChild(btn); }); let otherBtn = document.createElement('span'); otherBtn.className = 'court-btn'; otherBtn.innerText = 'أخرى +'; otherBtn.onclick = () => showNewCourtInput(); container.appendChild(otherBtn); }
     function selectCourt(court) { document.getElementById('caseCourt').value = court; document.getElementById('caseCourt').style.display = 'none'; document.querySelectorAll('.court-btn').forEach(btn => btn.classList.remove('selected')); if (court !== 'أخرى+') document.querySelector(`.court-btn[data-court="${court}"]`)?.classList.add('selected'); }
     function showNewCourtInput() { let input = document.getElementById('caseCourt'); input.style.display = 'block'; input.value = ''; input.focus(); input.onblur = function() { if (input.value.trim()) { let newCourt = input.value.trim(); if (![...['المراغة', 'سوهاج'], ...customCourts].includes(newCourt)) { customCourts.push(newCourt); database.ref('customCourts').set(customCourts); showNotification(`تم إضافة محكمة "${newCourt}"`); } selectCourt(newCourt); } else input.style.display = 'none'; }; }
 
     // البحث العام (مختصر)
-    function performSearch() { /* نفس الكود السابق */ }
+    function performSearch() { /* سيتم إكماله */ }
     function clearSearch() { document.getElementById('searchCaseNumber').value = ''; document.getElementById('searchCaseYear').value = ''; document.getElementById('searchClientName').value = ''; document.getElementById('searchResults').innerHTML = ''; document.getElementById('searchResults').classList.remove('show'); }
     document.getElementById('searchType')?.addEventListener('change', function() { if (this.value === 'caseNumber') { document.getElementById('caseNumberGroup').style.display = 'block'; document.getElementById('caseYearGroup').style.display = 'block'; document.getElementById('clientNameGroup').style.display = 'none'; } else { document.getElementById('caseNumberGroup').style.display = 'none'; document.getElementById('caseYearGroup').style.display = 'none'; document.getElementById('clientNameGroup').style.display = 'block'; } });
     function searchActiveCases() { activeSearchTerm = document.getElementById('activeSearchInput').value.trim().toLowerCase(); renderActiveCases(); }
@@ -375,10 +436,9 @@
     function searchEnforcements() { let searchInput = document.getElementById('enforcementSearchInput'); if (searchInput) { enforcementSearchTerm = searchInput.value.trim().toLowerCase(); renderEnforcements(); } }
     function clearEnforcementSearch() { let searchInput = document.getElementById('enforcementSearchInput'); if (searchInput) { searchInput.value = ''; enforcementSearchTerm = ''; renderEnforcements(); } }
 
-    // ==================== دوال مواعيد الغد المتكاملة ====================
+    // مواعيد الغد
     function getTomorrowDate() { let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(0, 0, 0, 0); return tomorrow; }
     function getTomorrowEnd() { let end = new Date(getTomorrowDate()); end.setDate(end.getDate() + 1); return end; }
-    
     function getTomorrowSessions() { let tomorrow = getTomorrowDate(); let tomorrowEnd = getTomorrowEnd(); return activeCases.filter(c => { let sessionDate = null; if (c.nextSessionDate && !c.nextSessionProcessed) sessionDate = new Date(c.nextSessionDate); else if (c.firstSessionDate && !c.firstSessionProcessed) sessionDate = new Date(c.firstSessionDate); return sessionDate && sessionDate >= tomorrow && sessionDate < tomorrowEnd; }).map(s => ({ ...s, sessionDate: s.nextSessionDate && !s.nextSessionProcessed ? new Date(s.nextSessionDate) : new Date(s.firstSessionDate), allClients: getAllClientsNames(s), allOpponents: getAllOpponents(s), type: 'session' })); }
     function getTomorrowEnforcements() { let tomorrow = getTomorrowDate(); let tomorrowEnd = getTomorrowEnd(); return enforcements.filter(e => { if (!e.date || e.status === 'archived') return false; let enforcementDate = new Date(e.date); return enforcementDate >= tomorrow && enforcementDate < tomorrowEnd; }).map(e => ({ ...e, caseData: getFullCaseData(e.caseId), type: 'enforcement' })); }
     function getTomorrowExperts() { let tomorrow = getTomorrowDate(); let tomorrowEnd = getTomorrowEnd(); return experts.filter(e => { if (!e.expertDate || e.status === 'completed') return false; let expertDate = new Date(e.expertDate); return expertDate >= tomorrow && expertDate < tomorrowEnd; }).map(e => ({ ...e, caseData: getFullCaseData(e.caseId), type: 'expert' })); }
@@ -398,29 +458,30 @@
     
     function renderTomorrowAppointments() {
         let allAppointments = getAllTomorrowAppointments();
-        let allContainer = document.getElementById('tomorrowAllSection'); let sessionsContainer = document.getElementById('tomorrowSessionsSection'); let enforcementsContainer = document.getElementById('tomorrowEnforcementsSection'); let expertsContainer = document.getElementById('tomorrowExpertsSection'); let adminWorksContainer = document.getElementById('tomorrowAdminWorksSection');
+        let allContainer = document.getElementById('tomorrowAllSection');
+        let sessionsContainer = document.getElementById('tomorrowSectionsSection');
+        let enforcementsContainer = document.getElementById('tomorrowEnforcementsSection');
+        let expertsContainer = document.getElementById('tomorrowExpertsSection');
+        let adminWorksContainer = document.getElementById('tomorrowAdminWorksSection');
         if (!allContainer) return;
         if (allAppointments.length === 0) { allContainer.innerHTML = '<p style="text-align:center; padding:40px;">✅ لا توجد مواعيد غداً</p>'; } else { allContainer.innerHTML = allAppointments.map(item => { if (item.type === 'session') { return `<div class="session-card" style="border-right-color:#ffc107;"><h4>⚖️ جلسة - ${item.number} (${item.year}) - ${item.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${item.allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${item.allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">🕒 الساعة: ${new Date(item.sessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>📝 موضوع القضية:</strong> ${item.subject || 'غير محدد'}</p><p><strong>📌 آخر قرار:</strong> ${item.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${item.id}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button></div>`; }
         else if (item.type === 'enforcement') { let caseData = getFullCaseData(item.caseId); return `<div class="enforcement-card" style="border-right-color:#ffc107;"><h4>📄 توكيل تنفيذ - ${item.caseNumber} (${item.caseYear})</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">👤 الموكل: ${item.clientName}</span><span class="info-badge">🕒 الساعة: ${new Date(item.date).toLocaleTimeString('ar-EG')}</span></div><p><strong>📋 المطلوب:</strong> ${item.request}</p><p><strong>📜 الإجراءات السابقة:</strong> ${item.previousActions || 'لا توجد'}</p><button onclick="viewFullCase('${item.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button><button onclick="editEnforcement('${item.id}')" class="btn-warning btn-sm">✏️ تعديل</button></div>`; }
         else if (item.type === 'expert') { let caseData = getFullCaseData(item.caseId); return `<div class="expert-card" style="border-right-color:#ffc107;"><h4>👨‍⚖️ خبير - ${item.caseNumber} (${item.caseYear})</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">👤 الموكل: ${item.clientName}</span><span class="info-badge">🕒 الساعة: ${new Date(item.expertDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>📋 المطلوب:</strong> ${item.request}</p><p><strong>💬 ملاحظات:</strong> ${item.notes || 'لا توجد'}</p><button onclick="viewFullCase('${item.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button><button onclick="editExpert('${item.id}')" class="btn-warning btn-sm">✏️ تعديل</button></div>`; }
         else { let caseData = getFullCaseData(item.caseId); return `<div class="admin-work-card" style="border-right-color:#ffc107;"><h4>📋 عمل إداري - ${item.type}</h4><div class="info-row"><span class="info-badge">⚖️ القضية: ${item.caseNumber} (${item.caseYear})</span><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">📅 تاريخ المعاد: ${new Date(item.dueDate).toLocaleString('ar-EG')}</span></div><p><strong>💬 الملاحظات:</strong> ${item.notes || 'لا توجد'}</p><button onclick="viewFullCase('${item.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button><button onclick="completeAdminWork('${item.id}')" class="btn-success btn-sm">✅ إكمال</button></div>`; } }).join(''); }
-        sessionsContainer.innerHTML = (() => { let sessions = getTomorrowSessions(); if (sessions.length === 0) return '<p>لا توجد جلسات غداً</p>'; return sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${s.allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${s.allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">🕒 الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join(''); })();
-        enforcementsContainer.innerHTML = (() => { let es = getTomorrowEnforcements(); if (es.length === 0) return '<p>لا توجد توكيلات تنفيذ غداً</p>'; return es.map(e => { let caseData = getFullCaseData(e.caseId); return `<div class="enforcement-card"><h4>📄 ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">👤 الموكل: ${e.clientName}</span><span class="info-badge">🕒 الساعة: ${new Date(e.date).toLocaleTimeString('ar-EG')}</span></div><p><strong>المطلوب:</strong> ${e.request}</p><button onclick="viewFullCase('${e.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button></div>`; }).join(''); })();
-        expertsContainer.innerHTML = (() => { let ex = getTomorrowExperts(); if (ex.length === 0) return '<p>لا توجد مواعيد خبراء غداً</p>'; return ex.map(e => { let caseData = getFullCaseData(e.caseId); return `<div class="expert-card"><h4>👨‍⚖️ ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">👤 الموكل: ${e.clientName}</span><span class="info-badge">🕒 الساعة: ${new Date(e.expertDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>المطلوب:</strong> ${e.request}</p><button onclick="viewFullCase('${e.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button></div>`; }).join(''); })();
-        adminWorksContainer.innerHTML = (() => { let aw = getTomorrowAdminWorks(); if (aw.length === 0) return '<p>لا توجد أعمال إدارية غداً</p>'; return aw.map(w => { let caseData = getFullCaseData(w.caseId); return `<div class="admin-work-card"><h4>📋 ${w.type}</h4><div class="info-row"><span class="info-badge">⚖️ القضية: ${w.caseNumber} (${w.caseYear})</span><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">📅 تاريخ المعاد: ${new Date(w.dueDate).toLocaleString('ar-EG')}</span></div><p><strong>ملاحظات:</strong> ${w.notes || 'لا توجد'}</p><button onclick="viewFullCase('${w.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button><button onclick="completeAdminWork('${w.id}')" class="btn-success btn-sm">✅ إكمال</button></div>`; }).join(''); })();
-        updateTomorrowBadges(); checkForNewNotifications(); renderTomorrowSessionsList(); }
-    
-    function renderTomorrowSessionsList() { let container = document.getElementById('tomorrowSessionsList'); if (!container) return; let sessions = getTomorrowSessions(); if (sessions.length === 0) { container.innerHTML = '<p>لا توجد جلسات غداً</p>'; return; } container.innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${s.allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${s.allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">🕒 الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join(''); }
-    
+        if (sessionsContainer) sessionsContainer.innerHTML = (() => { let s = getTomorrowSessions(); if (s.length === 0) return '<p>لا توجد جلسات غداً</p>'; return s.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${s.allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${s.allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">🕒 الساعة: ${new Date(s.sessionDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>آخر قرار:</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join(''); })();
+        if (enforcementsContainer) enforcementsContainer.innerHTML = (() => { let es = getTomorrowEnforcements(); if (es.length === 0) return '<p>لا توجد توكيلات تنفيذ غداً</p>'; return es.map(e => { let caseData = getFullCaseData(e.caseId); return `<div class="enforcement-card"><h4>📄 ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">👤 الموكل: ${e.clientName}</span><span class="info-badge">🕒 الساعة: ${new Date(e.date).toLocaleTimeString('ar-EG')}</span></div><p><strong>المطلوب:</strong> ${e.request}</p><button onclick="viewFullCase('${e.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button></div>`; }).join(''); })();
+        if (expertsContainer) expertsContainer.innerHTML = (() => { let ex = getTomorrowExperts(); if (ex.length === 0) return '<p>لا توجد مواعيد خبراء غداً</p>'; return ex.map(e => { let caseData = getFullCaseData(e.caseId); return `<div class="expert-card"><h4>👨‍⚖️ ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">👤 الموكل: ${e.clientName}</span><span class="info-badge">🕒 الساعة: ${new Date(e.expertDate).toLocaleTimeString('ar-EG')}</span></div><p><strong>المطلوب:</strong> ${e.request}</p><button onclick="viewFullCase('${e.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button></div>`; }).join(''); })();
+        if (adminWorksContainer) adminWorksContainer.innerHTML = (() => { let aw = getTomorrowAdminWorks(); if (aw.length === 0) return '<p>لا توجد أعمال إدارية غداً</p>'; return aw.map(w => { let caseData = getFullCaseData(w.caseId); return `<div class="admin-work-card"><h4>📋 ${w.type}</h4><div class="info-row"><span class="info-badge">⚖️ القضية: ${w.caseNumber} (${w.caseYear})</span><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">📅 تاريخ المعاد: ${new Date(w.dueDate).toLocaleString('ar-EG')}</span></div><p><strong>ملاحظات:</strong> ${w.notes || 'لا توجد'}</p><button onclick="viewFullCase('${w.caseId}', 'active')" class="btn-sm btn-primary">📋 عرض القضية</button><button onclick="completeAdminWork('${w.id}')" class="btn-success btn-sm">✅ إكمال</button></div>`; }).join(''); })();
+        updateTomorrowBadges(); checkForNewNotifications();
+    }
+
     function showNotificationModal() { let all = getAllTomorrowAppointments(); if (all.length === 0) return; let content = `<div style="margin-bottom:15px;"><strong><i class="fas fa-calendar-day"></i> مواعيد الغد (${all.length})</strong></div>`; all.forEach(item => { if (item.type === 'session') content += `<div class="notification-item">⚖️ جلسة: ${item.number} (${item.year}) - ${item.court}<br>🕒 ${new Date(item.sessionDate).toLocaleTimeString('ar-EG')}</div>`; else if (item.type === 'enforcement') content += `<div class="notification-item">📄 توكيل تنفيذ: ${item.caseNumber} (${item.caseYear})<br>👤 ${item.clientName}</div>`; else if (item.type === 'expert') content += `<div class="notification-item">👨‍⚖️ خبير: ${item.caseNumber} (${item.caseYear})<br>👤 ${item.clientName}</div>`; else content += `<div class="notification-item">📋 عمل إداري: ${item.type}<br>⚖️ ${item.caseNumber} (${item.caseYear})</div>`; }); document.getElementById('notificationModalContent').innerHTML = content; document.getElementById('notificationModal').style.display = 'flex'; }
-    function checkForNewNotifications() { let all = getAllTomorrowAppointments(); let ids = all.map(i => i.id + i.type).sort().join(','); if (ids !== lastNotifiedData.allIds) { lastNotifiedData = { ...lastNotifiedData, allIds: ids }; if (Notification.permission === 'granted' && all.length > 0) new Notification(`📅 لديك ${all.length} موعد غداً`, { body: `جلسات: ${getTomorrowSessions().length}, توكيلات: ${getTomorrowEnforcements().length}, خبراء: ${getTomorrowExperts().length}, أعمال: ${getTomorrowAdminWorks().length}` }); updateTomorrowBadges(); renderTomorrowAppointments(); renderEnforcements(); renderExperts(); renderAdminWorks(); } }
+    function checkForNewNotifications() { let all = getAllTomorrowAppointments(); let ids = all.map(i => i.id + i.type).sort().join(','); if (ids !== lastNotifiedData.allIds) { lastNotifiedData = { allIds: ids }; if (Notification.permission === 'granted' && all.length > 0) new Notification(`📅 لديك ${all.length} موعد غداً`, { body: `جلسات: ${getTomorrowSessions().length}, توكيلات: ${getTomorrowEnforcements().length}, خبراء: ${getTomorrowExperts().length}, أعمال: ${getTomorrowAdminWorks().length}` }); updateTomorrowBadges(); renderTomorrowAppointments(); renderEnforcements(); renderExperts(); renderAdminWorks(); } }
     function requestNotificationPermission() { if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') Notification.requestPermission(); }
     function startNotificationChecker() { if (notificationCheckInterval) clearInterval(notificationCheckInterval); notificationCheckInterval = setInterval(() => { if (currentUser) checkForNewNotifications(); }, 3600000); checkForNewNotifications(); }
 
-    // تبويبات مواعيد الغد
     document.addEventListener('click', function(e) { if (e.target.classList && e.target.classList.contains('tomorrow-tab-btn')) { document.querySelectorAll('.tomorrow-tab-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); let tab = e.target.getAttribute('data-tab'); document.querySelectorAll('.tomorrow-section').forEach(section => section.classList.remove('active-section')); if (tab === 'all') document.getElementById('tomorrowAllSection').classList.add('active-section'); else if (tab === 'sessions') document.getElementById('tomorrowSessionsSection').classList.add('active-section'); else if (tab === 'enforcements') document.getElementById('tomorrowEnforcementsSection').classList.add('active-section'); else if (tab === 'experts') document.getElementById('tomorrowExpertsSection').classList.add('active-section'); else if (tab === 'adminWorks') document.getElementById('tomorrowAdminWorksSection').classList.add('active-section'); } });
 
-    // باقي الدوال (مختصرة للطول)
     let tempCallback = null; let tempCancel = null;
     function showMiniAgenda(callback, onCancel) { tempCallback = callback; tempCancel = onCancel; let today = new Date(); let currentYear = today.getFullYear(); let currentMonth = today.getMonth(); function renderMiniCalendar(year, month) { let daysInMonth = new Date(year, month + 1, 0).getDate(); let firstDayIndex = new Date(year, month, 1).getDay(); let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let daysHtml = '<div class="week-days-grid">' + weekDays.map(day => `<div class="week-day-name">${day}</div>`).join('') + '</div><div class="days-grid">'; for (let i = 0; i < firstDayIndex; i++) daysHtml += '<div></div>'; for (let d = 1; d <= daysInMonth; d++) { let date = new Date(year, month, d); let isToday = date.toDateString() === today.toDateString(); daysHtml += `<div class="day-card ${isToday ? 'today' : ''}" onclick="selectDateFromAgenda(${year},${month},${d})">${d}</div>`; } daysHtml += '</div>'; document.getElementById('miniAgendaDays').innerHTML = daysHtml; } let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']; let modalBody = `<h4>📅 اختر تاريخ الجلسة الجديدة</h4><div class="year-months"><button onclick="changeMiniMonth(-1)" class="btn-sm btn-primary">◀ السابق</button><span id="miniMonthYear">${months[currentMonth]} ${currentYear}</span><button onclick="changeMiniMonth(1)" class="btn-sm btn-primary">التالي ▶</button></div><div id="miniAgendaDays"></div><div class="form-group"><label>أو اكتب التاريخ يدوياً:</label><input type="datetime-local" id="manualDateInput"></div><button onclick="confirmDateSelection()" class="btn-success">تأكيد التاريخ</button><button onclick="cancelDateSelection()" class="btn-danger btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = 'اختر تاريخ الجلسة'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; window.currentMiniYear = currentYear; window.currentMiniMonth = currentMonth; window.miniMonths = months; renderMiniCalendar(currentYear, currentMonth); window.changeMiniMonth = function(delta) { let newDate = new Date(currentYear, currentMonth + delta, 1); currentYear = newDate.getFullYear(); currentMonth = newDate.getMonth(); window.currentMiniYear = currentYear; window.currentMiniMonth = currentMonth; document.getElementById('miniMonthYear').innerHTML = `${miniMonths[currentMonth]} ${currentYear}`; renderMiniCalendar(currentYear, currentMonth); }; window.selectDateFromAgenda = function(year, month, day) { let selected = new Date(year, month, day); document.getElementById('manualDateInput').value = selected.toISOString().slice(0, 16); }; window.confirmDateSelection = function() { let manualDate = document.getElementById('manualDateInput').value; if (manualDate) { if (tempCallback) tempCallback(manualDate); closeModal(); } else showNotification('❌ يرجى اختيار تاريخ'); }; window.cancelDateSelection = function() { if (tempCancel) tempCancel(); closeModal(); }; }
     function showDuplicateCaseWarning(existingCase) { return new Promise((resolve) => { let allClients = getAllClientsNames(existingCase); let allOpponents = getAllOpponents(existingCase); let nextSession = existingCase.nextSessionDate && !existingCase.nextSessionProcessed ? new Date(existingCase.nextSessionDate).toLocaleString('ar-EG') : (existingCase.firstSessionDate && !existingCase.firstSessionProcessed ? new Date(existingCase.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد'); let modalBody = `<div style="text-align:center;"><i class="fas fa-exclamation-triangle" style="font-size:48px; color:#ffc107; margin-bottom:15px;"></i><h3 style="color:#dc3545;">⚠️ تحذير: قضية مكررة</h3><p>قضية بنفس الرقم والسنة موجودة مسبقاً في النظام:</p><div class="session-card" style="background:#f8f9fa; margin:15px 0; text-align:right;"><h4>⚖️ ${existingCase.number} (${existingCase.year}) - ${existingCase.court}</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${existingCase.court || 'غير محدد'}</span><span class="info-badge">⚖️ الدائرة: ${existingCase.circuit || 'غير محدد'}</span></div><div class="info-row"><span class="info-badge">👥 الموكلين: ${allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span></div><p><strong>📝 موضوع القضية:</strong> ${existingCase.subject || 'غير محدد'}</p><p><strong>📅 الجلسة القادمة:</strong> ${nextSession}</p><p><strong>📌 آخر قرار:</strong> ${existingCase.decision || 'لا يوجد'}</p></div><p style="color:#666; margin:15px 0;">هل تريد إضافة قضية جديدة بنفس الرغم من التكرار؟</p><div style="display:flex; gap:10px; justify-content:center; margin-top:20px;"><button id="confirmDuplicateAdd" class="btn-success" style="padding:10px 20px;">✅ نعم، أضف القضية</button><button id="cancelDuplicateAdd" class="btn-danger" style="padding:10px 20px;">❌ لا، إلغاء</button></div></div>`; document.getElementById('modalTitle').innerHTML = '⚠️ قضية مكررة'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; document.getElementById('confirmDuplicateAdd').onclick = () => { closeModal(); resolve(true); }; document.getElementById('cancelDuplicateAdd').onclick = () => { closeModal(); resolve(false); }; }); }
@@ -453,701 +514,159 @@
     function editJudgmentRecord(recordId) { let record = judgmentRecords.find(r => r.id == recordId); if (!record) return; let modalBody = `<h4>✏️ تعديل سجل الحكم</h4><div class="form-group"><label>نوع الحكم</label><input type="text" id="editJudgmentType" value="${record.type}"></div><div class="form-group"><label>تاريخ الجلسة الجديدة</label><input type="datetime-local" id="editNewSessionDate" value="${record.newSessionDate ? record.newSessionDate.slice(0, 16) : ''}"></div><div class="form-group"><label>ملاحظات</label><textarea id="editJudgmentNotes" rows="2">${record.notes || ''}</textarea></div><button onclick="updateJudgmentRecord('${recordId}')" class="btn-success">💾 حفظ التعديلات</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = '✏️ تعديل سجل الحكم'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; }
     function updateJudgmentRecord(recordId) { let idx = judgmentRecords.findIndex(r => r.id == recordId); if (idx !== -1) { judgmentRecords[idx].type = document.getElementById('editJudgmentType').value; judgmentRecords[idx].newSessionDate = document.getElementById('editNewSessionDate').value; judgmentRecords[idx].notes = document.getElementById('editJudgmentNotes').value; database.ref('judgmentRecords').set(judgmentRecords); showNotification('تم تحديث سجل الحكم'); closeModal(); renderJudgmentRecords(); } }
 
-    // دوال توكيلات التنفيذ والخبراء (مختصرة)
     function filterClientsForEnforcement() { let searchInput = document.getElementById('enforcementClientSearch'); if (!searchInput) return; let searchText = searchInput.value.trim().toLowerCase(); let suggestionsDiv = document.getElementById('clientSuggestions'); if (!searchText) { suggestionsDiv.style.display = 'none'; suggestionsDiv.innerHTML = ''; return; } let matchedClients = clients.filter(c => c.name.toLowerCase().includes(searchText)); if (matchedClients.length === 0) { suggestionsDiv.style.display = 'none'; suggestionsDiv.innerHTML = ''; return; } suggestionsDiv.style.display = 'block'; suggestionsDiv.innerHTML = matchedClients.map(c => `<div class="suggestion-item" onclick="selectClientForEnforcement('${c.id}', '${c.name.replace(/'/g, "\\'")}')"><i class="fas fa-user"></i> ${c.name} - ${c.phone || 'لا يوجد هاتف'}</div>`).join(''); }
     function selectClientForEnforcement(clientId, clientName) { let searchInput = document.getElementById('enforcementClientSearch'); let suggestionsDiv = document.getElementById('clientSuggestions'); if (searchInput) searchInput.value = clientName; suggestionsDiv.style.display = 'none'; suggestionsDiv.innerHTML = ''; selectedClientForEnforcement = { id: clientId, name: clientName }; loadCasesForClient(clientId); }
     function loadCasesForClient(clientId) { let caseSelect = document.getElementById('enforcementCase'); if (!caseSelect) return; let clientCases = activeCases.filter(c => c.clientId === clientId || (c.additionalClients && c.additionalClients.some(ac => ac.clientId === clientId))); caseSelect.innerHTML = '<option value="">-- اختر قضية --</option>'; if (clientCases.length === 0) { caseSelect.innerHTML = '<option value="">-- لا توجد قضايا لهذا الموكل --</option>'; return; } clientCases.forEach(c => { let option = document.createElement('option'); option.value = c.id; option.textContent = `${c.number} (${c.year}) - ${c.court} - ${c.subject?.substring(0, 30) || ''}`; caseSelect.appendChild(option); }); caseSelect.onchange = function() { let caseId = this.value; if (caseId) { let caseData = activeCases.find(c => c.id == caseId); if (caseData) { document.getElementById('enforcementClientName').value = getClientName(caseData.clientId); let firstOpponent = (getAllOpponents(caseData)[0] || {}).name || ''; document.getElementById('enforcementOpponentName').value = firstOpponent; document.getElementById('enforcementCaseNumber').value = `${caseData.number} (${caseData.year})`; } } else { document.getElementById('enforcementClientName').value = ''; document.getElementById('enforcementOpponentName').value = ''; document.getElementById('enforcementCaseNumber').value = ''; } }; }
-    function addEnforcement() { selectedClientForEnforcement = null; let modalBody = `<h4>➕ إضافة توكيل تنفيذ</h4><div class="form-group" style="position:relative;"><label>🔍 ابحث عن الموكل</label><input type="text" id="enforcementClientSearch" placeholder="اكتب اسم الموكل..." onkeyup="filterClientsForEnforcement()" autocomplete="off"><div id="clientSuggestions" style="display:none; position:absolute; background:white; border:1px solid #ddd; border-radius:8px; max-height:200px; overflow-y:auto; width:100%; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div></div><div class="form-group"><label>اختر القضية</label><select id="enforcementCase"><option value="">-- اختر قضية --</option></select></div><div class="form-group"><label>الموكل</label><input type="text" id="enforcementClientName" readonly></div><div class="form-group"><label>الخصم</label><input type="text" id="enforcementOpponentName" readonly></div><div class="form-group"><label>رقم القضية
-        <div class="form-group"><label>رقم القضية</label><input type="text" id="enforcementCaseNumber" readonly></div>
-    <div class="form-group"><label>المطلوب في التنفيذ</label><textarea id="enforcementRequest" rows="3" placeholder="مثال: سحب مبلغ 10000 جنيه..."></textarea></div>
-    <div class="form-group"><label>تاريخ التنفيذ</label><input type="datetime-local" id="enforcementDate"></div>
-    <div class="form-group"><label>الإجراءات السابقة</label><textarea id="enforcementPrevious" rows="3" placeholder="أي إجراءات تمت سابقاً..."></textarea></div>
-    <div class="form-group"><label>ملاحظات</label><textarea id="enforcementNotes" rows="2"></textarea></div>
-    <button onclick="saveEnforcement()" class="btn-success">💾 حفظ التوكيل</button>
-    <button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`;
-    document.getElementById('modalTitle').innerHTML = '➕ توكيل تنفيذ جديد';
-    document.getElementById('modalBody').innerHTML = modalBody;
-    document.getElementById('detailsModal').style.display = 'flex';
-    let searchInput = document.getElementById('enforcementClientSearch');
-    if (searchInput) searchInput.focus();
-}
-function saveEnforcement() {
-    let caseId = document.getElementById('enforcementCase').value;
-    if (!caseId) { showNotification('يرجى اختيار قضية'); return; }
-    let caseData = activeCases.find(c => c.id == caseId);
-    if (!caseData) return;
-    let request = document.getElementById('enforcementRequest').value;
-    if (!request) { showNotification('يرجى إدخال المطلوب في التنفيذ'); return; }
-    enforcements.push({
-        id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year,
-        clientName: document.getElementById('enforcementClientName').value,
-        opponentName: document.getElementById('enforcementOpponentName').value,
-        request: request, date: document.getElementById('enforcementDate').value || new Date().toISOString(),
-        previousActions: document.getElementById('enforcementPrevious').value, notes: document.getElementById('enforcementNotes').value,
-        status: 'active', createdAt: new Date().toISOString()
-    });
-    database.ref('enforcements').set(enforcements);
-    showNotification('تم إضافة توكيل التنفيذ بنجاح');
-    closeModal();
-    renderEnforcements(); checkForNewNotifications(); renderTomorrowAppointments();
-}
-function archiveEnforcement(id, notes, completionDate) {
-    let enforcement = enforcements.find(e => e.id == id);
-    if (!enforcement) return;
-    let archivedEnforcement = { ...enforcement, status: 'archived', archivedAt: completionDate || new Date().toISOString(), completionNotes: notes, archivedBy: currentUser?.username };
-    archivedEnforcements.push(archivedEnforcement);
-    enforcements = enforcements.filter(e => e.id != id);
-    database.ref('enforcements').set(enforcements);
-    database.ref('archivedEnforcements').set(archivedEnforcements);
-    showNotification('✅ تم أرشفة توكيل التنفيذ');
-    renderEnforcements(); renderArchive(); renderTomorrowAppointments();
-}
-function showClientCases(clientName) {
-    let relatedCases = [...activeCases, ...closedCases].filter(c => getAllClientsNames(c).some(name => name === clientName));
-    if (relatedCases.length === 0) { showNotification('لا توجد قضايا مرتبطة بهذا الموكل'); return; }
-    let modalBody = `<h4>📂 قضايا الموكل: ${clientName}</h4>`;
-    relatedCases.forEach(c => {
-        let caseType = activeCases.find(ac => ac.id === c.id) ? 'نشطة' : 'منتهية';
-        modalBody += `<div class="session-card"><h5>⚖️ ${c.number} (${c.year}) - ${c.court}</h5><p>الحالة: ${caseType}</p><button onclick="viewFullCase('${c.id}', '${caseType === 'نشطة' ? 'active' : 'closed'}')" class="btn-sm btn-primary">عرض القضية</button></div>`;
-    });
-    document.getElementById('modalTitle').innerHTML = `قضايا الموكل: ${clientName}`;
-    document.getElementById('modalBody').innerHTML = modalBody;
-    document.getElementById('detailsModal').style.display = 'flex';
-}
-function renderEnforcements() {
-    let container = document.getElementById('enforcementsList');
-    if (!container) return;
-    let activeEnforcements = enforcements.filter(e => e.status !== 'archived');
-    if (enforcementSearchTerm) {
-        activeEnforcements = activeEnforcements.filter(e => e.clientName?.toLowerCase().includes(enforcementSearchTerm) || e.caseNumber?.toLowerCase().includes(enforcementSearchTerm) || e.caseYear?.toLowerCase().includes(enforcementSearchTerm));
+    function addEnforcement() { selectedClientForEnforcement = null; let modalBody = `<h4>➕ إضافة توكيل تنفيذ</h4><div class="form-group" style="position:relative;"><label>🔍 ابحث عن الموكل</label><input type="text" id="enforcementClientSearch" placeholder="اكتب اسم الموكل..." onkeyup="filterClientsForEnforcement()" autocomplete="off"><div id="clientSuggestions" style="display:none; position:absolute; background:white; border:1px solid #ddd; border-radius:8px; max-height:200px; overflow-y:auto; width:100%; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div></div><div class="form-group"><label>اختر القضية</label><select id="enforcementCase"><option value="">-- اختر قضية --</option></select></div><div class="form-group"><label>الموكل</label><input type="text" id="enforcementClientName" readonly></div><div class="form-group"><label>الخصم</label><input type="text" id="enforcementOpponentName" readonly></div><div class="form-group"><label>رقم القضية</label><input type="text" id="enforcementCaseNumber" readonly></div><div class="form-group"><label>المطلوب في التنفيذ</label><textarea id="enforcementRequest" rows="3" placeholder="مثال: سحب مبلغ 10000 جنيه..."></textarea></div><div class="form-group"><label>تاريخ التنفيذ</label><input type="datetime-local" id="enforcementDate"></div><div class="form-group"><label>الإجراءات السابقة</label><textarea id="enforcementPrevious" rows="3" placeholder="أي إجراءات تمت سابقاً..."></textarea></div><div class="form-group"><label>ملاحظات</label><textarea id="enforcementNotes" rows="2"></textarea></div><button onclick="saveEnforcement()" class="btn-success">💾 حفظ التوكيل</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = '➕ توكيل تنفيذ جديد'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; let searchInput = document.getElementById('enforcementClientSearch'); if (searchInput) searchInput.focus(); }
+    function saveEnforcement() { let caseId = document.getElementById('enforcementCase').value; if (!caseId) { showNotification('يرجى اختيار قضية'); return; } let caseData = activeCases.find(c => c.id == caseId); if (!caseData) return; let request = document.getElementById('enforcementRequest').value; if (!request) { showNotification('يرجى إدخال المطلوب في التنفيذ'); return; } enforcements.push({ id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: document.getElementById('enforcementClientName').value, opponentName: document.getElementById('enforcementOpponentName').value, request: request, date: document.getElementById('enforcementDate').value || new Date().toISOString(), previousActions: document.getElementById('enforcementPrevious').value, notes: document.getElementById('enforcementNotes').value, status: 'active', createdAt: new Date().toISOString() }); database.ref('enforcements').set(enforcements); showNotification('تم إضافة توكيل التنفيذ بنجاح'); closeModal(); renderEnforcements(); checkForNewNotifications(); renderTomorrowAppointments(); }
+    function archiveEnforcement(id, notes, completionDate) { let enforcement = enforcements.find(e => e.id == id); if (!enforcement) return; let archivedEnforcement = { ...enforcement, status: 'archived', archivedAt: completionDate || new Date().toISOString(), completionNotes: notes, archivedBy: currentUser?.username }; archivedEnforcements.push(archivedEnforcement); enforcements = enforcements.filter(e => e.id != id); database.ref('enforcements').set(enforcements); database.ref('archivedEnforcements').set(archivedEnforcements); showNotification('✅ تم أرشفة توكيل التنفيذ'); renderEnforcements(); renderArchive(); renderTomorrowAppointments(); }
+    function showClientCases(clientName) { let relatedCases = [...activeCases, ...closedCases].filter(c => getAllClientsNames(c).some(name => name === clientName)); if (relatedCases.length === 0) { showNotification('لا توجد قضايا مرتبطة بهذا الموكل'); return; } let modalBody = `<h4>📂 قضايا الموكل: ${clientName}</h4>`; relatedCases.forEach(c => { let caseType = activeCases.find(ac => ac.id === c.id) ? 'نشطة' : 'منتهية'; modalBody += `<div class="session-card"><h5>⚖️ ${c.number} (${c.year}) - ${c.court}</h5><p>الحالة: ${caseType}</p><button onclick="viewFullCase('${c.id}', '${caseType === 'نشطة' ? 'active' : 'closed'}')" class="btn-sm btn-primary">عرض القضية</button></div>`; }); document.getElementById('modalTitle').innerHTML = `قضايا الموكل: ${clientName}`; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; }
+    function renderEnforcements() { let container = document.getElementById('enforcementsList'); if (!container) return; let activeEnforcements = enforcements.filter(e => e.status !== 'archived'); if (enforcementSearchTerm) { activeEnforcements = activeEnforcements.filter(e => e.clientName?.toLowerCase().includes(enforcementSearchTerm) || e.caseNumber?.toLowerCase().includes(enforcementSearchTerm) || e.caseYear?.toLowerCase().includes(enforcementSearchTerm)); } if (!activeEnforcements.length) { container.innerHTML = enforcementSearchTerm ? '<p>🔍 لا توجد توكيلات تنفيذ مطابقة للبحث</p>' : '<p>لا توجد توكيلات تنفيذ نشطة</p>'; return; } container.innerHTML = activeEnforcements.map(e => { let caseData = getFullCaseData(e.caseId); let isTomorrow = e.date && new Date(e.date).toDateString() === new Date(Date.now() + 86400000).toDateString(); return `<div class="enforcement-card" style="${isTomorrow ? 'border-right-color:#ffc107;' : ''}"><h4>📄 توكيل تنفيذ - ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">⚖️ الدائرة: ${caseData?.circuit || 'غير محدد'}</span></div><div class="info-row"><span class="info-badge">👥 الموكلين: ${caseData?.allClientsNames?.join(' - ') || 'غير محدد'}</span><span class="info-badge">⚖️ الخصوم: ${caseData?.allOpponents?.map(o => `${o.name} (${o.role || '-'})`).join(' - ') || 'غير محدد'}</span></div><p><strong>📝 موضوع القضية:</strong> ${caseData?.subject || 'غير محدد'}</p><p><strong>📌 القرار السابق:</strong> ${caseData?.decision || 'لا يوجد'}</p><p><strong>📋 المطلوب في التنفيذ:</strong> ${e.request}</p><p><strong>📅 تاريخ التنفيذ:</strong> ${new Date(e.date).toLocaleString('ar-EG')}${isTomorrow ? ' <span style="color:#ffc107;">(غداً!)</span>' : ''}</p><p><strong>📜 الإجراءات السابقة:</strong> ${e.previousActions || 'لا توجد'}</p><p><strong>💬 ملاحظات:</strong> ${e.notes || 'لا توجد'}</p><div class="admin-actions"><button onclick="editEnforcement('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button><button onclick="deleteEnforcement('${e.id}')" class="delete-btn">🗑️ حذف</button><button onclick="rescheduleEnforcement('${e.id}', '${e.date}', '${e.previousActions || ''}')" class="btn-primary btn-sm">📅 تعديل الموعد</button><button onclick="viewFullCase('${e.caseId}', 'active')" class="btn-primary btn-sm">📋 عرض القضية</button><button onclick="showArchiveEnforcementModal('${e.id}')" class="btn-success btn-sm">🏁 إنهاء التنفيذ</button><button onclick="showClientCases('${e.clientName}')" class="btn-primary btn-sm">👤 قضايا الموكل</button></div></div>`; }).join(''); }
+    function showArchiveEnforcementModal(id) { let e = enforcements.find(e => e.id == id); if (!e) return; let modalBody = `<h4>🏁 إنهاء توكيل التنفيذ</h4><p><strong>القضية: ${e.caseNumber} (${e.caseYear})</strong></p><div class="form-group"><label>📝 ملاحظات إتمام التنفيذ</label><textarea id="archiveNotes" rows="3" placeholder="مثال: تم سحب المبلغ بالكامل، تم إغلاق الملف..."></textarea></div><div class="form-group"><label>📅 تاريخ الإنهاء</label><input type="datetime-local" id="archiveDate" value="${new Date().toISOString().slice(0, 16)}"></div><button onclick="confirmArchiveEnforcement('${id}')" class="btn-success">✅ تأكيد الأرشفة</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = '🏁 إنهاء توكيل التنفيذ'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; }
+    function confirmArchiveEnforcement(id) { let notes = document.getElementById('archiveNotes')?.value || ''; let date = document.getElementById('archiveDate')?.value; archiveEnforcement(id, notes, date); closeModal(); }
+    function editEnforcement(id) { let e = enforcements.find(e => e.id == id); if (!e) return; let modalBody = `<h4>✏️ تعديل توكيل تنفيذ</h4><div class="form-group"><label>القضية</label><input type="text" value="${e.caseNumber} (${e.caseYear})" readonly></div><div class="form-group"><label>الموكل</label><input type="text" value="${e.clientName}" readonly></div><div class="form-group"><label>الخصم</label><input type="text" value="${e.opponentName}" readonly></div><div class="form-group"><label>المطلوب في التنفيذ</label><textarea id="editEnforcementRequest" rows="3">${e.request || ''}</textarea></div><div class="form-group"><label>تاريخ التنفيذ</label><input type="datetime-local" id="editEnforcementDate" value="${e.date ? e.date.slice(0, 16) : ''}"></div><div class="form-group"><label>الإجراءات السابقة</label><textarea id="editEnforcementPrevious" rows="3">${e.previousActions || ''}</textarea></div><div class="form-group"><label>ملاحظات</label><textarea id="editEnforcementNotes" rows="2">${e.notes || ''}</textarea></div><button onclick="updateEnforcement('${id}')" class="btn-success">💾 حفظ التعديلات</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = '✏️ تعديل توكيل تنفيذ'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; }
+    function updateEnforcement(id) { let idx = enforcements.findIndex(e => e.id == id); if (idx !== -1) { enforcements[idx].request = document.getElementById('editEnforcementRequest').value; enforcements[idx].date = document.getElementById('editEnforcementDate').value; enforcements[idx].previousActions = document.getElementById('editEnforcementPrevious').value; enforcements[idx].notes = document.getElementById('editEnforcementNotes').value; database.ref('enforcements').set(enforcements); showNotification('تم تحديث توكيل التنفيذ'); closeModal(); renderEnforcements(); renderTomorrowAppointments(); } }
+    function deleteEnforcement(id) { if (confirm('هل أنت متأكد من حذف توكيل التنفيذ؟')) { enforcements = enforcements.filter(e => e.id != id); database.ref('enforcements').set(enforcements); showNotification('تم الحذف'); renderEnforcements(); renderTomorrowAppointments(); } }
+    function rescheduleEnforcement(id, oldDate, oldNotes) { let newDate = prompt('📅 أدخل التاريخ الجديد للتنفيذ (YYYY-MM-DD HH:MM):', oldDate); if (!newDate) return; let whatWasDone = prompt('📝 ما الذي تم إنجازه في التنفيذ حتى الآن؟', oldNotes || ''); let idx = enforcements.findIndex(e => e.id == id); if (idx !== -1) { enforcements[idx].date = newDate; enforcements[idx].previousActions = whatWasDone || enforcements[idx].previousActions; enforcements[idx].lastUpdated = new Date().toISOString(); database.ref('enforcements').set(enforcements); showNotification('✅ تم تحديث موعد التنفيذ وتحديث الإجراءات'); renderEnforcements(); renderTomorrowAppointments(); checkForNewNotifications(); } }
+    function rescheduleExpert(id, oldDate, oldNotes) { let newDate = prompt('📅 أدخل التاريخ الجديد للخبير (YYYY-MM-DD HH:MM):', oldDate); if (!newDate) return; let whatWasDone = prompt('📝 ما الذي تم إنجازه مع الخبير؟', oldNotes || ''); let idx = experts.findIndex(e => e.id == id); if (idx !== -1) { experts[idx].expertDate = newDate; experts[idx].notes = whatWasDone || experts[idx].notes; experts[idx].lastUpdated = new Date().toISOString(); database.ref('experts').set(experts); showNotification('✅ تم تحديث موعد الخبير وتحديد ما تم إنجازه'); renderExperts(); renderTomorrowAppointments(); checkForNewNotifications(); } }
+    function addExpert() { let modalBody = `<h4>➕ إضافة موعد خبير جديد</h4><div class="form-group"><label>اختر القضية</label><select id="expertCase"><option value="">-- اختر قضية --</option>${activeCases.map(c => `<option value="${c.id}">${c.number} (${c.year}) - ${getClientName(c.clientId)}</option>`).join('')}</select></div><div class="form-group"><label>الموكل</label><input type="text" id="expertClientName" readonly></div><div class="form-group"><label>الخصم</label><input type="text" id="expertOpponentName" readonly></div><div class="form-group"><label>رقم القضية</label><input type="text" id="expertCaseNumber" readonly></div><div class="form-group"><label>موعد الخبير</label><input type="datetime-local" id="expertDate"></div><div class="form-group"><label>المطلوب من الخبير</label><textarea id="expertRequest" rows="2"></textarea></div><div class="form-group"><label>المعاينات المطلوبة</label><textarea id="expertInspections" rows="2"></textarea></div><div class="form-group"><label>ملاحظات</label><textarea id="expertNotes" rows="2"></textarea></div><button onclick="saveExpert()" class="btn-success">💾 حفظ</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = '➕ موعد خبير جديد'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; document.getElementById('expertCase').addEventListener('change', function() { let caseId = this.value; if (caseId) { let caseData = activeCases.find(c => c.id == caseId); if (caseData) { document.getElementById('expertClientName').value = getClientName(caseData.clientId); let firstOpponent = (getAllOpponents(caseData)[0] || {}).name || ''; document.getElementById('expertOpponentName').value = firstOpponent; document.getElementById('expertCaseNumber').value = `${caseData.number} (${caseData.year})`; } } }); }
+    function saveExpert() { let caseId = document.getElementById('expertCase').value; if (!caseId) { showNotification('يرجى اختيار قضية'); return; } let caseData = activeCases.find(c => c.id == caseId); if (!caseData) return; let expertDate = document.getElementById('expertDate').value; if (!expertDate) { showNotification('يرجى إدخال موعد الخبير'); return; } experts.push({ id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year, clientName: document.getElementById('expertClientName').value, opponentName: document.getElementById('expertOpponentName').value, expertDate: expertDate, request: document.getElementById('expertRequest').value, inspections: document.getElementById('expertInspections').value, notes: document.getElementById('expertNotes').value, status: 'pending', createdAt: new Date().toISOString() }); database.ref('experts').set(experts); showNotification('تم إضافة موعد الخبير بنجاح'); closeModal(); renderExperts(); checkForNewNotifications(); renderTomorrowAppointments(); }
+    function editExpert(id) { let e = experts.find(e => e.id == id); if (!e) return; let modalBody = `<h4>✏️ تعديل موعد خبير</h4><div class="form-group"><label>القضية</label><input type="text" value="${e.caseNumber} (${e.caseYear})" readonly></div><div class="form-group"><label>الموكل</label><input type="text" value="${e.clientName}" readonly></div><div class="form-group"><label>الخصم</label><input type="text" value="${e.opponentName}" readonly></div><div class="form-group"><label>موعد الخبير</label><input type="datetime-local" id="editExpertDate" value="${e.expertDate ? e.expertDate.slice(0, 16) : ''}"></div><div class="form-group"><label>المطلوب من الخبير</label><textarea id="editExpertRequest" rows="2">${e.request || ''}</textarea></div><div class="form-group"><label>المعاينات المطلوبة</label><textarea id="editExpertInspections" rows="2">${e.inspections || ''}</textarea></div><div class="form-group"><label>ملاحظات</label><textarea id="editExpertNotes" rows="2">${e.notes || ''}</textarea></div><button onclick="updateExpert('${id}')" class="btn-success">💾 حفظ التعديلات</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`; document.getElementById('modalTitle').innerHTML = '✏️ تعديل موعد خبير'; document.getElementById('modalBody').innerHTML = modalBody; document.getElementById('detailsModal').style.display = 'flex'; }
+    function updateExpert(id) { let idx = experts.findIndex(e => e.id == id); if (idx !== -1) { experts[idx].expertDate = document.getElementById('editExpertDate').value; experts[idx].request = document.getElementById('editExpertRequest').value; experts[idx].inspections = document.getElementById('editExpertInspections').value; experts[idx].notes = document.getElementById('editExpertNotes').value; database.ref('experts').set(experts); showNotification('تم تحديث موعد الخبير'); closeModal(); renderExperts(); renderTomorrowAppointments(); } }
+    function deleteExpert(id) { if (confirm('هل أنت متأكد من حذف موعد الخبير؟')) { experts = experts.filter(e => e.id != id); database.ref('experts').set(experts); showNotification('تم الحذف'); renderExperts(); renderTomorrowAppointments(); } }
+    function returnExpertToCase(id) { let expert = experts.find(e => e.id == id); if (!expert) return; showMiniAgenda(function(newSessionDate) { if (newSessionDate) { let caseIdx = activeCases.findIndex(c => c.id == expert.caseId); if (caseIdx !== -1) { activeCases[caseIdx].nextSessionDate = newSessionDate; activeCases[caseIdx].nextSessionProcessed = false; database.ref('activeCases').set(activeCases); experts = experts.filter(e => e.id != id); database.ref('experts').set(experts); showNotification('تم إرجاع القضية لجلسة جديدة بعد الخبير'); renderExperts(); renderActiveCases(); renderTomorrowAppointments(); checkForNewNotifications(); } else showNotification('القضية غير موجودة في قضايا المكتب'); } }, null); }
+    function completeExpert(id) { let expert = experts.find(e => e.id == id); if (expert) { expert.status = 'completed'; expert.completedAt = new Date().toISOString(); database.ref('experts').set(experts); showNotification('تم إكمال عمل الخبير'); renderExperts(); renderTomorrowAppointments(); } }
+    function renderExperts() { let container = document.getElementById('expertsList'); if (!container) return; let activeExperts = experts.filter(e => e.status !== 'completed'); if (expertSearchTerm) { activeExperts = activeExperts.filter(e => e.caseNumber?.toLowerCase().includes(expertSearchTerm) || e.clientName?.toLowerCase().includes(expertSearchTerm) || e.caseYear?.toLowerCase().includes(expertSearchTerm)); } if (!activeExperts.length) { container.innerHTML = expertSearchTerm ? '<p>🔍 لا توجد مواعيد خبراء مطابقة للبحث</p>' : '<p>لا توجد مواعيد خبراء نشطة</p>'; return; } container.innerHTML = activeExperts.map(e => { let caseData = getFullCaseData(e.caseId); let isTomorrow = new Date(e.expertDate).toDateString() === new Date(Date.now() + 86400000).toDateString(); let isPast = new Date(e.expertDate) < new Date(); return `<div class="expert-card" style="${isPast ? 'opacity:0.7;' : ''} ${isTomorrow ? 'border-right-color:#ffc107;' : ''}"><h4>👨‍⚖️ خبير - ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">⚖️ الدائرة: ${caseData?.circuit || 'غير محدد'}</span></div><div class="info-row"><span class="info-badge">👥 الموكلين: ${caseData?.allClientsNames?.join(' - ') || 'غير محدد'}</span><span class="info-badge">⚖️ الخصوم: ${caseData?.allOpponents?.map(o => `${o.name} (${o.role || '-'})`).join(' - ') || 'غير محدد'}</span></div><p><strong>📝 موضوع القضية:</strong> ${caseData?.subject || 'غير محدد'}</p><p><strong>📌 القرار السابق:</strong> ${caseData?.decision || 'لا يوجد'}</p><div class="info-row"><span class="info-badge">📅 موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}${isTomorrow ? ' <span style="color:#ffc107;">(غداً!)</span>' : ''}</span><span class="info-badge">📋 المطلوب: ${e.request || 'لا يوجد'}</span></div><div class="info-row"><span class="info-badge">🔍 المعاينات المطلوبة: ${e.inspections || 'لا توجد'}</span></div><p><strong>💬 ملاحظات:</strong> ${e.notes || 'لا توجد'}</p><div class="admin-actions"><button onclick="editExpert('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button><button onclick="deleteExpert('${e.id}')" class="delete-btn">🗑️ حذف</button><button onclick="rescheduleExpert('${e.id}', '${e.expertDate}', '${e.notes || ''}')" class="btn-primary btn-sm">📅 تعديل الموعد</button><button onclick="returnExpertToCase('${e.id}')" class="btn-primary btn-sm">🔄 إرجاع لقضية</button><button onclick="completeExpert('${e.id}')" class="btn-success btn-sm">✅ إكمال الخبير</button><button onclick="viewFullCase('${e.caseId}','active')" class="btn-primary btn-sm">📋 عرض القضية</button></div></div>`; }).join(''); }
+    function renderArchive() { let container = document.getElementById('archiveCategories'); if (!container) return; let backupBtn = document.getElementById('archiveBackupBtn'); let restoreBtn = document.getElementById('archiveRestoreBtn'); let addBtn = document.getElementById('addCircuitBtn'); if (backupBtn) backupBtn.style.display = isHesham() ? 'inline-block' : 'none'; if (restoreBtn) restoreBtn.style.display = isHesham() ? 'inline-block' : 'none'; if (addBtn) addBtn.style.display = isHesham() ? 'inline-block' : 'none'; let archivedCount = archivedEnforcements.length; let archiveCatCopy = [...archiveCategories]; let tawakkolCat = archiveCatCopy.find(c => c.circuit === 'توكيلات تنفيذ منتهية'); if (tawakkolCat) tawakkolCat.count = archivedCount; container.innerHTML = `<div class="archive-categories">${archiveCatCopy.map(cat => `<span class="archive-cat-btn" data-circuit="${cat.circuit}" onclick="filterArchive('${cat.circuit}')">${cat.name}${cat.count > 0 ? ` (${cat.count})` : ''}</span>`).join('')}</div>`; filterArchive(currentArchiveCircuit); }
+    function filterArchive(circuit) { currentArchiveCircuit = circuit; let filtered = []; if (circuit === 'توكيلات تنفيذ منتهية') { filtered = archivedEnforcements; } else { filtered = closedCases.filter(c => c.circuit === circuit); } if (archiveSearchTerm) { filtered = filtered.filter(item => { if (circuit === 'توكيلات تنفيذ منتهية') { let e = item; return e.caseNumber?.toLowerCase().includes(archiveSearchTerm) || e.clientName?.toLowerCase().includes(archiveSearchTerm); } else { let c = item; let allClients = getAllClientsNames(c); return c.number?.toLowerCase().includes(archiveSearchTerm) || allClients.some(n => n.toLowerCase().includes(archiveSearchTerm)); } }); } let container = document.getElementById('archiveCasesList'); if (!filtered.length) { container.innerHTML = '<p style="text-align:center; padding:20px;">📂 لا توجد عناصر في هذا التصنيف</p>'; return; } if (circuit === 'توكيلات تنفيذ منتهية') { container.innerHTML = filtered.map(e => { let deleteBtn = isHesham() ? `<button onclick="deleteArchivedEnforcement('${e.id}')" class="delete-btn">🗑️ حذف</button>` : ''; return `<div class="session-card"><h4>📄 ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge">👤 الموكل: ${e.clientName}</span><span class="info-badge">⚖️ الخصم: ${e.opponentName}</span></div><p><strong>📋 المطلوب في التنفيذ:</strong> ${e.request}</p><p><strong>📅 تاريخ التنفيذ الأصلي:</strong> ${new Date(e.date).toLocaleString('ar-EG')}</p><p><strong>🏁 تاريخ الإنهاء:</strong> ${new Date(e.archivedAt).toLocaleString('ar-EG')}</p><p><strong>📝 ملاحظات الإنهاء:</strong> ${e.completionNotes || 'لا توجد'}</p><p><strong>👤 تم بواسطة:</strong> ${e.archivedBy || 'غير معروف'}</p><div class="admin-actions"><button onclick="viewFullCase('${e.caseId}', 'closed')" class="btn-primary btn-sm">📋 عرض القضية الأصلية</button>${deleteBtn}</div></div>`; }).join(''); } else { container.innerHTML = filtered.map(c => { let allClients = getAllClientsNames(c); let allOpponents = getAllOpponents(c); let showDelete = isHesham() ? `<button onclick="deleteClosedCase('${c.id}')" class="delete-btn">🗑️ حذف القضية</button>` : ''; return `<div class="session-card"><h4>✅ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">⚖️ الدائرة: ${c.circuit}</span></div><p><strong>📝 موضوع القضية:</strong> ${c.subject || 'غير محدد'}</p><p><strong>📌 القرار السابق:</strong> ${c.decision || 'لا يوجد'}</p><p><strong>⚖️ الحكم النهائي:</strong> ${c.judgment}</p><p><strong>📅 تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString('ar-EG')}</p><div class="admin-actions"><button onclick="viewFullCase('${c.id}','closed')" class="btn-primary btn-sm">📋 عرض التفاصيل</button>${showDelete}</div></div>`; }).join(''); } document.querySelectorAll('.archive-cat-btn').forEach(btn => { btn.classList.remove('active'); if (btn.getAttribute('data-circuit') === circuit) btn.classList.add('active'); }); }
+    function deleteArchivedEnforcement(id) { if (!isHesham()) { showNotification('❌ غير مسموح لك بهذه العملية'); return; } if (confirm('هل أنت متأكد من حذف توكيل التنفيذ المؤرشف؟')) { archivedEnforcements = archivedEnforcements.filter(e => e.id != id); database.ref('archivedEnforcements').set(archivedEnforcements); showNotification('✅ تم الحذف'); renderArchive(); } }
+    function addArchiveCircuit() { if (!isHesham()) { showNotification('غير مسموح لك بهذه العملية'); return; } let newCircuit = prompt('أدخل اسم الدائرة الجديدة:'); if (newCircuit && newCircuit.trim()) { let circuitName = newCircuit.trim(); if (!archiveCategories.find(c => c.circuit === circuitName)) { archiveCategories.push({ id: circuitName.replace(/\s/g, '_'), name: circuitName, circuit: circuitName }); database.ref('archiveCategories').set(archiveCategories); renderArchive(); showNotification(`تم إضافة دائرة "${circuitName}"`); } else showNotification('هذه الدائرة موجودة بالفعل'); } }
+    function backupArchiveData() { if (!isHesham()) { showNotification('❌ غير مسموح - هذه الخاصية متاحة فقط للمدير الأساسي (حسام)'); return; } let backupData = { activeCases, closedCases, clients, employees, fixedAdmins: fixedAdmins.map(a => ({ ...a, password: '********' })), adminWorks, judgmentRecords, enforcements, archivedEnforcements, experts, archiveCategories, customCourts, backupDate: new Date().toISOString(), backupVersion: '1.0' }; let backupJSON = JSON.stringify(backupData, null, 2); let blob = new Blob([backupJSON], { type: 'application/json' }); let url = URL.createObjectURL(blob); let a = document.createElement('a'); a.href = url; a.download = `backup_lawfirm_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showNotification('✅ تم إنشاء ملف النسخ الاحتياطي بنجاح'); }
+    function restoreBackupData() { if (!isHesham()) { showNotification('❌ غير مسموح - هذه الخاصية متاحة فقط للمدير الأساسي (حسام)'); return; } let input = document.createElement('input'); input.type = 'file'; input.accept = 'application/json'; input.onchange = function(e) { let file = e.target.files[0]; if (!file) return; let reader = new FileReader(); reader.onload = function(evt) { try { let backupData = JSON.parse(evt.target.result); if (confirm('⚠️ تحذير: استعادة النسخة الاحتياطية ستستبدل جميع البيانات الحالية! هل أنت متأكد؟')) { if (backupData.activeCases) database.ref('activeCases').set(backupData.activeCases); if (backupData.closedCases) database.ref('closedCases').set(backupData.closedCases); if (backupData.clients) database.ref('clients').set(backupData.clients); if (backupData.employees) database.ref('employees').set(backupData.employees); if (backupData.adminWorks) database.ref('adminWorks').set(backupData.adminWorks); if (backupData.judgmentRecords) database.ref('judgmentRecords').set(backupData.judgmentRecords); if (backupData.enforcements) database.ref('enforcements').set(backupData.enforcements); if (backupData.archivedEnforcements) database.ref('archivedEnforcements').set(backupData.archivedEnforcements); if (backupData.experts) database.ref('experts').set(backupData.experts); if (backupData.archiveCategories) database.ref('archiveCategories').set(backupData.archiveCategories); if (backupData.customCourts) database.ref('customCourts').set(backupData.customCourts); showNotification('✅ تم استعادة النسخة الاحتياطية بنجاح، سيتم تحديث الصفحة'); setTimeout(() => location.reload(), 2000); } } catch(err) { showNotification('❌ خطأ في قراءة ملف النسخ الاحتياطي'); console.error(err); } }; reader.readAsText(file); }; input.click(); }
+    function renderClientsTable() { let tbody = document.querySelector('#clientsTable tbody'); if (!tbody) return; tbody.innerHTML = clients.map(cl => { let total = activeCases.filter(c => c.clientId == cl.id || (c.additionalClients && c.additionalClients.some(ac => ac.clientId == cl.id))).length + closedCases.filter(c => c.clientId == cl.id || (c.additionalClients && c.additionalClients.some(ac => ac.clientId == cl.id))).length; let showDelete = canDeleteEverywhere() ? `<button class="delete-btn" onclick="deleteClient('${cl.id}')">🗑️</button>` : 'لا يمكن الحذف'; return `<tr><td style="text-align:right">${cl.name}</td><td style="text-align:right">${cl.phone}</td><td style="text-align:right">${total}</td><td style="text-align:right">${showDelete}</td></tr>`; }).join(''); }
+    function deleteClient(id) { if (confirm('حذف الموكل سيؤثر على القضايا المرتبطة؟')) { clients = clients.filter(c => c.id != id); database.ref('clients').set(clients); showNotification('تم حذف الموكل'); } }
+    function populateSelects() { let select = document.getElementById('caseClient'); if (select) { let currentVal = select.value; select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); if (currentVal) select.value = currentVal; } document.querySelectorAll('.additional-client-select').forEach(sel => { let currentVal = sel.value; sel.innerHTML = '<option value="">اختر موكل مشارك</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); if (currentVal) sel.value = currentVal; }); }
+    function renderEmployeesTable() { let tbody = document.querySelector('#employeesTable tbody'); if (!tbody) return; const employeesMap = new Map(); fixedAdmins.forEach(emp => { if (emp && emp.id && emp.username && emp.username !== "undefined") { employeesMap.set(emp.id, { ...emp, source: 'fixed' }); } }); employees.forEach(emp => { if (emp && emp.id && emp.username && emp.username !== "undefined") { if (!employeesMap.has(emp.id)) { employeesMap.set(emp.id, { ...emp, source: 'employee' }); } } }); let allEmployees = Array.from(employeesMap.values()); let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp)); tbody.innerHTML = visible.map(emp => { let canChangePass = canChangePasswordFor(emp); let canChangeUser = canChangeUsername(emp); let canDel = canDeleteEmployee(emp); let actions = ''; if (canChangeUser) actions += `<button class="btn-primary btn-sm" onclick="changeUsername('${emp.id}')">✏️ تغيير اليوزر</button> `; if (canChangePass) actions += `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `; if (canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`; if (!canChangePass && !canDel && !canChangeUser) actions = 'لا يمكن التعديل'; let passwordDisplay = ''; if (isHesham() || isGeorge() || currentUser?.id === emp.id) { passwordDisplay = `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>`; } return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role || 'محامي'}</td><td style="text-align:right">${emp.password || '••••••'}</td><td style="text-align:right">${actions}</td></tr>`; }).join(''); }
+    async function reloadUsersFromFirebase() { try { const fixedSnapshot = await database.ref('fixedAdmins').once('value'); const fixedData = fixedSnapshot.val(); if (fixedData && Object.keys(fixedData).length > 0) { fixedAdmins = Object.values(fixedData); } else { fixedAdmins = [{ id: "admin_hesham", username: "hesham", password: "123", role: "مدير", isFixed: true, superAdmin: true }, { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }]; const adminsObj = {}; fixedAdmins.forEach(admin => { adminsObj[admin.id] = admin; }); await database.ref('fixedAdmins').set(adminsObj); } const empSnapshot = await database.ref('employees').once('value'); const empData = empSnapshot.val(); employees = empData ? Object.values(empData) : []; renderEmployeesTable(); } catch (error) { console.error(error); } }
+    async function changePassword(empId) { if (!canChangePasswordFor({ id: empId })) { showNotification('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم'); return; } let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:'); if (!newPassword || newPassword.length === 0) { showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); return; } let emp = [...fixedAdmins, ...employees].find(e => e.id == empId); if (!emp) { showNotification('❌ المستخدم غير موجود'); return; } let updatedAt = new Date().toISOString(); let updatedData = { id: emp.id, username: emp.username, password: newPassword, role: emp.role, isFixed: emp.isFixed || false, updatedAt: updatedAt }; if (emp.superAdmin) updatedData.superAdmin = true; try { if (emp.isFixed) { await database.ref('fixedAdmins/' + empId).remove(); await database.ref('fixedAdmins/' + empId).set(updatedData); let idx = fixedAdmins.findIndex(e => e.id == empId); if (idx !== -1) { fixedAdmins[idx].password = newPassword; fixedAdmins[idx].updatedAt = updatedAt; } } else { await database.ref('employees/' + empId).remove(); await database.ref('employees/' + empId).set(updatedData); let idx = employees.findIndex(e => e.id == empId); if (idx !== -1) { employees[idx].password = newPassword; employees[idx].updatedAt = updatedAt; } } showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`); await reloadUsersFromFirebase(); if (emp.id === currentUser?.id) { showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج الآن'); setTimeout(() => logout(), 1000); } else { renderEmployeesTable(); } } catch (err) { showNotification('❌ خطأ في حفظ كلمة السر الجديدة'); console.error(err); } }
+    async function changeUsername(empId) { if (!canChangeUsername({ id: empId })) { showNotification('❌ غير مسموح لك بتغيير اسم المستخدم لهذا الحساب'); return; } let newUsername = prompt('✏️ أدخل اسم المستخدم الجديد:'); if (!newUsername || newUsername.trim().length === 0) { showNotification('❌ لم يتم إدخال اسم مستخدم جديد'); return; } newUsername = newUsername.trim(); let allExisting = [...fixedAdmins, ...employees]; if (allExisting.some(e => e.id !== empId && e.username === newUsername)) { showNotification('❌ اسم المستخدم موجود بالفعل'); return; } let emp = [...fixedAdmins, ...employees].find(e => e.id == empId); if (!emp) { showNotification('❌ المستخدم غير موجود'); return; } let updatedAt = new Date().toISOString(); let updatedData = { id: emp.id, username: newUsername, password: emp.password, role: emp.role, isFixed: emp.isFixed || false, updatedAt: updatedAt }; if (emp.superAdmin) updatedData.superAdmin = true; try { if (emp.isFixed) { await database.ref('fixedAdmins/' + empId).remove(); await database.ref('fixedAdmins/' + empId).set(updatedData); let idx = fixedAdmins.findIndex(e => e.id == empId); if (idx !== -1) { fixedAdmins[idx].username = newUsername; fixedAdmins[idx].updatedAt = updatedAt; } } else { await database.ref('employees/' + empId).remove(); await database.ref('employees/' + empId).set(updatedData); let idx = employees.findIndex(e => e.id == empId); if (idx !== -1) { employees[idx].username = newUsername; employees[idx].updatedAt = updatedAt; } } showNotification(`✅ تم تغيير اسم المستخدم من "${emp.username}" إلى "${newUsername}"`); await reloadUsersFromFirebase(); if (emp.id === currentUser?.id) { currentUser.username = newUsername; currentUser.updatedAt = updatedAt; localStorage.setItem('law_currentUser', JSON.stringify(currentUser)); document.getElementById('currentUserName').innerText = newUsername; } renderEmployeesTable(); } catch (err) { showNotification('❌ خطأ في حفظ اسم المستخدم الجديد'); } }
+    function deleteEmployee(id) { if (id === "admin_hesham") { showNotification('لا يمكن حذف المدير الأساسي'); return; } if (id === "admin_george" && !isSuperAdmin()) { showNotification('لا يمكن حذف هذا المستخدم'); return; } if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) { employees = employees.filter(e => e.id != id); database.ref('employees').set(employees); showNotification('تم حذف الموظف'); renderEmployeesTable(); } }
+    let currentYearAgenda = new Date().getFullYear(); let currentMonthAgenda = new Date().getMonth();
+    function renderAdvancedAgenda() { let container = document.getElementById('advancedAgendaList'); if (!container) return; let years = [currentYearAgenda - 1, currentYearAgenda, currentYearAgenda + 1]; let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']; container.innerHTML = `<div class="year-months">${years.map(y => `<span class="year-btn ${y === currentYearAgenda ? 'active' : ''}" onclick="selectYear(${y})">${y}</span>`).join('')}</div><div class="year-months" id="monthsContainer">${months.map((m, i) => `<span class="month-btn ${i === currentMonthAgenda ? 'active' : ''}" onclick="selectMonth(${currentYearAgenda},${i})">${m}</span>`).join('')}</div><div id="monthDaysContainer"></div>`; showMonthDays(currentYearAgenda, currentMonthAgenda); }
+    function selectYear(year) { currentYearAgenda = year; let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']; document.getElementById('monthsContainer').innerHTML = months.map((m, i) => `<span class="month-btn ${i === currentMonthAgenda ? 'active' : ''}" onclick="selectMonth(${year},${i})">${m}</span>`).join(''); document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active')); let yearBtn = Array.from(document.querySelectorAll('.year-btn')).find(btn => btn.innerText == year); if (yearBtn) yearBtn.classList.add('active'); showMonthDays(year, currentMonthAgenda); }
+    function selectMonth(year, month) { currentYearAgenda = year; currentMonthAgenda = month; document.querySelectorAll('.month-btn').forEach(btn => btn.classList.remove('active')); let monthBtns = document.querySelectorAll('.month-btn'); if (monthBtns[month]) monthBtns[month].classList.add('active'); showMonthDays(year, month); }
+    function getSessionCountForDate(date) { let count = 0; activeCases.forEach(c => { let sessionDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null); if (sessionDate && sessionDate.toDateString() === date.toDateString()) count++; if (c.pastSessions) { c.pastSessions.forEach(ps => { let pastDate = new Date(ps.date); if (pastDate.toDateString() === date.toDateString()) count++; }); } }); return count; }
+    function showMonthDays(year, month) { let daysInMonth = new Date(year, month + 1, 0).getDate(); let firstDayIndex = new Date(year, month, 1).getDay(); let today = new Date(); let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']; let daysHtml = '<div class="week-days-grid">' + weekDays.map(day => `<div class="week-day-name">${day}</div>`).join('') + '</div><div class="days-grid">'; for (let i = 0; i < firstDayIndex; i++) daysHtml += '<div></div>'; for (let d = 1; d <= daysInMonth; d++) { let date = new Date(year, month, d); let sessionCount = getSessionCountForDate(date); let hasSessions = sessionCount > 0; let isToday = date.toDateString() === today.toDateString(); daysHtml += `<div class="day-card ${hasSessions ? 'has-session' : ''} ${isToday ? 'today' : ''}" onclick="showDaySessions(${year},${month},${d})">${d}${sessionCount > 0 ? `<br><small>${sessionCount} جلسة</small>` : ''}</div>`; } daysHtml += '</div>'; document.getElementById('monthDaysContainer').innerHTML = daysHtml; }
+    function showDaySessions(year, month, day) { let date = new Date(year, month, day); let sessions = []; activeCases.forEach(c => { let futureDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null); if (futureDate && futureDate.toDateString() === date.toDateString()) { sessions.push({ ...c, sessionType: 'قادمة', sessionDate: futureDate, isPast: false, decision: c.decision, allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c) }); } if (c.pastSessions) { c.pastSessions.forEach(ps => { let pastDate = new Date(ps.date); if (pastDate.toDateString() === date.toDateString()) { sessions.push({ ...c, sessionType: 'سابقة', sessionDate: pastDate, isPast: true, decision: ps.decision, allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c) }); } }); } }); if (sessions.length === 0) { document.getElementById('modalBody').innerHTML = '<p>لا توجد جلسات في هذا اليوم</p>'; } else { document.getElementById('modalBody').innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${s.allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${s.allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">⏰ الساعة: ${s.sessionDate.toLocaleTimeString('ar-EG')}</span><span class="info-badge">📌 نوع الجلسة: ${s.sessionType}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>${s.isPast ? 'قرار الجلسة السابقة:' : 'آخر قرار:'}</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join(''); } document.getElementById('modalTitle').innerHTML = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}`; document.getElementById('detailsModal').style.display = 'flex'; }
+    function updateStats() { document.getElementById('totalActiveCases').innerText = activeCases.length; document.getElementById('totalClosedCases').innerText = closedCases.length; let tomorrowTotal = getAllTomorrowAppointments().length; document.getElementById('tomorrowAppointmentsCount').innerText = tomorrowTotal; document.getElementById('totalClients').innerText = clients.length; document.getElementById('reportTotalActive').innerText = activeCases.length; document.getElementById('reportTotalClosed').innerText = closedCases.length; document.getElementById('reportTotalClients').innerText = clients.length; let weekDays = ['السبت', 'الأحد', 'الإثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة']; let today = new Date(); let startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - today.getDay() + 6); startOfWeek.setHours(0, 0, 0); let weeklyHtml = ''; for (let i = 0; i < 7; i++) { let day = new Date(startOfWeek); day.setDate(startOfWeek.getDate() + i); day.setHours(0, 0, 0); let dayEnd = new Date(day); dayEnd.setDate(dayEnd.getDate() + 1); let count = activeCases.filter(c => { let sessionDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null); return sessionDate && sessionDate >= day && sessionDate < dayEnd; }).length; weeklyHtml += `<p><strong>${weekDays[i]} ${day.toLocaleDateString('ar-EG')}:</strong> ${count} جلسة${count > 1 ? 'ات' : ''}</p>`; } let weeklyDiv = document.getElementById('weeklyReport'); if (weeklyDiv) weeklyDiv.innerHTML = weeklyHtml; }
+    function updateWelcomeMessage() { document.getElementById('welcomeMessage').innerHTML = `مرحباً بك يا أستاذ ${currentUser?.username} 👋`; updateTomorrowBadges(); }
+    function initStatCards() { document.querySelectorAll('.stat-card').forEach(card => { card.onclick = () => { let tabName = card.getAttribute('data-tab'); if (tabName) switchToTab(tabName, true); }; }); }
+    function exportToExcel() { if (!isHesham()) { showNotification('❌ غير مسموح لك بهذه العملية - فقط المدير الأساسي (حسام)'); return; } try { let activeData = activeCases.map(c => ({ 'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الدائرة': c.circuit || '', 'الموكلين': getAllClientsNames(c).join(' - '), 'صفة الموكل الرئيسي': c.clientRole, 'الخصوم': getAllOpponents(c).map(o => `${o.name} (${o.role || '-'})`).join(' - '), 'موضوع القضية': c.subject || '', 'الجلسة القادمة': c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : '') })); let wb = XLSX.utils.book_new(); if (activeData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(activeData), 'قضايا المكتب'); let closedData = closedCases.map(c => ({ 'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الدائرة': c.circuit || '', 'الموكلين': getAllClientsNames(c).join(' - '), 'الخصوم': getAllOpponents(c).map(o => `${o.name} (${o.role || '-'})`).join(' - '), 'موضوع القضية': c.subject || '', 'الحكم النهائي': c.judgment, 'تاريخ الإنهاء': new Date(c.closedAt).toLocaleDateString('ar-EG') })); if (closedData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(closedData), 'قضايا منتهية'); XLSX.writeFile(wb, `مكتب_الخواجا_${new Date().toLocaleDateString('ar-EG')}.xlsx`); showNotification('✅ تم تصدير البيانات بنجاح'); } catch(e) { showNotification('❌ حدث خطأ أثناء تصدير البيانات'); console.error(e); } }
+    function enableMaintenance(durationHours = null) { if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; } let endTime = durationHours ? new Date(Date.now() + durationHours * 3600000).toISOString() : null; database.ref('maintenance').set({ isActive: true, endTime, startedBy: currentUser.username, startedAt: new Date().toISOString() }); showNotification(`تم تعطيل الموقع للصيانة${durationHours ? ` لمدة ${durationHours} ساعة` : ''}`); }
+    function disableMaintenance() { if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; } database.ref('maintenance').set({ isActive: false, endTime: null, endedBy: currentUser.username, endedAt: new Date().toISOString() }); showNotification('تم تشغيل الموقع مرة أخرى'); }
+    function setupMaintenanceControls() { if (!isSuperAdmin()) return; let toggleBtn = document.getElementById('toggleMaintenanceBtn'); let durationSelect = document.getElementById('maintenanceDuration'); let statusSpan = document.getElementById('maintenanceStatusSpan'); let infoDiv = document.getElementById('maintenanceInfo'); if (toggleBtn) toggleBtn.onclick = () => { if (isMaintenanceMode) disableMaintenance(); else enableMaintenance(parseInt(durationSelect?.value) || null); }; database.ref('maintenance').on('value', (snapshot) => { const data = snapshot.val(); isMaintenanceMode = data?.isActive || false; maintenanceEndTime = data?.endTime; if (toggleBtn) { if (isMaintenanceMode) { toggleBtn.innerHTML = '🔓 تشغيل الموقع'; toggleBtn.className = 'btn-success'; if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-overdue">🔴 الموقع معطل</span>'; } else { toggleBtn.innerHTML = '🔧 تعطيل الموقع (صيانة)'; toggleBtn.className = 'btn-warning'; if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-completed">🟢 الموقع يعمل</span>'; } } if (infoDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) { let remaining = new Date(maintenanceEndTime) - new Date(); let hours = Math.floor(remaining / 3600000); let minutes = Math.floor((remaining % 3600000) / 60000); infoDiv.innerHTML = `<small><i class="fas fa-clock"></i> تنتهي الصيانة بعد: ${hours} ساعة ${minutes} دقيقة</small>`; if (maintenanceInterval) clearInterval(maintenanceInterval); maintenanceInterval = setInterval(() => { if (isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) <= new Date()) { disableMaintenance(); if (maintenanceInterval) clearInterval(maintenanceInterval); } }, 60000); } else if (infoDiv) { infoDiv.innerHTML = ''; if (maintenanceInterval) clearInterval(maintenanceInterval); } checkMaintenance(); }); }
+    function checkMaintenance() { if (isSuperAdmin()) { document.getElementById('maintenanceScreen').style.display = 'none'; return true; } if (isMaintenanceMode) { if (maintenanceEndTime && new Date() > new Date(maintenanceEndTime)) { disableMaintenance(); return true; } document.getElementById('maintenanceScreen').style.display = 'flex'; let timerDiv = document.getElementById('maintenanceTimer'); if (timerDiv && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) { let remaining = new Date(maintenanceEndTime) - new Date(); let hours = Math.floor(remaining / 3600000); let minutes = Math.floor((remaining % 3600000) / 60000); let seconds = Math.floor((remaining % 60000) / 1000); timerDiv.innerHTML = `<p style="color:#dc3545;"><i class="fas fa-clock"></i> متبقي: ${hours} ساعة ${minutes} دقيقة ${seconds} ثانية</p>`; } else if (timerDiv && isMaintenanceMode) timerDiv.innerHTML = '<p style="color:#dc3545;"><i class="fas fa-clock"></i> الصيانة مستمرة</p>'; return false; } document.getElementById('maintenanceScreen').style.display = 'none'; return true; }
+    function loadDataFromFirebase() {
+        database.ref('activeCases').on('value', (s) => { activeCases = s.val() ? Object.values(s.val()) : []; updateStats(); renderActiveCases(); renderPastSessions(); renderTomorrowAppointments(); renderAdvancedAgenda(); checkForNewNotifications(); });
+        database.ref('closedCases').on('value', (s) => { closedCases = s.val() ? Object.values(s.val()) : []; updateStats(); renderClosedCases(); renderArchive(); });
+        database.ref('clients').on('value', (s) => { clients = s.val() ? Object.values(s.val()) : []; updateStats(); renderClientsTable(); populateSelects(); renderActiveCases(); renderPastSessions(); renderTomorrowAppointments(); renderAdvancedAgenda(); renderClosedCases(); renderArchive(); renderExperts(); renderEnforcements(); renderJudgmentRecords(); });
+        database.ref('employees').on('value', (s) => { employees = s.val() ? Object.values(s.val()) : []; renderEmployeesTable(); });
+        database.ref('customCourts').on('value', (s) => { customCourts = s.val() ? Object.values(s.val()) : []; updateCourtOptions(); });
+        database.ref('adminWorks').on('value', (s) => { adminWorks = s.val() ? Object.values(s.val()) : []; renderAdminWorks(); renderTomorrowAppointments(); });
+        database.ref('judgmentRecords').on('value', (s) => { judgmentRecords = s.val() ? Object.values(s.val()) : []; renderJudgmentRecords(); });
+        database.ref('enforcements').on('value', (s) => { enforcements = s.val() ? Object.values(s.val()) : []; renderEnforcements(); checkForNewNotifications(); renderTomorrowAppointments(); });
+        database.ref('experts').on('value', (s) => { experts = s.val() ? Object.values(s.val()) : []; renderExperts(); checkForNewNotifications(); renderTomorrowAppointments(); });
+        database.ref('archivedEnforcements').on('value', (s) => { archivedEnforcements = s.val() ? Object.values(s.val()) : []; renderArchive(); });
+        database.ref('fixedAdmins').on('value', (snapshot) => { const data = snapshot.val(); if (data) fixedAdmins = Object.values(data); else { fixedAdmins = [{ id: "admin_hesham", username: "hesham", password: "123", role: "مدير", isFixed: true, superAdmin: true }, { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }]; const adminsObj = {}; fixedAdmins.forEach(admin => { adminsObj[admin.id] = admin; }); database.ref('fixedAdmins').set(adminsObj); } renderEmployeesTable(); });
+        database.ref('maintenance').on('value', (snapshot) => { const data = snapshot.val(); if (data) { isMaintenanceMode = data.isActive || false; maintenanceEndTime = data.endTime; } checkMaintenance(); });
+        database.ref('archiveCategories').on('value', (s) => { if (s.val()) { archiveCategories = s.val(); } else { archiveCategories = [{ id: "مدني", name: "⚖️ مدني", circuit: "مدني" }, { id: "مدني_كلي", name: "⚖️ مدني كلي", circuit: "مدني كلي" }, { id: "مدني_مستأنف", name: "⚖️ مدني مستأنف", circuit: "مدني مستأنف" }, { id: "جنح", name: "⚖️ جنح", circuit: "جنح" }, { id: "صحة_توقيع", name: "✍️ صحة توقيع", circuit: "صحة توقيع" }, { id: "اسره_المراغه", name: "👨‍👩‍👧 أسرة المراغة", circuit: "أسرة المراغة" }, { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }, { id: "توكيلات_منتهيه", name: "📄 توكيلات تنفيذ منتهية", circuit: "توكيلات تنفيذ منتهية" }]; database.ref('archiveCategories').set(archiveCategories); } renderArchive(); });
     }
-    if (!activeEnforcements.length) {
-        container.innerHTML = enforcementSearchTerm ? '<p>🔍 لا توجد توكيلات تنفيذ مطابقة للبحث</p>' : '<p>لا توجد توكيلات تنفيذ نشطة</p>';
-        return;
-    }
-    container.innerHTML = activeEnforcements.map(e => {
-        let caseData = getFullCaseData(e.caseId);
-        let isTomorrow = e.date && new Date(e.date).toDateString() === new Date(Date.now() + 86400000).toDateString();
-        return `<div class="enforcement-card" style="${isTomorrow ? 'border-right-color:#ffc107;' : ''}">
-                    <h4>📄 توكيل تنفيذ - ${e.caseNumber} (${e.caseYear})</h4>
-                    <div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">⚖️ الدائرة: ${caseData?.circuit || 'غير محدد'}</span></div>
-                    <div class="info-row"><span class="info-badge">👥 الموكلين: ${caseData?.allClientsNames?.join(' - ') || 'غير محدد'}</span><span class="info-badge">⚖️ الخصوم: ${caseData?.allOpponents?.map(o => `${o.name} (${o.role || '-'})`).join(' - ') || 'غير محدد'}</span></div>
-                    <p><strong>📝 موضوع القضية:</strong> ${caseData?.subject || 'غير محدد'}</p>
-                    <p><strong>📌 القرار السابق:</strong> ${caseData?.decision || 'لا يوجد'}</p>
-                    <p><strong>📋 المطلوب في التنفيذ:</strong> ${e.request}</p>
-                    <p><strong>📅 تاريخ التنفيذ:</strong> ${new Date(e.date).toLocaleString('ar-EG')}${isTomorrow ? ' <span style="color:#ffc107;">(غداً!)</span>' : ''}</p>
-                    <p><strong>📜 الإجراءات السابقة:</strong> ${e.previousActions || 'لا توجد'}</p>
-                    <p><strong>💬 ملاحظات:</strong> ${e.notes || 'لا توجد'}</p>
-                    <div class="admin-actions">
-                        <button onclick="editEnforcement('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button>
-                        <button onclick="deleteEnforcement('${e.id}')" class="delete-btn">🗑️ حذف</button>
-                        <button onclick="rescheduleEnforcement('${e.id}', '${e.date}', '${e.previousActions || ''}')" class="btn-primary btn-sm">📅 تعديل الموعد</button>
-                        <button onclick="viewFullCase('${e.caseId}', 'active')" class="btn-primary btn-sm">📋 عرض القضية</button>
-                        <button onclick="showArchiveEnforcementModal('${e.id}')" class="btn-success btn-sm">🏁 إنهاء التنفيذ</button>
-                        <button onclick="showClientCases('${e.clientName}')" class="btn-primary btn-sm">👤 قضايا الموكل</button>
-                    </div>
-                </div>`;
-    }).join('');
-}
-function showArchiveEnforcementModal(id) {
-    let e = enforcements.find(e => e.id == id);
-    if (!e) return;
-    let modalBody = `<h4>🏁 إنهاء توكيل التنفيذ</h4><p><strong>القضية: ${e.caseNumber} (${e.caseYear})</strong></p><div class="form-group"><label>📝 ملاحظات إتمام التنفيذ</label><textarea id="archiveNotes" rows="3" placeholder="مثال: تم سحب المبلغ بالكامل، تم إغلاق الملف..."></textarea></div><div class="form-group"><label>📅 تاريخ الإنهاء</label><input type="datetime-local" id="archiveDate" value="${new Date().toISOString().slice(0, 16)}"></div><button onclick="confirmArchiveEnforcement('${id}')" class="btn-success">✅ تأكيد الأرشفة</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`;
-    document.getElementById('modalTitle').innerHTML = '🏁 إنهاء توكيل التنفيذ';
-    document.getElementById('modalBody').innerHTML = modalBody;
-    document.getElementById('detailsModal').style.display = 'flex';
-}
-function confirmArchiveEnforcement(id) {
-    let notes = document.getElementById('archiveNotes')?.value || '';
-    let date = document.getElementById('archiveDate')?.value;
-    archiveEnforcement(id, notes, date);
-    closeModal();
-}
-function editEnforcement(id) {
-    let e = enforcements.find(e => e.id == id);
-    if (!e) return;
-    let modalBody = `<h4>✏️ تعديل توكيل تنفيذ</h4><div class="form-group"><label>القضية</label><input type="text" value="${e.caseNumber} (${e.caseYear})" readonly></div><div class="form-group"><label>الموكل</label><input type="text" value="${e.clientName}" readonly></div><div class="form-group"><label>الخصم</label><input type="text" value="${e.opponentName}" readonly></div><div class="form-group"><label>المطلوب في التنفيذ</label><textarea id="editEnforcementRequest" rows="3">${e.request || ''}</textarea></div><div class="form-group"><label>تاريخ التنفيذ</label><input type="datetime-local" id="editEnforcementDate" value="${e.date ? e.date.slice(0, 16) : ''}"></div><div class="form-group"><label>الإجراءات السابقة</label><textarea id="editEnforcementPrevious" rows="3">${e.previousActions || ''}</textarea></div><div class="form-group"><label>ملاحظات</label><textarea id="editEnforcementNotes" rows="2">${e.notes || ''}</textarea></div><button onclick="updateEnforcement('${id}')" class="btn-success">💾 حفظ التعديلات</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`;
-    document.getElementById('modalTitle').innerHTML = '✏️ تعديل توكيل تنفيذ';
-    document.getElementById('modalBody').innerHTML = modalBody;
-    document.getElementById('detailsModal').style.display = 'flex';
-}
-function updateEnforcement(id) {
-    let idx = enforcements.findIndex(e => e.id == id);
-    if (idx !== -1) {
-        enforcements[idx].request = document.getElementById('editEnforcementRequest').value;
-        enforcements[idx].date = document.getElementById('editEnforcementDate').value;
-        enforcements[idx].previousActions = document.getElementById('editEnforcementPrevious').value;
-        enforcements[idx].notes = document.getElementById('editEnforcementNotes').value;
-        database.ref('enforcements').set(enforcements);
-        showNotification('تم تحديث توكيل التنفيذ');
-        closeModal(); renderEnforcements(); renderTomorrowAppointments();
-    }
-}
-function deleteEnforcement(id) {
-    if (confirm('هل أنت متأكد من حذف توكيل التنفيذ؟')) {
-        enforcements = enforcements.filter(e => e.id != id);
-        database.ref('enforcements').set(enforcements);
-        showNotification('تم الحذف');
-        renderEnforcements(); renderTomorrowAppointments();
-    }
-}
-function rescheduleEnforcement(id, oldDate, oldNotes) {
-    let newDate = prompt('📅 أدخل التاريخ الجديد للتنفيذ (YYYY-MM-DD HH:MM):', oldDate);
-    if (!newDate) return;
-    let whatWasDone = prompt('📝 ما الذي تم إنجازه في التنفيذ حتى الآن؟', oldNotes || '');
-    let idx = enforcements.findIndex(e => e.id == id);
-    if (idx !== -1) {
-        enforcements[idx].date = newDate;
-        enforcements[idx].previousActions = whatWasDone || enforcements[idx].previousActions;
-        enforcements[idx].lastUpdated = new Date().toISOString();
-        database.ref('enforcements').set(enforcements);
-        showNotification('✅ تم تحديث موعد التنفيذ وتحديث الإجراءات');
-        renderEnforcements(); renderTomorrowAppointments(); checkForNewNotifications();
-    }
-}
-function rescheduleExpert(id, oldDate, oldNotes) {
-    let newDate = prompt('📅 أدخل التاريخ الجديد للخبير (YYYY-MM-DD HH:MM):', oldDate);
-    if (!newDate) return;
-    let whatWasDone = prompt('📝 ما الذي تم إنجازه مع الخبير؟', oldNotes || '');
-    let idx = experts.findIndex(e => e.id == id);
-    if (idx !== -1) {
-        experts[idx].expertDate = newDate;
-        experts[idx].notes = whatWasDone || experts[idx].notes;
-        experts[idx].lastUpdated = new Date().toISOString();
-        database.ref('experts').set(experts);
-        showNotification('✅ تم تحديث موعد الخبير وتحديد ما تم إنجازه');
-        renderExperts(); renderTomorrowAppointments(); checkForNewNotifications();
-    }
-}
-function addExpert() {
-    let modalBody = `<h4>➕ إضافة موعد خبير جديد</h4><div class="form-group"><label>اختر القضية</label><select id="expertCase"><option value="">-- اختر قضية --</option>${activeCases.map(c => `<option value="${c.id}">${c.number} (${c.year}) - ${getClientName(c.clientId)}</option>`).join('')}</select></div><div class="form-group"><label>الموكل</label><input type="text" id="expertClientName" readonly></div><div class="form-group"><label>الخصم</label><input type="text" id="expertOpponentName" readonly></div><div class="form-group"><label>رقم القضية</label><input type="text" id="expertCaseNumber" readonly></div><div class="form-group"><label>موعد الخبير</label><input type="datetime-local" id="expertDate"></div><div class="form-group"><label>المطلوب من الخبير</label><textarea id="expertRequest" rows="2"></textarea></div><div class="form-group"><label>المعاينات المطلوبة</label><textarea id="expertInspections" rows="2"></textarea></div><div class="form-group"><label>ملاحظات</label><textarea id="expertNotes" rows="2"></textarea></div><button onclick="saveExpert()" class="btn-success">💾 حفظ</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`;
-    document.getElementById('modalTitle').innerHTML = '➕ موعد خبير جديد';
-    document.getElementById('modalBody').innerHTML = modalBody;
-    document.getElementById('detailsModal').style.display = 'flex';
-    document.getElementById('expertCase').addEventListener('change', function() {
-        let caseId = this.value;
-        if (caseId) {
-            let caseData = activeCases.find(c => c.id == caseId);
-            if (caseData) {
-                document.getElementById('expertClientName').value = getClientName(caseData.clientId);
-                let firstOpponent = (getAllOpponents(caseData)[0] || {}).name || '';
-                document.getElementById('expertOpponentName').value = firstOpponent;
-                document.getElementById('expertCaseNumber').value = `${caseData.number} (${caseData.year})`;
+    function updateScaleClock() { let now = new Date(); let hours = now.getHours() % 12; let minutes = now.getMinutes(); let seconds = now.getSeconds(); let hourDeg = (hours * 30) + (minutes * 0.5); let minuteDeg = (minutes * 6) + (seconds * 0.1); let secondDeg = seconds * 6; let hourHand = document.getElementById('hourHandScale'); let minuteHand = document.getElementById('minuteHandScale'); let secondHand = document.getElementById('secondHandScale'); if (hourHand) hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`; if (minuteHand) minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`; if (secondHand) secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`; }
+    function updateScaleDate() { let now = new Date(); let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }; let dateString = now.toLocaleDateString('ar-EG', options); let dateDiv = document.getElementById('liveDateScale'); if (dateDiv) dateDiv.innerHTML = `📅 ${dateString}`; }
+    setInterval(updateScaleClock, 1000); setInterval(updateScaleDate, 1000); updateScaleClock(); updateScaleDate();
+    async function attemptLogin() {
+        let username = document.getElementById('loginUsername').value.trim();
+        let password = document.getElementById('loginPassword').value;
+        if (!username || !password) { showNotification('❌ يرجى إدخال اسم المستخدم وكلمة المرور'); return; }
+        try {
+            const fixedSnapshot = await database.ref('fixedAdmins').once('value');
+            const fixedData = fixedSnapshot.val();
+            const fixedAdminsList = fixedData ? Object.values(fixedData) : [];
+            let user = fixedAdminsList.find(e => e.username === username && e.password === password);
+            if (!user) {
+                const empSnapshot = await database.ref('employees').once('value');
+                const empData = empSnapshot.val();
+                const employeesList = empData ? Object.values(empData) : [];
+                user = employeesList.find(e => e.username === username && e.password === password);
             }
-        }
-    });
-}
-function saveExpert() {
-    let caseId = document.getElementById('expertCase').value;
-    if (!caseId) { showNotification('يرجى اختيار قضية'); return; }
-    let caseData = activeCases.find(c => c.id == caseId);
-    if (!caseData) return;
-    let expertDate = document.getElementById('expertDate').value;
-    if (!expertDate) { showNotification('يرجى إدخال موعد الخبير'); return; }
-    experts.push({
-        id: Date.now().toString(), caseId, caseNumber: caseData.number, caseYear: caseData.year,
-        clientName: document.getElementById('expertClientName').value,
-        opponentName: document.getElementById('expertOpponentName').value,
-        expertDate: expertDate, request: document.getElementById('expertRequest').value,
-        inspections: document.getElementById('expertInspections').value, notes: document.getElementById('expertNotes').value,
-        status: 'pending', createdAt: new Date().toISOString()
-    });
-    database.ref('experts').set(experts);
-    showNotification('تم إضافة موعد الخبير بنجاح');
-    closeModal();
-    renderExperts(); checkForNewNotifications(); renderTomorrowAppointments();
-}
-function editExpert(id) {
-    let e = experts.find(e => e.id == id);
-    if (!e) return;
-    let modalBody = `<h4>✏️ تعديل موعد خبير</h4><div class="form-group"><label>القضية</label><input type="text" value="${e.caseNumber} (${e.caseYear})" readonly></div><div class="form-group"><label>الموكل</label><input type="text" value="${e.clientName}" readonly></div><div class="form-group"><label>الخصم</label><input type="text" value="${e.opponentName}" readonly></div><div class="form-group"><label>موعد الخبير</label><input type="datetime-local" id="editExpertDate" value="${e.expertDate ? e.expertDate.slice(0, 16) : ''}"></div><div class="form-group"><label>المطلوب من الخبير</label><textarea id="editExpertRequest" rows="2">${e.request || ''}</textarea></div><div class="form-group"><label>المعاينات المطلوبة</label><textarea id="editExpertInspections" rows="2">${e.inspections || ''}</textarea></div><div class="form-group"><label>ملاحظات</label><textarea id="editExpertNotes" rows="2">${e.notes || ''}</textarea></div><button onclick="updateExpert('${id}')" class="btn-success">💾 حفظ التعديلات</button><button onclick="closeModal()" class="btn-danger btn-sm">إلغاء</button>`;
-    document.getElementById('modalTitle').innerHTML = '✏️ تعديل موعد خبير';
-    document.getElementById('modalBody').innerHTML = modalBody;
-    document.getElementById('detailsModal').style.display = 'flex';
-}
-function updateExpert(id) {
-    let idx = experts.findIndex(e => e.id == id);
-    if (idx !== -1) {
-        experts[idx].expertDate = document.getElementById('editExpertDate').value;
-        experts[idx].request = document.getElementById('editExpertRequest').value;
-        experts[idx].inspections = document.getElementById('editExpertInspections').value;
-        experts[idx].notes = document.getElementById('editExpertNotes').value;
-        database.ref('experts').set(experts);
-        showNotification('تم تحديث موعد الخبير');
-        closeModal(); renderExperts(); renderTomorrowAppointments();
-    }
-}
-function deleteExpert(id) {
-    if (confirm('هل أنت متأكد من حذف موعد الخبير؟')) {
-        experts = experts.filter(e => e.id != id);
-        database.ref('experts').set(experts);
-        showNotification('تم الحذف');
-        renderExperts(); renderTomorrowAppointments();
-    }
-}
-function returnExpertToCase(id) {
-    let expert = experts.find(e => e.id == id);
-    if (!expert) return;
-    showMiniAgenda(function(newSessionDate) {
-        if (newSessionDate) {
-            let caseIdx = activeCases.findIndex(c => c.id == expert.caseId);
-            if (caseIdx !== -1) {
-                activeCases[caseIdx].nextSessionDate = newSessionDate;
-                activeCases[caseIdx].nextSessionProcessed = false;
-                database.ref('activeCases').set(activeCases);
-                experts = experts.filter(e => e.id != id);
-                database.ref('experts').set(experts);
-                showNotification('تم إرجاع القضية لجلسة جديدة بعد الخبير');
-                renderExperts(); renderActiveCases(); renderTomorrowAppointments(); checkForNewNotifications();
-            } else showNotification('القضية غير موجودة في قضايا المكتب');
-        }
-    }, null);
-}
-function completeExpert(id) {
-    let expert = experts.find(e => e.id == id);
-    if (expert) { expert.status = 'completed'; expert.completedAt = new Date().toISOString(); database.ref('experts').set(experts); showNotification('تم إكمال عمل الخبير'); renderExperts(); renderTomorrowAppointments(); }
-}
-function renderExperts() {
-    let container = document.getElementById('expertsList');
-    if (!container) return;
-    let activeExperts = experts.filter(e => e.status !== 'completed');
-    if (expertSearchTerm) {
-        activeExperts = activeExperts.filter(e => e.caseNumber?.toLowerCase().includes(expertSearchTerm) || e.clientName?.toLowerCase().includes(expertSearchTerm) || e.caseYear?.toLowerCase().includes(expertSearchTerm));
-    }
-    if (!activeExperts.length) {
-        container.innerHTML = expertSearchTerm ? '<p>🔍 لا توجد مواعيد خبراء مطابقة للبحث</p>' : '<p>لا توجد مواعيد خبراء نشطة</p>';
-        return;
-    }
-    container.innerHTML = activeExperts.map(e => {
-        let caseData = getFullCaseData(e.caseId);
-        let isTomorrow = new Date(e.expertDate).toDateString() === new Date(Date.now() + 86400000).toDateString();
-        let isPast = new Date(e.expertDate) < new Date();
-        return `<div class="expert-card" style="${isPast ? 'opacity:0.7;' : ''} ${isTomorrow ? 'border-right-color:#ffc107;' : ''}">
-                    <h4>👨‍⚖️ خبير - ${e.caseNumber} (${e.caseYear})</h4>
-                    <div class="info-row"><span class="info-badge">🏛️ المحكمة: ${caseData?.court || 'غير محدد'}</span><span class="info-badge">⚖️ الدائرة: ${caseData?.circuit || 'غير محدد'}</span></div>
-                    <div class="info-row"><span class="info-badge">👥 الموكلين: ${caseData?.allClientsNames?.join(' - ') || 'غير محدد'}</span><span class="info-badge">⚖️ الخصوم: ${caseData?.allOpponents?.map(o => `${o.name} (${o.role || '-'})`).join(' - ') || 'غير محدد'}</span></div>
-                    <p><strong>📝 موضوع القضية:</strong> ${caseData?.subject || 'غير محدد'}</p>
-                    <p><strong>📌 القرار السابق:</strong> ${caseData?.decision || 'لا يوجد'}</p>
-                    <div class="info-row"><span class="info-badge">📅 موعد الخبير: ${new Date(e.expertDate).toLocaleString('ar-EG')}${isTomorrow ? ' <span style="color:#ffc107;">(غداً!)</span>' : ''}</span><span class="info-badge">📋 المطلوب: ${e.request || 'لا يوجد'}</span></div>
-                    <div class="info-row"><span class="info-badge">🔍 المعاينات المطلوبة: ${e.inspections || 'لا توجد'}</span></div>
-                    <p><strong>💬 ملاحظات:</strong> ${e.notes || 'لا توجد'}</p>
-                    <div class="admin-actions">
-                        <button onclick="editExpert('${e.id}')" class="btn-warning btn-sm">✏️ تعديل</button>
-                        <button onclick="deleteExpert('${e.id}')" class="delete-btn">🗑️ حذف</button>
-                        <button onclick="rescheduleExpert('${e.id}', '${e.expertDate}', '${e.notes || ''}')" class="btn-primary btn-sm">📅 تعديل الموعد</button>
-                        <button onclick="returnExpertToCase('${e.id}')" class="btn-primary btn-sm">🔄 إرجاع لقضية</button>
-                        <button onclick="completeExpert('${e.id}')" class="btn-success btn-sm">✅ إكمال الخبير</button>
-                        <button onclick="viewFullCase('${e.caseId}','active')" class="btn-primary btn-sm">📋 عرض القضية</button>
-                    </div>
-                </div>`;
-    }).join('');
-}
-function renderArchive() {
-    let container = document.getElementById('archiveCategories');
-    if (!container) return;
-    let backupBtn = document.getElementById('archiveBackupBtn');
-    let restoreBtn = document.getElementById('archiveRestoreBtn');
-    let addBtn = document.getElementById('addCircuitBtn');
-    if (backupBtn) backupBtn.style.display = isHesham() ? 'inline-block' : 'none';
-    if (restoreBtn) restoreBtn.style.display = isHesham() ? 'inline-block' : 'none';
-    if (addBtn) addBtn.style.display = isHesham() ? 'inline-block' : 'none';
-    let archivedCount = archivedEnforcements.length;
-    let archiveCatCopy = [...archiveCategories];
-    let tawakkolCat = archiveCatCopy.find(c => c.circuit === 'توكيلات تنفيذ منتهية');
-    if (tawakkolCat) tawakkolCat.count = archivedCount;
-    container.innerHTML = `<div class="archive-categories">${archiveCatCopy.map(cat => `<span class="archive-cat-btn" data-circuit="${cat.circuit}" onclick="filterArchive('${cat.circuit}')">${cat.name}${cat.count > 0 ? ` (${cat.count})` : ''}</span>`).join('')}</div>`;
-    filterArchive(currentArchiveCircuit);
-}
-function filterArchive(circuit) {
-    currentArchiveCircuit = circuit;
-    let filtered = [];
-    if (circuit === 'توكيلات تنفيذ منتهية') {
-        filtered = archivedEnforcements;
-    } else {
-        filtered = closedCases.filter(c => c.circuit === circuit);
-    }
-    if (archiveSearchTerm) {
-        filtered = filtered.filter(item => {
-            if (circuit === 'توكيلات تنفيذ منتهية') {
-                let e = item;
-                return e.caseNumber?.toLowerCase().includes(archiveSearchTerm) || e.clientName?.toLowerCase().includes(archiveSearchTerm);
-            } else {
-                let c = item;
-                let allClients = getAllClientsNames(c);
-                return c.number?.toLowerCase().includes(archiveSearchTerm) || allClients.some(n => n.toLowerCase().includes(archiveSearchTerm));
+            if (user) {
+                await reloadUsersFromFirebase();
+                currentUser = user;
+                localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                document.getElementById('currentUserName').innerText = currentUser.username;
+                document.getElementById('currentUserRole').innerHTML = currentUser.role;
+                document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
+                loadDataFromFirebase();
+                setTimeout(() => {
+                    updateWelcomeMessage();
+                    if (isSuperAdmin()) setupMaintenanceControls();
+                    initStatCards();
+                    renderArchive();
+                    bindSidebarButtons();
+                    let employeesTabItem = document.getElementById('employeesTabItem');
+                    let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
+                    if (employeesTabItem) employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
+                    if (maintenanceMenuItem) maintenanceMenuItem.style.display = isSuperAdmin() ? 'flex' : 'none';
+                    let exportExcelBtn = document.getElementById('exportExcelBtn');
+                    if (exportExcelBtn) exportExcelBtn.style.display = isHesham() ? 'inline-block' : 'none';
+                    let lastTab = localStorage.getItem('lastOpenTab');
+                    if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) switchToTab(lastTab, false);
+                    requestNotificationPermission();
+                    showNotificationModal();
+                    startNotificationChecker();
+                }, 500);
+                setSessionTimeout();
+                bindSessionEvents();
+                checkMaintenance();
+                return;
             }
-        });
+            document.getElementById('loginError').style.display = 'block';
+            showNotification('❌ اسم المستخدم أو كلمة المرور غير صحيحة');
+        } catch (error) { console.error(error); showNotification('❌ حدث خطأ في الاتصال بقاعدة البيانات'); }
     }
-    let container = document.getElementById('archiveCasesList');
-    if (!filtered.length) { container.innerHTML = '<p style="text-align:center; padding:20px;">📂 لا توجد عناصر في هذا التصنيف</p>'; return; }
-    if (circuit === 'توكيلات تنفيذ منتهية') {
-        container.innerHTML = filtered.map(e => {
-            let deleteBtn = isHesham() ? `<button onclick="deleteArchivedEnforcement('${e.id}')" class="delete-btn">🗑️ حذف</button>` : '';
-            return `<div class="session-card"><h4>📄 ${e.caseNumber} (${e.caseYear})</h4><div class="info-row"><span class="info-badge">👤 الموكل: ${e.clientName}</span><span class="info-badge">⚖️ الخصم: ${e.opponentName}</span></div><p><strong>📋 المطلوب في التنفيذ:</strong> ${e.request}</p><p><strong>📅 تاريخ التنفيذ الأصلي:</strong> ${new Date(e.date).toLocaleString('ar-EG')}</p><p><strong>🏁 تاريخ الإنهاء:</strong> ${new Date(e.archivedAt).toLocaleString('ar-EG')}</p><p><strong>📝 ملاحظات الإنهاء:</strong> ${e.completionNotes || 'لا توجد'}</p><p><strong>👤 تم بواسطة:</strong> ${e.archivedBy || 'غير معروف'}</p><div class="admin-actions"><button onclick="viewFullCase('${e.caseId}', 'closed')" class="btn-primary btn-sm">📋 عرض القضية الأصلية</button>${deleteBtn}</div></div>`;
-        }).join('');
-    } else {
-        container.innerHTML = filtered.map(c => {
-            let allClients = getAllClientsNames(c);
-            let allOpponents = getAllOpponents(c);
-            let showDelete = isHesham() ? `<button onclick="deleteClosedCase('${c.id}')" class="delete-btn">🗑️ حذف القضية</button>` : '';
-            return `<div class="session-card"><h4>✅ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">⚖️ الدائرة: ${c.circuit}</span></div><p><strong>📝 موضوع القضية:</strong> ${c.subject || 'غير محدد'}</p><p><strong>📌 القرار السابق:</strong> ${c.decision || 'لا يوجد'}</p><p><strong>⚖️ الحكم النهائي:</strong> ${c.judgment}</p><p><strong>📅 تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString('ar-EG')}</p><div class="admin-actions"><button onclick="viewFullCase('${c.id}','closed')" class="btn-primary btn-sm">📋 عرض التفاصيل</button>${showDelete}</div></div>`;
-        }).join('');
+    function logout() {
+        try {
+            database.ref('activeCases').off();
+            database.ref('closedCases').off();
+            database.ref('clients').off();
+            database.ref('employees').off();
+            database.ref('customCourts').off();
+            database.ref('adminWorks').off();
+            database.ref('judgmentRecords').off();
+            database.ref('enforcements').off();
+            database.ref('experts').off();
+            database.ref('archivedEnforcements').off();
+            database.ref('fixedAdmins').off();
+            database.ref('maintenance').off();
+            database.ref('archiveCategories').off();
+        } catch(e) { console.error(e); }
+        currentUser = null;
+        localStorage.removeItem('law_currentUser');
+        let loginScreen = document.getElementById('loginScreen');
+        let dashboardContent = document.getElementById('dashboardContent');
+        if (loginScreen) loginScreen.style.display = 'flex';
+        if (dashboardContent) dashboardContent.style.display = 'none';
+        showNotification('تم تسجيل الخروج');
+        if (sessionTimeout) clearTimeout(sessionTimeout);
+        if (maintenanceInterval) clearInterval(maintenanceInterval);
+        if (notificationCheckInterval) clearInterval(notificationCheckInterval);
     }
-    document.querySelectorAll('.archive-cat-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('data-circuit') === circuit) btn.classList.add('active');
-    });
-}
-function deleteArchivedEnforcement(id) {
-    if (!isHesham()) { showNotification('❌ غير مسموح لك بهذه العملية'); return; }
-    if (confirm('هل أنت متأكد من حذف توكيل التنفيذ المؤرشف؟')) {
-        archivedEnforcements = archivedEnforcements.filter(e => e.id != id);
-        database.ref('archivedEnforcements').set(archivedEnforcements);
-        showNotification('✅ تم الحذف');
-        renderArchive();
-    }
-}
-function addArchiveCircuit() {
-    if (!isHesham()) { showNotification('غير مسموح لك بهذه العملية'); return; }
-    let newCircuit = prompt('أدخل اسم الدائرة الجديدة:');
-    if (newCircuit && newCircuit.trim()) {
-        let circuitName = newCircuit.trim();
-        if (!archiveCategories.find(c => c.circuit === circuitName)) {
-            archiveCategories.push({ id: circuitName.replace(/\s/g, '_'), name: circuitName, circuit: circuitName });
-            database.ref('archiveCategories').set(archiveCategories);
-            renderArchive();
-            showNotification(`تم إضافة دائرة "${circuitName}"`);
-        } else showNotification('هذه الدائرة موجودة بالفعل');
-    }
-}
-function backupArchiveData() {
-    if (!isHesham()) { showNotification('❌ غير مسموح - هذه الخاصية متاحة فقط للمدير الأساسي (حسام)'); return; }
-    let backupData = { activeCases, closedCases, clients, employees, fixedAdmins: fixedAdmins.map(a => ({ ...a, password: '********' })), adminWorks, judgmentRecords, enforcements, archivedEnforcements, experts, archiveCategories, customCourts, backupDate: new Date().toISOString(), backupVersion: '1.0' };
-    let backupJSON = JSON.stringify(backupData, null, 2);
-    let blob = new Blob([backupJSON], { type: 'application/json' });
-    let url = URL.createObjectURL(blob);
-    let a = document.createElement('a');
-    a.href = url;
-    a.download = `backup_lawfirm_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    showNotification('✅ تم إنشاء ملف النسخ الاحتياطي بنجاح');
-}
-function restoreBackupData() {
-    if (!isHesham()) { showNotification('❌ غير مسموح - هذه الخاصية متاحة فقط للمدير الأساسي (حسام)'); return; }
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/json';
-    input.onchange = function(e) {
-        let file = e.target.files[0];
-        if (!file) return;
-        let reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                let backupData = JSON.parse(evt.target.result);
-                if (confirm('⚠️ تحذير: استعادة النسخة الاحتياطية ستستبدل جميع البيانات الحالية! هل أنت متأكد؟')) {
-                    if (backupData.activeCases) database.ref('activeCases').set(backupData.activeCases);
-                    if (backupData.closedCases) database.ref('closedCases').set(backupData.closedCases);
-                    if (backupData.clients) database.ref('clients').set(backupData.clients);
-                    if (backupData.employees) database.ref('employees').set(backupData.employees);
-                    if (backupData.adminWorks) database.ref('adminWorks').set(backupData.adminWorks);
-                    if (backupData.judgmentRecords) database.ref('judgmentRecords').set(backupData.judgmentRecords);
-                    if (backupData.enforcements) database.ref('enforcements').set(backupData.enforcements);
-                    if (backupData.archivedEnforcements) database.ref('archivedEnforcements').set(backupData.archivedEnforcements);
-                    if (backupData.experts) database.ref('experts').set(backupData.experts);
-                    if (backupData.archiveCategories) database.ref('archiveCategories').set(backupData.archiveCategories);
-                    if (backupData.customCourts) database.ref('customCourts').set(backupData.customCourts);
-                    showNotification('✅ تم استعادة النسخة الاحتياطية بنجاح، سيتم تحديث الصفحة');
-                    setTimeout(() => location.reload(), 2000);
-                }
-            } catch(err) { showNotification('❌ خطأ في قراءة ملف النسخ الاحتياطي'); console.error(err); }
-        };
-        reader.readAsText(file);
-    };
-    input.click();
-}
-function renderClientsTable() {
-    let tbody = document.querySelector('#clientsTable tbody');
-    if (!tbody) return;
-    tbody.innerHTML = clients.map(cl => {
-        let total = activeCases.filter(c => c.clientId == cl.id || (c.additionalClients && c.additionalClients.some(ac => ac.clientId == cl.id))).length + closedCases.filter(c => c.clientId == cl.id || (c.additionalClients && c.additionalClients.some(ac => ac.clientId == cl.id))).length;
-        let showDelete = canDeleteEverywhere() ? `<button class="delete-btn" onclick="deleteClient('${cl.id}')">🗑️</button>` : 'لا يمكن الحذف';
-        return `<tr><td style="text-align:right">${cl.name}</td><td style="text-align:right">${cl.phone}</td><td style="text-align:right">${total}</td><td style="text-align:right">${showDelete}</td></tr>`;
-    }).join('');
-}
-function deleteClient(id) {
-    if (confirm('حذف الموكل سيؤثر على القضايا المرتبطة؟')) {
-        clients = clients.filter(c => c.id != id);
-        database.ref('clients').set(clients);
-        showNotification('تم حذف الموكل');
-    }
-}
-function populateSelects() {
-    let select = document.getElementById('caseClient');
-    if (select) {
-        let currentVal = select.value;
-        select.innerHTML = '<option value="">اختر موكل</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        if (currentVal) select.value = currentVal;
-    }
-    document.querySelectorAll('.additional-client-select').forEach(sel => {
-        let currentVal = sel.value;
-        sel.innerHTML = '<option value="">اختر موكل مشارك</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-        if (currentVal) sel.value = currentVal;
-    });
-}
-function renderEmployeesTable() {
-    let tbody = document.querySelector('#employeesTable tbody');
-    if (!tbody) return;
-    const employeesMap = new Map();
-    fixedAdmins.forEach(emp => { if (emp && emp.id && emp.username && emp.username !== "undefined") { employeesMap.set(emp.id, { ...emp, source: 'fixed' }); } });
-    employees.forEach(emp => { if (emp && emp.id && emp.username && emp.username !== "undefined") { if (!employeesMap.has(emp.id)) { employeesMap.set(emp.id, { ...emp, source: 'employee' }); } } });
-    let allEmployees = Array.from(employeesMap.values());
-    let visible = allEmployees.filter(emp => isVisibleToCurrentUser(emp));
-    tbody.innerHTML = visible.map(emp => {
-        let canChangePass = canChangePasswordFor(emp);
-        let canChangeUser = canChangeUsername(emp);
-        let canDel = canDeleteEmployee(emp);
-        let actions = '';
-        if (canChangeUser) actions += `<button class="btn-primary btn-sm" onclick="changeUsername('${emp.id}')">✏️ تغيير اليوزر</button> `;
-        if (canChangePass) actions += `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
-        if (canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
-        if (!canChangePass && !canDel && !canChangeUser) actions = 'لا يمكن التعديل';
-        let passwordDisplay = '';
-        if (isHesham() || isGeorge() || currentUser?.id === emp.id) { passwordDisplay = `<span style="font-size:11px; color:#666; display:block;">🔐 ${emp.password}</span>`; }
-        return `<tr><td style="text-align:right">${emp.username}${passwordDisplay}</td><td style="text-align:right">${emp.role || 'محامي'}</td><td style="text-align:right">${emp.password || '••••••'}</td><td style="text-align:right">${actions}</td></tr>`;
-    }).join('');
-}
-async function reloadUsersFromFirebase() {
-    try {
-        const fixedSnapshot = await database.ref('fixedAdmins').once('value');
-        const fixedData = fixedSnapshot.val();
-        if (fixedData && Object.keys(fixedData).length > 0) { fixedAdmins = Object.values(fixedData); }
-        else { fixedAdmins = [{ id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, superAdmin: true }, { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }]; const adminsObj = {}; fixedAdmins.forEach(admin => { adminsObj[admin.id] = admin; }); await database.ref('fixedAdmins').set(adminsObj); }
-        const empSnapshot = await database.ref('employees').once('value');
-        const empData = empSnapshot.val();
-        employees = empData ? Object.values(empData) : [];
-        renderEmployeesTable();
-    } catch (error) { console.error(error); }
-}
-async function changePassword(empId) {
-    if (!canChangePasswordFor({ id: empId })) { showNotification('❌ غير مسموح لك بتغيير كلمة سر هذا المستخدم'); return; }
-    let newPassword = prompt('🔐 أدخل كلمة المرور الجديدة:');
-    if (!newPassword || newPassword.length === 0) { showNotification('❌ لم يتم إدخال كلمة مرور جديدة'); return; }
-    let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
-    if (!emp) { showNotification('❌ المستخدم غير موجود'); return; }
-    let updatedAt = new Date().toISOString();
-    let updatedData = { id: emp.id, username: emp.username, password: newPassword, role: emp.role, isFixed: emp.isFixed || false, updatedAt: updatedAt };
-    if (emp.superAdmin) updatedData.superAdmin = true;
-    try {
-        if (emp.isFixed) {
-            await database.ref('fixedAdmins/' + empId).remove();
-            await database.ref('fixedAdmins/' + empId).set(updatedData);
-            let idx = fixedAdmins.findIndex(e => e.id == empId);
-            if (idx !== -1) { fixedAdmins[idx].password = newPassword; fixedAdmins[idx].updatedAt = updatedAt; }
-        } else {
-            await database.ref('employees/' + empId).remove();
-            await database.ref('employees/' + empId).set(updatedData);
-            let idx = employees.findIndex(e => e.id == empId);
-            if (idx !== -1) { employees[idx].password = newPassword; employees[idx].updatedAt = updatedAt; }
-        }
-        showNotification(`✅ تم تغيير كلمة السر لـ ${emp.username}\n📝 كلمة المرور الجديدة: ${newPassword}`);
-        await reloadUsersFromFirebase();
-        if (emp.id === currentUser?.id) { showNotification('⚠️ تم تغيير كلمة السر الخاصة بك، سيتم تسجيل الخروج الآن'); setTimeout(() => logout(), 1000); }
-        else { renderEmployeesTable(); }
-    } catch (err) { showNotification('❌ خطأ في حفظ كلمة السر الجديدة'); console.error(err); }
-}
-async function changeUsername(empId) {
-    if (!canChangeUsername({ id: empId })) { showNotification('❌ غير مسموح لك بتغيير اسم المستخدم لهذا الحساب'); return; }
-    let newUsername = prompt('✏️ أدخل اسم المستخدم الجديد:');
-    if (!newUsername || newUsername.trim().length === 0) { showNotification('❌ لم يتم إدخال اسم مستخدم جديد'); return; }
-    newUsername = newUsername.trim();
-    let allExisting = [...fixedAdmins, ...employees];
-    if (allExisting.some(e => e.id !== empId && e.username === newUsername)) { showNotification('❌ اسم المستخدم موجود بالفعل'); return; }
-    let emp = [...fixedAdmins, ...employees].find(e => e.id == empId);
-    if (!emp) { showNotification('❌ المستخدم غير موجود'); return; }
-    let updatedAt = new Date().toISOString();
-    let updatedData = { id: emp.id, username: newUsername, password: emp.password, role: emp.role, isFixed: emp.isFixed || false, updatedAt: updatedAt };
-    if (emp.superAdmin) updatedData.superAdmin = true;
-    try {
-        if (emp.isFixed) {
-            await database.ref('fixedAdmins/' + empId).remove();
-            await database.ref('fixedAdmins/' + empId).set(updatedData);
-            let idx = fixedAdmins.findIndex(e => e.id == empId);
-            if (idx !== -1) { fixedAdmins[idx].username = newUsername; fixedAdmins[idx].updatedAt = updatedAt; }
-        } else {
-            await database.ref('employees/' + empId).remove();
-            await database.ref('employees/' + empId).set(updatedData);
-            let idx = employees.findIndex(e => e.id == empId);
-            if (idx !== -1) { employees[idx].username = newUsername; employees[idx].updatedAt = updatedAt; }
-        }
-        showNotification(`✅ تم تغيير اسم المستخدم من "${emp.username}" إلى "${newUsername}"`);
-        await reloadUsersFromFirebase();
-        if (emp.id === currentUser?.id) {
-            currentUser.username = newUsername;
-            currentUser.updatedAt = updatedAt;
-            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
-            document.getElementById('currentUserName').innerText = newUsername;
-        }
-        renderEmployeesTable();
-    } catch (err) { showNotification('❌ خطأ في حفظ اسم المستخدم الجديد'); }
-}
-function deleteEmployee(id) {
-    if (id === "admin_hesham") { showNotification('لا يمكن حذف المدير الأساسي'); return; }
-    if (id === "admin_george" && !isSuperAdmin()) { showNotification('لا يمكن حذف هذا المستخدم'); return; }
-    if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
-        employees = employees.filter(e => e.id != id);
-        database.ref('employees').set(employees);
-        showNotification('تم حذف الموظف');
-        renderEmployeesTable();
-    }
-}
-let currentYearAgenda = new Date().getFullYear();
-let currentMonthAgenda = new Date().getMonth();
-function renderAdvancedAgenda() {
-    let container = document.getElementById('advancedAgendaList');
-    if (!container) return;
-    let years = [currentYearAgenda - 1, currentYearAgenda, currentYearAgenda + 1];
-    let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-    container.innerHTML = `<div class="year-months">${years.map(y => `<span class="year-btn ${y === currentYearAgenda ? 'active' : ''}" onclick="selectYear(${y})">${y}</span>`).join('')}</div><div class="year-months" id="monthsContainer">${months.map((m, i) => `<span class="month-btn ${i === currentMonthAgenda ? 'active' : ''}" onclick="selectMonth(${currentYearAgenda},${i})">${m}</span>`).join('')}</div><div id="monthDaysContainer"></div>`;
-    showMonthDays(currentYearAgenda, currentMonthAgenda);
-}
-function selectYear(year) {
-    currentYearAgenda = year;
-    let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-    document.getElementById('monthsContainer').innerHTML = months.map((m, i) => `<span class="month-btn ${i === currentMonthAgenda ? 'active' : ''}" onclick="selectMonth(${year},${i})">${m}</span>`).join('');
-    document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active'));
-    let yearBtn = Array.from(document.querySelectorAll('.year-btn')).find(btn => btn.innerText == year);
-    if (yearBtn) yearBtn.classList.add('active');
-    showMonthDays(year, currentMonthAgenda);
-}
-function selectMonth(year, month) {
-    currentYearAgenda = year;
-    currentMonthAgenda = month;
-    document.querySelectorAll('.month-btn').forEach(btn => btn.classList.remove('active'));
-    let monthBtns = document.querySelectorAll('.month-btn');
-    if (monthBtns[month]) monthBtns[month].classList.add('active');
-    showMonthDays(year, month);
-}
-function getSessionCountForDate(date) {
-    let count = 0;
-    activeCases.forEach(c => {
-        let sessionDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null);
-        if (sessionDate && sessionDate.toDateString() === date.toDateString()) count++;
-        if (c.pastSessions) { c.pastSessions.forEach(ps => { let pastDate = new Date(ps.date); if (pastDate.toDateString() === date.toDateString()) count++; }); }
-    });
-    return count;
-}
-function showMonthDays(year, month) {
-    let daysInMonth = new Date(year, month + 1, 0).getDate();
-    let firstDayIndex = new Date(year, month, 1).getDay();
-    let today = new Date();
-    let weekDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-    let daysHtml = '<div class="week-days-grid">' + weekDays.map(day => `<div class="week-day-name">${day}</div>`).join('') + '</div><div class="days-grid">';
-    for (let i = 0; i < firstDayIndex; i++) daysHtml += '<div></div>';
-    for (let d = 1; d <= daysInMonth; d++) {
-        let date = new Date(year, month, d);
-        let sessionCount = getSessionCountForDate(date);
-        let hasSessions = sessionCount > 0;
-        let isToday = date.toDateString() === today.toDateString();
-        daysHtml += `<div class="day-card ${hasSessions ? 'has-session' : ''} ${isToday ? 'today' : ''}" onclick="showDaySessions(${year},${month},${d})">${d}${sessionCount > 0 ? `<br><small>${sessionCount} جلسة</small>` : ''}</div>`;
-    }
-    daysHtml += '</div>';
-    document.getElementById('monthDaysContainer').innerHTML = daysHtml;
-}
-function showDaySessions(year, month, day) {
-    let date = new Date(year, month, day);
-    let sessions = [];
-    activeCases.forEach(c => {
-        let futureDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null);
-        if (futureDate && futureDate.toDateString() === date.toDateString()) { sessions.push({ ...c, sessionType: 'قادمة', sessionDate: futureDate, isPast: false, decision: c.decision, allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c) }); }
-        if (c.pastSessions) { c.pastSessions.forEach(ps => { let pastDate = new Date(ps.date); if (pastDate.toDateString() === date.toDateString()) { sessions.push({ ...c, sessionType: 'سابقة', sessionDate: pastDate, isPast: true, decision: ps.decision, allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c) }); } }); }
-    });
-    if (sessions.length === 0) { document.getElementById('modalBody').innerHTML = '<p>لا توجد جلسات في هذا اليوم</p>'; }
-    else { document.getElementById('modalBody').innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${s.allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${s.allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">⏰ الساعة: ${s.sessionDate.toLocaleTimeString('ar-EG')}</span><span class="info-badge">📌 نوع الجلسة: ${s.sessionType}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>${s.isPast ? 'قرار الجلسة السابقة:' : 'آخر قرار:'}</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join(''); }
-    document.getElementById('modalTitle').innerHTML = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}`;
-    document.getElementById('detailsModal').style.display = 'flex';
-}
-function updateStats() {
-    document.getElementById('totalActiveCases').innerText = activeCases.length;
-    document.getElementById('totalClosedCases').innerText = closedCases.length;
-    let tomorrowTotal = getAllTomorrowAppointments().length;
-    document.getElementById('tomorrowAppointmentsCount').innerText = tomorrowTotal;
-    document.getElementById('totalClients').innerText = clients.length;
-    document.getElementById('reportTotalActive').innerText = activeCases.length;
-    document.getElementById('reportTotalClosed').innerText = closedCases.length;
-    document.getElementById('reportTotalClients').innerText = clients.length;
-    let weekDays = ['السبت', 'الأحد', 'الإثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
-    let today = new Date();
-    let startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay() + 6);
-    startOfWeek.setHours(0, 0, 0);
-    let weeklyHtml = '';
-    for (let i = 0; i < 7; i++) {
-        let day = new Date(startOfWeek);
-        day.setDate(startOfWeek.getDate() + i);
-        day.setHours(0, 0, 0);
-        let dayEnd = new Date(day);
-        dayEnd.setDate(dayEnd.getDate() + 1);
-        let count = activeCases.filter(c => { let sessionDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null); return sessionDate && sessionDate >= day && sessionDate < dayEnd; }).length;
-        weeklyHtml += `<p><strong>${weekDays[i]} ${day.toLocaleDateString('ar-EG')}:</strong> ${count} جلسة${count > 1 ? 'ات' : ''}</p>`;
-    }
-    let weeklyDiv = document.getElementById('weeklyReport');
-    if (weeklyDiv) weeklyDiv.innerHTML = weeklyHtml;
-}
-function updateWelcomeMessage() { document.getElementById('welcomeMessage').innerHTML = `مرحباً بك يا أستاذ ${currentUser?.username} 👋`; updateTomorrowBadges(); }
-function initStatCards() { document.querySelectorAll('.stat-card').forEach(card => { card.onclick = () => { let tabName = card.getAttribute('data-tab'); if (tabName) switchToTab(tabName, true); }; }); }
-function exportToExcel() {
-    if (!isHesham()) { showNotification('❌ غير مسموح لك بهذه العملية - فقط المدير الأساسي (حسام)'); return; }
-    try {
-        let activeData = activeCases.map(c => ({ 'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الدائرة': c.circuit || '', 'الموكلين': getAllClientsNames(c).join(' - '), 'صفة الموكل الرئيسي': c.clientRole, 'الخصوم': getAllOpponents(c).map(o => `${o.name} (${o.role || '-'})`).join(' - '), 'موضوع القضية': c.subject || '', 'الجلسة القادمة': c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : '') }));
-        let wb = XLSX.utils.book_new();
-        if (activeData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(activeData), 'قضايا المكتب');
-        let closedData = closedCases.map(c => ({ 'رقم القضية': c.number, 'السنة': c.year, 'المحكمة': c.court, 'الدائرة': c.circuit || '', 'الموكلين': getAllClientsNames(c).join(' - '), 'الخصوم': getAllOpponents(c).map(o => `${o.name} (${o.role || '-'})`).join(' - '), 'موضوع القضية': c.subject || '', 'الحكم النهائي': c.judgment, 'تاريخ الإنهاء': new Date(c.closedAt).toLocaleDateString('ar-EG') }));
-        if (closedData.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(closedData), 'قضايا منتهية');
-        XLSX.writeFile(wb, `مكتب_الخواجا_${new Date().toLocaleDateString('ar-EG')}.xlsx`);
-        showNotification('✅ تم تصدير البيانات بنجاح');
-    } catch(e) { showNotification('❌ حدث خطأ أثناء تصدير البيانات'); console.error(e); }
-}
-function enableMaintenance(durationHours = null) { if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; } let endTime = durationHours ? new Date(Date.now() + durationHours * 3600000).toISOString() : null; database.ref('maintenance').set({ isActive: true, endTime, startedBy: currentUser.username, startedAt: new Date().toISOString() }); showNotification(`تم تعطيل الموقع للصيانة${durationHours ? ` لمدة ${durationHours} ساعة` : ''}`); }
-function disableMaintenance() { if (!isSuperAdmin()) { showNotification('غير مسموح لك بهذه العملية - فقط حسام الشويخ'); return; } database.ref('maintenance').set({ isActive: false, endTime: null, endedBy: currentUser.username, endedAt: new Date().toISOString() }); showNotification('تم تشغيل الموقع مرة أخرى'); }
-function setupMaintenanceControls() { if (!isSuperAdmin()) return; let toggleBtn = document.getElementById('toggleMaintenanceBtn'); let durationSelect = document.getElementById('maintenanceDuration'); let statusSpan = document.getElementById('maintenanceStatusSpan'); let infoDiv = document.getElementById('maintenanceInfo'); if (toggleBtn) toggleBtn.onclick = () => { if (isMaintenanceMode) disableMaintenance(); else enableMaintenance(parseInt(durationSelect?.value) || null); }; database.ref('maintenance').on('value', (snapshot) => { const data = snapshot.val(); isMaintenanceMode = data?.isActive || false; maintenanceEndTime = data?.endTime; if (toggleBtn) { if (isMaintenanceMode) { toggleBtn.innerHTML = '🔓 تشغيل الموقع'; toggleBtn.className = 'btn-success'; if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-overdue">🔴 الموقع معطل</span>'; } else { toggleBtn.innerHTML = '🔧 تعطيل الموقع (صيانة)'; toggleBtn.className = 'btn-warning'; if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-completed">🟢 الموقع يعمل</span>'; } } if (infoDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) { let remaining = new Date(maintenanceEndTime) - new Date(); let hours = Math.floor(remaining / 3600000); let minutes = Math.floor((remaining % 3600000) / 60000); infoDiv.innerHTML = `<small><i class="fas fa-clock"></i> تنتهي الصيانة بعد: ${hours} ساعة ${minutes} دقيقة</small>`; if (maintenanceInterval) clearInterval(maintenanceInterval); maintenanceInterval = setInterval(() => { if (isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) <= new Date()) { disableMaintenance(); if (maintenanceInterval) clearInterval(maintenanceInterval); } }, 60000); } else if (infoDiv) { infoDiv.innerHTML = ''; if (maintenanceInterval) clearInterval(maintenanceInterval); } checkMaintenance(); }); }
-function checkMaintenance() { if (isSuperAdmin()) { document.getElementById('maintenanceScreen').style.display = 'none'; return true; } if (isMaintenanceMode) { if (maintenanceEndTime && new Date() > new Date(maintenanceEndTime)) { disableMaintenance(); return true; } document.getElementById('maintenanceScreen').style.display = 'flex'; let timerDiv = document.getElementById('maintenanceTimer'); if (timerDiv && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) { let remaining = new Date(maintenanceEndTime) - new Date(); let hours = Math.floor(remaining / 3600000); let minutes = Math.floor((remaining % 3600000) / 60000); let seconds = Math.floor((remaining % 60000) / 1000); timerDiv.innerHTML = `<p style="color:#dc3545;"><i class="fas fa-clock"></i> متبقي: ${hours} ساعة ${minutes} دقيقة ${seconds} ثانية</p>`; } else if (timerDiv && isMaintenanceMode) timerDiv.innerHTML = '<p style="color:#dc3545;"><i class="fas fa-clock"></i> الصيانة مستمرة</p>'; return false; } document.getElementById('maintenanceScreen').style.display = 'none'; return true; }
-function loadDataFromFirebase() {
-    database.ref('activeCases').on('value', (s) => { activeCases = s.val() ? Object.values(s.val()) : []; updateStats(); renderActiveCases(); renderPastSessions(); renderTomorrowAppointments(); renderAdvancedAgenda(); checkForNewNotifications(); });
-    database.ref('closedCases').on('value', (s) => { closedCases = s.val() ? Object.values(s.val()) : []; updateStats(); renderClosedCases(); renderArchive(); });
-    database.ref('clients').on('value', (s) => { clients = s.val() ? Object.values(s.val()) : []; updateStats(); renderClientsTable(); populateSelects(); renderActiveCases(); renderPastSessions(); renderTomorrowAppointments(); renderAdvancedAgenda(); renderClosedCases(); renderArchive(); renderExperts(); renderEnforcements(); renderJudgmentRecords(); });
-    database.ref('employees').on('value', (s) => { employees = s.val() ? Object.values(s.val()) : []; renderEmployeesTable(); });
-    database.ref('customCourts').on('value', (s) => { customCourts = s.val() ? Object.values(s.val()) : []; updateCourtOptions(); });
-    database.ref('adminWorks').on('value', (s) => { adminWorks = s.val() ? Object.values(s.val()) : []; renderAdminWorks(); renderTomorrowAppointments(); });
-    database.ref('judgmentRecords').on('value', (s) => { judgmentRecords = s.val() ? Object.values(s.val()) : []; renderJudgmentRecords(); });
-    database.ref('enforcements').on('value', (s) => { enforcements = s.val() ? Object.values(s.val()) : []; renderEnforcements(); checkForNewNotifications(); renderTomorrowAppointments(); });
-    database.ref('experts').on('value', (s) => { experts = s.val() ? Object.values(s.val()) : []; renderExperts(); checkForNewNotifications(); renderTomorrowAppointments(); });
-    database.ref('archivedEnforcements').on('value', (s) => { archivedEnforcements = s.val() ? Object.values(s.val()) : []; renderArchive(); });
-    database.ref('fixedAdmins').on('value', (snapshot) => { const data = snapshot.val(); if (data) fixedAdmins = Object.values(data); else { fixedAdmins = [{ id: "admin_hesham", username: "حسام الشويخ", password: "00000000", role: "مدير", isFixed: true, superAdmin: true }, { id: "admin_george", username: "جورج بولس", password: "0000", role: "مدير", isFixed: true }]; const adminsObj = {}; fixedAdmins.forEach(admin => { adminsObj[admin.id] = admin; }); database.ref('fixedAdmins').set(adminsObj); } renderEmployeesTable(); });
-    database.ref('maintenance').on('value', (snapshot) => { const data = snapshot.val(); if (data) { isMaintenanceMode = data.isActive || false; maintenanceEndTime = data.endTime; } checkMaintenance(); });
-    database.ref('archiveCategories').on('value', (s) => { if (s.val()) { archiveCategories = s.val(); } else { archiveCategories = [{ id: "مدني", name: "⚖️ مدني", circuit: "مدني" }, { id: "مدني_كلي", name: "⚖️ مدني كلي", circuit: "مدني كلي" }, { id: "مدني_مستأنف", name: "⚖️ مدني مستأنف", circuit: "مدني مستأنف" }, { id: "جنح", name: "⚖️ جنح", circuit: "جنح" }, { id: "صحة_توقيع", name: "✍️ صحة توقيع", circuit: "صحة توقيع" }, { id: "اسره_المراغه", name: "👨‍👩‍👧 أسرة المراغة", circuit: "أسرة المراغة" }, { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" }, { id: "توكيلات_منتهيه", name: "📄 توكيلات تنفيذ منتهية", circuit: "توكيلات تنفيذ منتهية" }]; database.ref('archiveCategories').set(archiveCategories); } renderArchive(); });
-}
-function updateScaleClock() { let now = new Date(); let hours = now.getHours() % 12; let minutes = now.getMinutes(); let seconds = now.getSeconds(); let hourDeg = (hours * 30) + (minutes * 0.5); let minuteDeg = (minutes * 6) + (seconds * 0.1); let secondDeg = seconds * 6; let hourHand = document.getElementById('hourHandScale'); let minuteHand = document.getElementById('minuteHandScale'); let secondHand = document.getElementById('secondHandScale'); if (hourHand) hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`; if (minuteHand) minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`; if (secondHand) secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`; }
-function updateScaleDate() { let now = new Date(); let options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }; let dateString = now.toLocaleDateString('ar-EG', options); let dateDiv = document.getElementById('liveDateScale'); if (dateDiv) dateDiv.innerHTML = `📅 ${dateString}`; }
-setInterval(updateScaleClock, 1000); setInterval(updateScaleDate, 1000); updateScaleClock(); updateScaleDate();
-async function attemptLogin() {
-    let username = document.getElementById('loginUsername').value.trim();
-    let password = document.getElementById('loginPassword').value;
-    if (!username || !password) { showNotification('❌ يرجى إدخال اسم المستخدم وكلمة المرور'); return; }
-    try {
-        const fixedSnapshot = await database.ref('fixedAdmins').once('value');
-        const fixedData = fixedSnapshot.val();
-        const fixedAdminsList = fixedData ? Object.values(fixedData) : [];
-        let user = fixedAdminsList.find(e => e.username === username && e.password === password);
-        if (!user) {
-            const empSnapshot = await database.ref('employees').once('value');
-            const empData = empSnapshot.val();
-            const employeesList = empData ? Object.values(empData) : [];
-            user = employeesList.find(e => e.username === username && e.password === password);
-        }
-        if (user) {
-            await reloadUsersFromFirebase();
-            currentUser = user;
-            localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
+    function checkLoginStatus() {
+        let savedUser = localStorage.getItem('law_currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboardContent').style.display = 'block';
             document.getElementById('currentUserName').innerText = currentUser.username;
@@ -1156,10 +675,9 @@ async function attemptLogin() {
             loadDataFromFirebase();
             setTimeout(() => {
                 updateWelcomeMessage();
-                if (isSuperAdmin()) setupMaintenanceControls();
+                if (currentUser && currentUser.superAdmin === true) setupMaintenanceControls();
                 initStatCards();
                 renderArchive();
-                bindSidebarButtons();
                 let employeesTabItem = document.getElementById('employeesTabItem');
                 let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
                 if (employeesTabItem) employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
@@ -1168,171 +686,108 @@ async function attemptLogin() {
                 if (exportExcelBtn) exportExcelBtn.style.display = isHesham() ? 'inline-block' : 'none';
                 let lastTab = localStorage.getItem('lastOpenTab');
                 if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) switchToTab(lastTab, false);
+                bindSidebarButtons();
                 requestNotificationPermission();
                 showNotificationModal();
                 startNotificationChecker();
             }, 500);
             setSessionTimeout();
             bindSessionEvents();
-            checkMaintenance();
-            return;
+        } else {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('dashboardContent').style.display = 'none';
+            localStorage.removeItem('law_currentUser');
         }
-        document.getElementById('loginError').style.display = 'block';
-        showNotification('❌ اسم المستخدم أو كلمة المرور غير صحيحة');
-    } catch (error) { console.error(error); showNotification('❌ حدث خطأ في الاتصال بقاعدة البيانات'); }
-}
-function logout() {
-    try {
-        database.ref('activeCases').off();
-        database.ref('closedCases').off();
-        database.ref('clients').off();
-        database.ref('employees').off();
-        database.ref('customCourts').off();
-        database.ref('adminWorks').off();
-        database.ref('judgmentRecords').off();
-        database.ref('enforcements').off();
-        database.ref('experts').off();
-        database.ref('archivedEnforcements').off();
-        database.ref('fixedAdmins').off();
-        database.ref('maintenance').off();
-        database.ref('archiveCategories').off();
-    } catch(e) { console.error(e); }
-    currentUser = null;
-    localStorage.removeItem('law_currentUser');
-    let loginScreen = document.getElementById('loginScreen');
-    let dashboardContent = document.getElementById('dashboardContent');
-    if (loginScreen) loginScreen.style.display = 'flex';
-    if (dashboardContent) dashboardContent.style.display = 'none';
-    showNotification('تم تسجيل الخروج');
-    if (sessionTimeout) clearTimeout(sessionTimeout);
-    if (maintenanceInterval) clearInterval(maintenanceInterval);
-    if (notificationCheckInterval) clearInterval(notificationCheckInterval);
-}
-function checkLoginStatus() {
-    let savedUser = localStorage.getItem('law_currentUser');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('dashboardContent').style.display = 'block';
-        document.getElementById('currentUserName').innerText = currentUser.username;
-        document.getElementById('currentUserRole').innerHTML = currentUser.role;
-        document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
-        loadDataFromFirebase();
-        setTimeout(() => {
-            updateWelcomeMessage();
-            if (currentUser && currentUser.superAdmin === true) setupMaintenanceControls();
-            initStatCards();
-            renderArchive();
-            let employeesTabItem = document.getElementById('employeesTabItem');
-            let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
-            if (employeesTabItem) employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
-            if (maintenanceMenuItem) maintenanceMenuItem.style.display = isSuperAdmin() ? 'flex' : 'none';
-            let exportExcelBtn = document.getElementById('exportExcelBtn');
-            if (exportExcelBtn) exportExcelBtn.style.display = isHesham() ? 'inline-block' : 'none';
-            let lastTab = localStorage.getItem('lastOpenTab');
-            if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) switchToTab(lastTab, false);
-            bindSidebarButtons();
-            requestNotificationPermission();
-            showNotificationModal();
-            startNotificationChecker();
-        }, 500);
-        setSessionTimeout();
-        bindSessionEvents();
-    } else {
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('dashboardContent').style.display = 'none';
-        localStorage.removeItem('law_currentUser');
+        checkMaintenance();
     }
-    checkMaintenance();
-}
-document.getElementById('newCaseForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    let clientId = document.getElementById('caseClient').value;
-    let firstDate = document.getElementById('firstSessionDate').value;
-    let clientRole = document.getElementById('clientRole').value;
-    let caseNumber = document.getElementById('caseNumber').value;
-    let caseYear = document.getElementById('caseYear').value;
-    let caseCourt = document.getElementById('caseCourt').value;
-    let caseSubject = document.getElementById('caseSubject').value;
-    let caseCircuit = document.getElementById('caseCircuit').value;
-    if (caseCircuit === 'أخرى') { caseCircuit = document.getElementById('otherCircuit').value; if (!caseCircuit) { alert('يرجى إدخال اسم الدائرة'); return; } }
-    let opponents = getOpponentsData();
-    if (opponents.length === 0) { alert('يرجى إضافة خصم أول على الأقل'); return; }
-    let additionalClients = getAdditionalClientsData();
-    if (!clientId || !firstDate || !clientRole || !caseNumber || !caseYear || !caseCourt || !caseCircuit || !caseSubject) { alert('يرجى ملء جميع الحقول المطلوبة'); return; }
-    let existingCase = [...activeCases, ...closedCases].find(c => c.number === caseNumber && c.year === caseYear);
-    if (existingCase) { const shouldAdd = await showDuplicateCaseWarning(existingCase); if (!shouldAdd) return; }
-    activeCases.push({ id: Date.now().toString(), number: caseNumber, year: caseYear, court: caseCourt, circuit: caseCircuit, subject: caseSubject, clientId, clientRole, additionalClients, opponents, decision: document.getElementById('caseDecision').value, firstSessionDate: firstDate, firstSessionDecision: '', firstSessionProcessed: false, nextSessionDate: '', nextSessionDecision: '', nextSessionProcessed: false, pastSessions: [], createdAt: new Date().toISOString() });
-    database.ref('activeCases').set(activeCases);
-    e.target.reset();
-    document.getElementById('caseCourt').value = '';
-    document.getElementById('otherCircuit').style.display = 'none';
-    document.getElementById('caseCircuit').value = '';
-    document.getElementById('additionalClientsContainer').innerHTML = '';
-    document.getElementById('opponentsContainer').innerHTML = '';
-    showNotification('تم إضافة القضية');
-    resetSessionTimer();
-    checkForNewNotifications(); renderTomorrowAppointments();
-});
-document.getElementById('clientForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    clients.push({ id: Date.now().toString(), name: document.getElementById('clientName').value, nationalId: document.getElementById('clientNationalId').value, phone: document.getElementById('clientPhone').value });
-    database.ref('clients').set(clients);
-    e.target.reset();
-    showNotification('تم إضافة الموكل');
-    resetSessionTimer();
-});
-document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    if (!isAdmin()) { showNotification('غير مسموح لك بإضافة موظفين'); return; }
-    let uname = document.getElementById('empUsername').value.trim();
-    let pwd = document.getElementById('empPassword').value;
-    let role = document.getElementById('empRole').value;
-    if (!uname || !pwd) { showNotification('يرجى إدخال اسم المستخدم وكلمة المرور'); return; }
-    let allExisting = [...employees, ...fixedAdmins];
-    if (allExisting.find(e => e.username === uname)) { showNotification('اسم المستخدم موجود بالفعل'); return; }
-    let newEmp = { id: Date.now().toString(), username: uname, password: pwd, role: role };
-    employees.push(newEmp);
-    database.ref('employees').set(employees);
-    renderEmployeesTable();
-    showNotification(`✅ تم إضافة الموظف ${uname} بنجاح\n📝 كلمة المرور: ${pwd}`);
-    e.target.reset();
-});
-document.getElementById('archiveBackupBtn')?.addEventListener('click', backupArchiveData);
-document.getElementById('archiveRestoreBtn')?.addEventListener('click', restoreBackupData);
-window.selectYear = selectYear; window.selectMonth = selectMonth; window.showDaySessions = showDaySessions;
-window.processPastSession = processPastSession; window.viewFullCase = viewFullCase;
-window.addNewSessionFromModal = addNewSessionFromModal; window.addAdminWorkFromModal = addAdminWorkFromModal;
-window.addJudgmentFromModal = addJudgmentFromModal; window.addExpertFromModal = addExpertFromModal;
-window.closeCaseFromModal = closeCaseFromModal; window.returnClosedCaseToNewSession = returnClosedCaseToNewSession;
-window.editCase = editCase; window.saveCaseEdit = saveCaseEdit;
-window.chooseCircuitForClosedCase = chooseCircuitForClosedCase; window.saveCaseWithCircuit = saveCaseWithCircuit;
-window.completeAdminWork = completeAdminWork; window.returnCaseFromJudgment = returnCaseFromJudgment;
-window.editJudgmentRecord = editJudgmentRecord; window.updateJudgmentRecord = updateJudgmentRecord;
-window.addEnforcement = addEnforcement; window.saveEnforcement = saveEnforcement;
-window.editEnforcement = editEnforcement; window.updateEnforcement = updateEnforcement; window.deleteEnforcement = deleteEnforcement;
-window.showArchiveEnforcementModal = showArchiveEnforcementModal; window.confirmArchiveEnforcement = confirmArchiveEnforcement;
-window.addExpert = addExpert; window.saveExpert = saveExpert; window.editExpert = editExpert; window.updateExpert = updateExpert;
-window.deleteExpert = deleteExpert; window.returnExpertToCase = returnExpertToCase; window.completeExpert = completeExpert;
-window.filterArchive = filterArchive; window.addArchiveCircuit = addArchiveCircuit;
-window.searchArchive = searchArchive; window.clearArchiveSearch = clearArchiveSearch;
-window.deleteClient = deleteClient; window.deleteActiveCase = deleteActiveCase; window.deleteClosedCase = deleteClosedCase;
-window.changePassword = changePassword; window.changeUsername = changeUsername; window.deleteEmployee = deleteEmployee;
-window.performSearch = performSearch; window.clearSearch = clearSearch;
-window.searchActiveCases = searchActiveCases; window.clearActiveSearch = clearActiveSearch;
-window.exportToExcel = exportToExcel; window.attemptLogin = attemptLogin; window.logout = logout;
-window.addAdditionalClient = addAdditionalClient; window.removeAdditionalClient = removeAdditionalClient;
-window.filterClients = filterClients; window.addOpponent = addOpponent; window.removeOpponent = removeOpponent;
-window.closeNotificationModal = closeNotificationModal; window.showClientCases = showClientCases;
-window.deleteArchivedEnforcement = deleteArchivedEnforcement; window.showDuplicateCaseWarning = showDuplicateCaseWarning;
-window.searchEnforcements = searchEnforcements; window.clearEnforcementSearch = clearEnforcementSearch;
-window.filterClientsForEnforcement = filterClientsForEnforcement; window.selectClientForEnforcement = selectClientForEnforcement;
-window.loadCasesForClient = loadCasesForClient;
-window.searchExperts = searchExperts; window.clearExpertSearch = clearExpertSearch;
-window.rescheduleEnforcement = rescheduleEnforcement; window.rescheduleExpert = rescheduleExpert;
-window.reloadUsersFromFirebase = reloadUsersFromFirebase;
-(function registerPWA() { if ('serviceWorker' in navigator) { let swCode = `const CACHE_NAME='lawfirm-v1'; const urlsToCache=['/','/index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css','https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap','https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js','https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js','https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js']; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(urlsToCache)))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))); self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key))))));`; let swBlob = new Blob([swCode], { type: 'application/javascript' }); let swURL = URL.createObjectURL(swBlob); navigator.serviceWorker.register(swURL).catch(err => console.error('SW failed:', err)); } })();
-checkLoginStatus();
+    document.getElementById('newCaseForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        let clientId = document.getElementById('caseClient').value;
+        let firstDate = document.getElementById('firstSessionDate').value;
+        let clientRole = document.getElementById('clientRole').value;
+        let caseNumber = document.getElementById('caseNumber').value;
+        let caseYear = document.getElementById('caseYear').value;
+        let caseCourt = document.getElementById('caseCourt').value;
+        let caseSubject = document.getElementById('caseSubject').value;
+        let caseCircuit = document.getElementById('caseCircuit').value;
+        if (caseCircuit === 'أخرى') { caseCircuit = document.getElementById('otherCircuit').value; if (!caseCircuit) { alert('يرجى إدخال اسم الدائرة'); return; } }
+        let opponents = getOpponentsData();
+        if (opponents.length === 0) { alert('يرجى إضافة خصم أول على الأقل'); return; }
+        let additionalClients = getAdditionalClientsData();
+        if (!clientId || !firstDate || !clientRole || !caseNumber || !caseYear || !caseCourt || !caseCircuit || !caseSubject) { alert('يرجى ملء جميع الحقول المطلوبة'); return; }
+        let existingCase = [...activeCases, ...closedCases].find(c => c.number === caseNumber && c.year === caseYear);
+        if (existingCase) { const shouldAdd = await showDuplicateCaseWarning(existingCase); if (!shouldAdd) return; }
+        activeCases.push({ id: Date.now().toString(), number: caseNumber, year: caseYear, court: caseCourt, circuit: caseCircuit, subject: caseSubject, clientId, clientRole, additionalClients, opponents, decision: document.getElementById('caseDecision').value, firstSessionDate: firstDate, firstSessionDecision: '', firstSessionProcessed: false, nextSessionDate: '', nextSessionDecision: '', nextSessionProcessed: false, pastSessions: [], createdAt: new Date().toISOString() });
+        database.ref('activeCases').set(activeCases);
+        e.target.reset();
+        document.getElementById('caseCourt').value = '';
+        document.getElementById('otherCircuit').style.display = 'none';
+        document.getElementById('caseCircuit').value = '';
+        document.getElementById('additionalClientsContainer').innerHTML = '';
+        document.getElementById('opponentsContainer').innerHTML = '';
+        showNotification('تم إضافة القضية');
+        resetSessionTimer();
+        checkForNewNotifications(); renderTomorrowAppointments();
+    });
+    document.getElementById('clientForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clients.push({ id: Date.now().toString(), name: document.getElementById('clientName').value, nationalId: document.getElementById('clientNationalId').value, phone: document.getElementById('clientPhone').value });
+        database.ref('clients').set(clients);
+        e.target.reset();
+        showNotification('تم إضافة الموكل');
+        resetSessionTimer();
+    });
+    document.getElementById('employeeForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!isAdmin()) { showNotification('غير مسموح لك بإضافة موظفين'); return; }
+        let uname = document.getElementById('empUsername').value.trim();
+        let pwd = document.getElementById('empPassword').value;
+        let role = document.getElementById('empRole').value;
+        if (!uname || !pwd) { showNotification('يرجى إدخال اسم المستخدم وكلمة المرور'); return; }
+        let allExisting = [...employees, ...fixedAdmins];
+        if (allExisting.find(e => e.username === uname)) { showNotification('اسم المستخدم موجود بالفعل'); return; }
+        let newEmp = { id: Date.now().toString(), username: uname, password: pwd, role: role };
+        employees.push(newEmp);
+        database.ref('employees').set(employees);
+        renderEmployeesTable();
+        showNotification(`✅ تم إضافة الموظف ${uname} بنجاح\n📝 كلمة المرور: ${pwd}`);
+        e.target.reset();
+    });
+    document.getElementById('archiveBackupBtn')?.addEventListener('click', backupArchiveData);
+    document.getElementById('archiveRestoreBtn')?.addEventListener('click', restoreBackupData);
+    window.selectYear = selectYear; window.selectMonth = selectMonth; window.showDaySessions = showDaySessions;
+    window.processPastSession = processPastSession; window.viewFullCase = viewFullCase;
+    window.addNewSessionFromModal = addNewSessionFromModal; window.addAdminWorkFromModal = addAdminWorkFromModal;
+    window.addJudgmentFromModal = addJudgmentFromModal; window.addExpertFromModal = addExpertFromModal;
+    window.closeCaseFromModal = closeCaseFromModal; window.returnClosedCaseToNewSession = returnClosedCaseToNewSession;
+    window.editCase = editCase; window.saveCaseEdit = saveCaseEdit;
+    window.chooseCircuitForClosedCase = chooseCircuitForClosedCase; window.saveCaseWithCircuit = saveCaseWithCircuit;
+    window.completeAdminWork = completeAdminWork; window.returnCaseFromJudgment = returnCaseFromJudgment;
+    window.editJudgmentRecord = editJudgmentRecord; window.updateJudgmentRecord = updateJudgmentRecord;
+    window.addEnforcement = addEnforcement; window.saveEnforcement = saveEnforcement;
+    window.editEnforcement = editEnforcement; window.updateEnforcement = updateEnforcement; window.deleteEnforcement = deleteEnforcement;
+    window.showArchiveEnforcementModal = showArchiveEnforcementModal; window.confirmArchiveEnforcement = confirmArchiveEnforcement;
+    window.addExpert = addExpert; window.saveExpert = saveExpert; window.editExpert = editExpert; window.updateExpert = updateExpert;
+    window.deleteExpert = deleteExpert; window.returnExpertToCase = returnExpertToCase; window.completeExpert = completeExpert;
+    window.filterArchive = filterArchive; window.addArchiveCircuit = addArchiveCircuit;
+    window.searchArchive = searchArchive; window.clearArchiveSearch = clearArchiveSearch;
+    window.deleteClient = deleteClient; window.deleteActiveCase = deleteActiveCase; window.deleteClosedCase = deleteClosedCase;
+    window.changePassword = changePassword; window.changeUsername = changeUsername; window.deleteEmployee = deleteEmployee;
+    window.performSearch = performSearch; window.clearSearch = clearSearch;
+    window.searchActiveCases = searchActiveCases; window.clearActiveSearch = clearActiveSearch;
+    window.exportToExcel = exportToExcel; window.attemptLogin = attemptLogin; window.logout = logout;
+    window.addAdditionalClient = addAdditionalClient; window.removeAdditionalClient = removeAdditionalClient;
+    window.filterClients = filterClients; window.addOpponent = addOpponent; window.removeOpponent = removeOpponent;
+    window.closeNotificationModal = closeNotificationModal; window.showClientCases = showClientCases;
+    window.deleteArchivedEnforcement = deleteArchivedEnforcement; window.showDuplicateCaseWarning = showDuplicateCaseWarning;
+    window.searchEnforcements = searchEnforcements; window.clearEnforcementSearch = clearEnforcementSearch;
+    window.filterClientsForEnforcement = filterClientsForEnforcement; window.selectClientForEnforcement = selectClientForEnforcement;
+    window.loadCasesForClient = loadCasesForClient;
+    window.searchExperts = searchExperts; window.clearExpertSearch = clearExpertSearch;
+    window.rescheduleEnforcement = rescheduleEnforcement; window.rescheduleExpert = rescheduleExpert;
+    window.reloadUsersFromFirebase = reloadUsersFromFirebase;
+    (function registerPWA() { if ('serviceWorker' in navigator) { let swCode = `const CACHE_NAME='lawfirm-v1'; const urlsToCache=['/','/index.html','https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css','https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap','https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js','https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js','https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js']; self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(urlsToCache)))); self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))); self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key))))));`; let swBlob = new Blob([swCode], { type: 'application/javascript' }); let swURL = URL.createObjectURL(swBlob); navigator.serviceWorker.register(swURL).catch(err => console.error('SW failed:', err)); } })();
+    checkLoginStatus();
 </script>
 </body>
 </html>
