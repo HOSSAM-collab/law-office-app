@@ -1295,91 +1295,105 @@
             document.getElementById('serverDownScreen').style.display = 'none';
             return true;
         }
+        // بتشتغل لأي مستخدم مسجل دخول (مش بس السوبر أدمن) عشان شاشة الصيانة/تعطيل السيرفر
+        // تفضل شغالة فورًا مع أي مستخدم، حتى لو عمل ريفريش أو دخل من تاب جديد.
+        function bindSystemStatusListeners() {
+            database.ref('maintenance').on('value', (snapshot) => {
+                const data = snapshot.val();
+                isMaintenanceMode = data?.isActive || false;
+                maintenanceEndTime = data?.endTime;
+                updateMaintenanceAdminUI();
+                checkAllSystemStatus();
+            });
+            database.ref('serverDown').on('value', (snapshot) => {
+                const data = snapshot.val();
+                isServerDown = data?.isActive || false;
+                serverDownEndTime = data?.endTime;
+                updateServerDownAdminUI();
+                checkAllSystemStatus();
+            });
+        }
+        // تحديث واجهة تحكم الصيانة (بتظهر بس عند السوبر أدمن أصلاً، فمفيش داعي نتأكد هنا تاني بس بنحميها لو العناصر مش موجودة)
+        function updateMaintenanceAdminUI() {
+            let toggleBtn = document.getElementById('toggleMaintenanceBtn');
+            let statusSpan = document.getElementById('maintenanceStatusSpan');
+            let infoDiv = document.getElementById('maintenanceInfo');
+            if (!toggleBtn) return;
+            if (isMaintenanceMode) {
+                toggleBtn.innerHTML = '🔓 تشغيل الموقع';
+                toggleBtn.className = 'btn-success';
+                if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-overdue">🔴 الموقع معطل</span>';
+            } else {
+                toggleBtn.innerHTML = '🔧 تعطيل الموقع (صيانة)';
+                toggleBtn.className = 'btn-warning';
+                if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-completed">🟢 الموقع يعمل</span>';
+            }
+            if (infoDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) {
+                let remaining = new Date(maintenanceEndTime) - new Date();
+                let hours = Math.floor(remaining / 3600000);
+                let minutes = Math.floor((remaining % 3600000) / 60000);
+                infoDiv.innerHTML = `<small><i class="fas fa-clock"></i> تنتهي الصيانة بعد: ${hours} ساعة ${minutes} دقيقة</small>`;
+                if (maintenanceInterval) clearInterval(maintenanceInterval);
+                maintenanceInterval = setInterval(() => {
+                    if (isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) <= new Date()) {
+                        disableMaintenance();
+                        if (maintenanceInterval) clearInterval(maintenanceInterval);
+                    }
+                }, 60000);
+            } else if (infoDiv) {
+                infoDiv.innerHTML = '';
+                if (maintenanceInterval) clearInterval(maintenanceInterval);
+            }
+        }
+        function updateServerDownAdminUI() {
+            let serverDownBtn = document.getElementById('toggleServerDownBtn');
+            let serverStatusSpan = document.getElementById('serverDownStatusSpan');
+            let serverInfoDiv = document.getElementById('serverDownInfo');
+            if (!serverDownBtn) return;
+            if (isServerDown) {
+                serverDownBtn.innerHTML = '🟢 تشغيل السيرفر';
+                serverDownBtn.className = 'btn-success';
+                if (serverStatusSpan) serverStatusSpan.innerHTML = '<span class="work-status status-overdue">🔴 السيرفر معطل</span>';
+            } else {
+                serverDownBtn.innerHTML = '🚫 تعطيل السيرفر (Server Down)';
+                serverDownBtn.className = 'btn-danger';
+                if (serverStatusSpan) serverStatusSpan.innerHTML = '<span class="work-status status-completed">🟢 السيرفر يعمل</span>';
+            }
+            if (serverInfoDiv && isServerDown && serverDownEndTime && new Date(serverDownEndTime) > new Date()) {
+                let remaining = new Date(serverDownEndTime) - new Date();
+                let hours = Math.floor(remaining / 3600000);
+                let minutes = Math.floor((remaining % 3600000) / 60000);
+                serverInfoDiv.innerHTML = `<small><i class="fas fa-clock"></i> يعود السيرفر بعد: ${hours} ساعة ${minutes} دقيقة</small>`;
+                if (serverDownInterval) clearInterval(serverDownInterval);
+                serverDownInterval = setInterval(() => {
+                    if (isServerDown && serverDownEndTime && new Date(serverDownEndTime) <= new Date()) {
+                        disableServerDown();
+                        if (serverDownInterval) clearInterval(serverDownInterval);
+                    }
+                }, 60000);
+            } else if (serverInfoDiv) {
+                serverInfoDiv.innerHTML = '';
+                if (serverDownInterval) clearInterval(serverDownInterval);
+            }
+        }
+        // بتربط أزرار التحكم بتاعة السوبر أدمن بس (التفعيل/الإلغاء)؛ عرض الحالة نفسه بقى شغال للكل عبر bindSystemStatusListeners
         function setupMaintenanceControls() {
             if (!isSuperAdmin()) return;
             let toggleBtn = document.getElementById('toggleMaintenanceBtn');
             let serverDownBtn = document.getElementById('toggleServerDownBtn');
             let durationSelect = document.getElementById('maintenanceDuration');
-            let statusSpan = document.getElementById('maintenanceStatusSpan');
-            let infoDiv = document.getElementById('maintenanceInfo');
-            let serverStatusSpan = document.getElementById('serverDownStatusSpan');
-            let serverInfoDiv = document.getElementById('serverDownInfo');
             if (toggleBtn) {
                 toggleBtn.onclick = () => {
                     if (isMaintenanceMode) { disableMaintenance(); } else { enableMaintenance(parseInt(durationSelect?.value) || null); }
                 };
             }
-            database.ref('maintenance').on('value', (snapshot) => {
-                const data = snapshot.val();
-                isMaintenanceMode = data?.isActive || false;
-                maintenanceEndTime = data?.endTime;
-                if (toggleBtn) {
-                    if (isMaintenanceMode) {
-                        toggleBtn.innerHTML = '🔓 تشغيل الموقع';
-                        toggleBtn.className = 'btn-success';
-                        if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-overdue">🔴 الموقع معطل</span>';
-                    } else {
-                        toggleBtn.innerHTML = '🔧 تعطيل الموقع (صيانة)';
-                        toggleBtn.className = 'btn-warning';
-                        if (statusSpan) statusSpan.innerHTML = '<span class="work-status status-completed">🟢 الموقع يعمل</span>';
-                    }
-                }
-                if (infoDiv && isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) > new Date()) {
-                    let remaining = new Date(maintenanceEndTime) - new Date();
-                    let hours = Math.floor(remaining / 3600000);
-                    let minutes = Math.floor((remaining % 3600000) / 60000);
-                    infoDiv.innerHTML = `<small><i class="fas fa-clock"></i> تنتهي الصيانة بعد: ${hours} ساعة ${minutes} دقيقة</small>`;
-                    if (maintenanceInterval) clearInterval(maintenanceInterval);
-                    maintenanceInterval = setInterval(() => {
-                        if (isMaintenanceMode && maintenanceEndTime && new Date(maintenanceEndTime) <= new Date()) {
-                            disableMaintenance();
-                            if (maintenanceInterval) clearInterval(maintenanceInterval);
-                        }
-                    }, 60000);
-                } else if (infoDiv) {
-                    infoDiv.innerHTML = '';
-                    if (maintenanceInterval) clearInterval(maintenanceInterval);
-                }
-                checkAllSystemStatus();
-            });
             if (serverDownBtn) {
                 serverDownBtn.onclick = () => {
                     if (isServerDown) { disableServerDown(); } else { enableServerDown(parseInt(durationSelect?.value) || null); }
                 };
             }
-            database.ref('serverDown').on('value', (snapshot) => {
-                const data = snapshot.val();
-                isServerDown = data?.isActive || false;
-                serverDownEndTime = data?.endTime;
-                if (serverDownBtn) {
-                    if (isServerDown) {
-                        serverDownBtn.innerHTML = '🟢 تشغيل السيرفر';
-                        serverDownBtn.className = 'btn-success';
-                        if (serverStatusSpan) serverStatusSpan.innerHTML = '<span class="work-status status-overdue">🔴 السيرفر معطل</span>';
-                    } else {
-                        serverDownBtn.innerHTML = '🚫 تعطيل السيرفر (Server Down)';
-                        serverDownBtn.className = 'btn-danger';
-                        if (serverStatusSpan) serverStatusSpan.innerHTML = '<span class="work-status status-completed">🟢 السيرفر يعمل</span>';
-                    }
-                }
-                if (serverInfoDiv && isServerDown && serverDownEndTime && new Date(serverDownEndTime) > new Date()) {
-                    let remaining = new Date(serverDownEndTime) - new Date();
-                    let hours = Math.floor(remaining / 3600000);
-                    let minutes = Math.floor((remaining % 3600000) / 60000);
-                    serverInfoDiv.innerHTML = `<small><i class="fas fa-clock"></i> يعود السيرفر بعد: ${hours} ساعة ${minutes} دقيقة</small>`;
-                    if (serverDownInterval) clearInterval(serverDownInterval);
-                    serverDownInterval = setInterval(() => {
-                        if (isServerDown && serverDownEndTime && new Date(serverDownEndTime) <= new Date()) {
-                            disableServerDown();
-                            if (serverDownInterval) clearInterval(serverDownInterval);
-                        }
-                    }, 60000);
-                } else if (serverInfoDiv) {
-                    serverInfoDiv.innerHTML = '';
-                    if (serverDownInterval) clearInterval(serverDownInterval);
-                }
-                checkAllSystemStatus();
-            });
+            updateMaintenanceAdminUI();
+            updateServerDownAdminUI();
         }
 
         // ========== دوال عرض الموظفين والموكلين والأرشيف ==========
@@ -1744,6 +1758,7 @@
                     document.getElementById('currentUserRole').innerHTML = currentUser.role;
                     document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
                     loadDataFromFirebase();
+                    bindSystemStatusListeners();
                     setTimeout(() => {
                         updateWelcomeMessage();
                         if (isSuperAdmin()) {
@@ -1827,6 +1842,7 @@
                 document.getElementById('currentUserRole').innerHTML = currentUser.role;
                 document.getElementById('currentUserRole').className = `role-badge ${currentUser.superAdmin ? 'role-super' : (currentUser.role === 'مدير' ? 'role-admin' : 'role-lawyer')}`;
                 loadDataFromFirebase();
+                bindSystemStatusListeners();
                 setTimeout(() => {
                     updateWelcomeMessage();
                     if (currentUser && currentUser.superAdmin === true) {
