@@ -533,6 +533,123 @@
             return { ...caseData, clientName: getClientName(caseData.clientId), allClientsNames: getAllClientsNames(caseData), allOpponents: getAllOpponents(caseData), allSessions: getAllSessions(caseData) };
         }
 
+        // ========== دوال البحث ==========
+        function performSearch() {
+            let searchType = document.getElementById('searchType').value;
+            let resultsContainer = document.getElementById('searchResults');
+            if (searchType === 'caseNumber') {
+                let caseNumber = document.getElementById('searchCaseNumber').value.trim();
+                let caseYear = document.getElementById('searchCaseYear').value.trim();
+                if (!caseNumber && !caseYear) { showNotification('❌ يرجى إدخال رقم القضية أو السنة'); return; }
+                let activeResults = activeCases.filter(c => {
+                    let matchNumber = caseNumber ? c.number.includes(caseNumber) : true;
+                    let matchYear = caseYear ? c.year.includes(caseYear) : true;
+                    return matchNumber && matchYear;
+                });
+                let closedResults = closedCases.filter(c => {
+                    let matchNumber = caseNumber ? c.number.includes(caseNumber) : true;
+                    let matchYear = caseYear ? c.year.includes(caseYear) : true;
+                    return matchNumber && matchYear;
+                });
+                displaySearchResults(activeResults, closedResults);
+            } else if (searchType === 'clientName') {
+                let clientName = document.getElementById('searchClientName').value.trim().toLowerCase();
+                if (!clientName) { showNotification('❌ يرجى إدخال اسم الموكل'); return; }
+                let activeResults = activeCases.filter(c => {
+                    let allClients = getAllClientsNames(c);
+                    return allClients.some(name => name.toLowerCase().includes(clientName));
+                });
+                let closedResults = closedCases.filter(c => {
+                    let allClients = getAllClientsNames(c);
+                    return allClients.some(name => name.toLowerCase().includes(clientName));
+                });
+                displaySearchResults(activeResults, closedResults);
+            }
+        }
+        function displaySearchResults(activeResults, closedResults) {
+            let resultsContainer = document.getElementById('searchResults');
+            let totalCount = activeResults.length + closedResults.length;
+            if (totalCount === 0) {
+                resultsContainer.innerHTML = `<div class="search-result-card" style="text-align:center;background:#f8d7da;border-right-color:#dc3545;"><i class="fas fa-search"></i> ❌ لا توجد نتائج مطابقة للبحث</div>`;
+                resultsContainer.classList.add('show');
+                return;
+            }
+            let html = `<div class="search-result-card" style="background:#d4edda;border-right-color:#28a745;"><i class="fas fa-chart-line"></i> ✅ عدد النتائج: ${totalCount} (${activeResults.length} قضية نشطة، ${closedResults.length} قضية منتهية)</div>`;
+            if (activeResults.length > 0) {
+                html += `<div class="search-result-card" style="background:#cfe2ff;border-right-color:#0d6efd;"><h5><i class="fas fa-balance-scale"></i> قضايا المكتب (${activeResults.length})</h5></div>`;
+                activeResults.forEach(c => {
+                    let allClients = getAllClientsNames(c);
+                    let allOpponents = getAllOpponents(c);
+                    let nextSession = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate).toLocaleString('ar-EG') : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate).toLocaleString('ar-EG') : 'لم تحدد');
+                    html += `<div class="search-result-card"><h4>⚖️ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">📅 الجلسة القادمة: ${nextSession}</span></div><p><strong>📝 موضوع القضية:</strong> ${c.subject || 'غير محدد'}</p><p><strong>📌 آخر قرار:</strong> ${c.decision || 'لا يوجد'}</p><div class="admin-actions"><button onclick="viewFullCase('${c.id}', 'active')" class="btn-primary btn-sm">📋 عرض التفاصيل</button><button onclick="switchToTab('activeCases')" class="btn-primary btn-sm">📂 الانتقال لقضايا المكتب</button></div></div>`;
+                });
+            }
+            if (closedResults.length > 0) {
+                html += `<div class="search-result-card" style="background:#e2e3e5;border-right-color:#6c757d;"><h5><i class="fas fa-check-circle"></i> القضايا المنتهية (${closedResults.length})</h5></div>`;
+                closedResults.forEach(c => {
+                    let allClients = getAllClientsNames(c);
+                    let allOpponents = getAllOpponents(c);
+                    html += `<div class="search-result-card"><h4>✅ ${c.number} (${c.year}) - ${c.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">⚖️ الدائرة: ${c.circuit || 'غير محددة'}</span></div><p><strong>📝 موضوع القضية:</strong> ${c.subject || 'غير محدد'}</p><p><strong>⚖️ الحكم النهائي:</strong> ${c.judgment}</p><p><strong>📅 تاريخ الإنهاء:</strong> ${new Date(c.closedAt).toLocaleDateString('ar-EG')}</p><div class="admin-actions"><button onclick="viewFullCase('${c.id}', 'closed')" class="btn-primary btn-sm">📋 عرض التفاصيل</button><button onclick="switchToTab('closedCases')" class="btn-primary btn-sm">📦 الانتقال للقضايا المنتهية</button></div></div>`;
+                });
+            }
+            resultsContainer.innerHTML = html;
+            resultsContainer.classList.add('show');
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        function clearSearch() {
+            document.getElementById('searchCaseNumber').value = '';
+            document.getElementById('searchCaseYear').value = '';
+            document.getElementById('searchClientName').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('searchResults').classList.remove('show');
+            showNotification('🗑️ تم مسح البحث');
+        }
+        document.getElementById('searchType')?.addEventListener('change', function() {
+            if (this.value === 'caseNumber') {
+                document.getElementById('caseNumberGroup').style.display = 'block';
+                document.getElementById('caseYearGroup').style.display = 'block';
+                document.getElementById('clientNameGroup').style.display = 'none';
+            } else {
+                document.getElementById('caseNumberGroup').style.display = 'none';
+                document.getElementById('caseYearGroup').style.display = 'none';
+                document.getElementById('clientNameGroup').style.display = 'block';
+            }
+        });
+        function searchActiveCases() {
+            activeSearchTerm = document.getElementById('activeSearchInput').value.trim().toLowerCase();
+            renderActiveCases();
+        }
+        function clearActiveSearch() {
+            document.getElementById('activeSearchInput').value = '';
+            activeSearchTerm = '';
+            renderActiveCases();
+        }
+        function searchArchive() {
+            archiveSearchTerm = document.getElementById('archiveSearchInput').value.trim().toLowerCase();
+            filterArchive(currentArchiveCircuit);
+        }
+        function clearArchiveSearch() {
+            document.getElementById('archiveSearchInput').value = '';
+            archiveSearchTerm = '';
+            filterArchive(currentArchiveCircuit);
+        }
+        function searchExperts() {
+            let searchInput = document.getElementById('expertSearchInput');
+            if (searchInput) { expertSearchTerm = searchInput.value.trim().toLowerCase(); renderExperts(); }
+        }
+        function clearExpertSearch() {
+            let searchInput = document.getElementById('expertSearchInput');
+            if (searchInput) { searchInput.value = ''; expertSearchTerm = ''; renderExperts(); }
+        }
+        function searchEnforcements() {
+            let searchInput = document.getElementById('enforcementSearchInput');
+            if (searchInput) { enforcementSearchTerm = searchInput.value.trim().toLowerCase(); renderEnforcements(); }
+        }
+        function clearEnforcementSearch() {
+            let searchInput = document.getElementById('enforcementSearchInput');
+            if (searchInput) { searchInput.value = ''; enforcementSearchTerm = ''; renderEnforcements(); }
+        }
+
         // ========== دوال الصلاحيات ==========
         function isSuperAdmin() { return currentUser && currentUser.id === "admin_hesham"; }
         function isAdmin() { return currentUser && (currentUser.role === 'مدير' || isSuperAdmin()); }
