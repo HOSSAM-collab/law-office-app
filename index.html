@@ -16,6 +16,7 @@
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        html, body { overflow-x: hidden; max-width: 100%; }
         body { background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%); min-height: 100vh; }
         .dashboard-container { display: flex; min-height: 100vh; }
         .sidebar { width: 280px; background: linear-gradient(180deg, #0b2b40 0%, #1a4a5f 100%); color: white; display: flex; flex-direction: column; position: fixed; right: 0; top: 0; bottom: 0; overflow-y: auto; z-index: 100; box-shadow: -4px 0 20px rgba(0,0,0,0.1); }
@@ -31,11 +32,21 @@
         .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; text-align: center; opacity: 0.6; }
         .main-content { flex: 1; margin-right: 280px; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
-        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
-        .login-card { background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 400px; text-align: center; }
-        .login-card h2 { color: #1a4a5f; margin-bottom: 10px; }
-        .login-card input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 16px; }
-        .login-card button { width: 100%; padding: 12px; background: #1a4a5f; color: white; border: none; border-radius: 12px; font-size: 18px; cursor: pointer; }
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 35%, #163f56 0%, #0b2b40 55%, #061a28 100%); display: flex; justify-content: center; align-items: center; z-index: 2000; flex-direction: column; }
+        .login-glow { position: relative; width: 120px; height: 120px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; }
+        .login-glow::before { content: ''; position: absolute; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle, rgba(23,198,217,0.35) 0%, rgba(23,198,217,0) 70%); }
+        .login-glow i { position: relative; font-size: 54px; color: #d4af37; text-shadow: 0 0 18px rgba(212,175,55,0.6); }
+        .login-card { background: white; padding: 0 0 30px; border-radius: 18px; width: 90%; max-width: 380px; text-align: center; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+        .login-card-topbar { background: linear-gradient(90deg, #17c6d9 0%, #0e9fb0 100%); height: 10px; width: 100%; }
+        .login-card-body { padding: 25px 30px 0; }
+        .login-card h2 { color: #1a4a5f; margin-bottom: 4px; font-size: 20px; }
+        .login-card p { color: #888; font-size: 13px; margin-bottom: 15px; }
+        .login-field { text-align: right; margin: 12px 0; }
+        .login-field label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; font-weight: 600; }
+        .login-card input, .login-card select { width: 100%; padding: 11px 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px; background: white; }
+        .login-remember { display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-size: 12.5px; color: #555; margin: 4px 0 18px; }
+        .login-remember input { width: auto; margin: 0; }
+        .login-card button { width: calc(100% - 60px); margin: 0 30px; padding: 12px; background: #1a4a5f; color: white; border: none; border-radius: 10px; font-size: 17px; cursor: pointer; }
         .login-card button:hover { background: #0b2b40; }
         .error-msg { color: #dc3545; margin-top: 10px; padding: 10px; background: #f8d7da; border-radius: 8px; display: none; font-weight: bold; }
         .maintenance-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0b2b40 0%, #1a4a5f 100%); display: none; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
@@ -115,6 +126,15 @@
         .day-card:hover { background: #1a4a5f; color: white; transform: scale(1.05); }
         .day-card.has-session { background: #d4edda; border-right: 3px solid #28a745; }
         .day-card.today { background: #ffc107; color: #333; font-weight: bold; }
+        .day-card.selected-day { outline: 3px solid #1a4a5f; outline-offset: -3px; }
+        .agenda-layout { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; }
+        .agenda-calendar-col { flex: 1 1 280px; min-width: 0; }
+        .agenda-grid-col { flex: 2 1 420px; min-width: 0; }
+        @media (max-width: 992px) {
+            .agenda-layout { flex-direction: column; flex-wrap: nowrap; }
+            .agenda-calendar-col, .agenda-grid-col { width: 100%; flex: none; min-width: 0; }
+        }
+        .agenda-cal-header { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 12px; font-weight: bold; color: #1a4a5f; font-size: 16px; }
         .week-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 10px; text-align: center; font-weight: bold; }
         .week-day-name { background: #1a4a5f; color: white; padding: 8px; border-radius: 8px; }
         .archive-categories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px; }
@@ -161,14 +181,25 @@
 <body>
     <!-- شاشة تسجيل الدخول -->
     <div id="loginScreen" class="login-overlay">
+        <div class="login-glow"><i class="fas fa-balance-scale"></i></div>
         <div class="login-card">
-            <i class="fas fa-gavel" style="font-size:50px;color:#1a4a5f;margin-bottom:15px;"></i>
-            <h2>مكتب الخواجا للمحاماة</h2>
-            <p>نظام إدارة القضايا</p>
-            <input type="text" id="loginUsername" placeholder="اسم المستخدم">
-            <input type="password" id="loginPassword" placeholder="كلمة المرور">
+            <div class="login-card-topbar"></div>
+            <div class="login-card-body">
+                <h2>مكتب الخواجا للمحاماة</h2>
+                <p>نظام إدارة القضايا</p>
+                <div class="login-field">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="loginUsername" list="loginUsernameList" placeholder="اختر الاسم أو اكتبه" autocomplete="off">
+                    <datalist id="loginUsernameList"></datalist>
+                </div>
+                <div class="login-field">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="loginPassword" placeholder="********">
+                </div>
+                <label class="login-remember"><input type="checkbox" id="rememberUsername"> تذكر اسم المستخدم</label>
+            </div>
             <button onclick="attemptLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
-            <div id="loginError" class="error-msg">❌ اسم المستخدم أو كلمة المرور غير صحيحة</div>
+            <div id="loginError" class="error-msg" style="margin:15px 30px 0;"></div>
         </div>
     </div>
     <!-- شاشة الصيانة -->
@@ -327,7 +358,39 @@
                             <div id="tomorrowAdminWorksSection" class="tomorrow-section"></div>
                         </div>
                         <!-- لوحة الأجندة -->
-                        <div id="advancedAgendaPanel" class="panel"><h3>📅 الأجندة</h3><div id="advancedAgendaList"></div></div>
+                        <div id="advancedAgendaPanel" class="panel">
+                            <h3>📅 الأجندة</h3>
+                            <div class="agenda-layout">
+                                <div class="agenda-calendar-col">
+                                    <div class="agenda-cal-header">
+                                        <button type="button" class="btn-sm btn-primary" onclick="changeAgendaMonth(-1)"><i class="fas fa-chevron-right"></i></button>
+                                        <span id="agendaMonthYearLabel"></span>
+                                        <button type="button" class="btn-sm btn-primary" onclick="changeAgendaMonth(1)"><i class="fas fa-chevron-left"></i></button>
+                                    </div>
+                                    <div id="monthDaysContainer"></div>
+                                </div>
+                                <div class="agenda-grid-col">
+                                    <div class="case-grid-tabs">
+                                        <button type="button" class="case-grid-tab-btn active" disabled>جلسات اليوم المحدد</button>
+                                        <button type="button" class="case-grid-tab-btn" onclick="switchToTab('experts')">الخبراء ↗</button>
+                                        <button type="button" class="case-grid-tab-btn" onclick="switchToTab('enforcements')">توكيلات التنفيذ ↗</button>
+                                        <button type="button" class="case-grid-tab-btn" onclick="switchToTab('adminWorks')">الأعمال الإدارية ↗</button>
+                                    </div>
+                                    <h4 id="agendaSelectedDayLabel" style="color:#1a4a5f;margin:12px 0;"></h4>
+                                    <div class="table-responsive">
+                                        <table class="legal-grid">
+                                            <thead>
+                                                <tr>
+                                                    <th>م</th><th>المحكمة</th><th>الدائرة</th><th>رقم الدعوى</th><th>السنة</th>
+                                                    <th>إسم الموكل</th><th>صفته</th><th>اسم الخصم</th><th>صفته</th><th>القرار السابق</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="agendaSessionsGridBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <!-- لوحة ماتم في الجلسات -->
                         <div id="pastSessionsPanel" class="panel"><h3>📜 ماتم في الجلسات</h3><div id="pastSessionsList"></div></div>
                         <!-- لوحة القضايا المنتهية -->
@@ -682,6 +745,98 @@
             let user = [...fixedAdmins, ...employees].find(e => e.id === currentUser.id);
             let displayName = user?.username || currentUser.username || 'غير معروف';
             return { id: currentUser.id, name: displayName };
+        }
+
+        // ========== نظام صلاحيات الأقسام لكل موظف ==========
+        const PERMISSION_SECTIONS = [
+            { key: 'dashboard', label: 'الرئيسية (جهاز الكمبيوتر)' },
+            { key: 'newCase', label: 'قضية جديدة' },
+            { key: 'activeCases', label: 'قضايا المكتب' },
+            { key: 'pastSessions', label: 'ما تم بالجلسات' },
+            { key: 'advancedAgenda', label: 'الأجندة القانونية' },
+            { key: 'tomorrowAppointments', label: 'مواعيد الغد' },
+            { key: 'adminWorks', label: 'الأعمال الإدارية' },
+            { key: 'clients', label: 'سجل الموكلين' },
+            { key: 'closedCases', label: 'قضايا منتهية' },
+            { key: 'judgmentRecords', label: 'سجل الأحكام' },
+            { key: 'enforcements', label: 'توكيلات تنفيذ' },
+            { key: 'experts', label: 'الخبراء' },
+            { key: 'archive', label: 'الأرشيف' },
+            { key: 'reports', label: 'التقارير' }
+        ];
+        // حسام (سوبر أدمن) وجورج (مؤسس) دايمًا بكل الصلاحيات، زي ما طلبت.
+        // أي موظف تاني معندوش "permissions" محفوظة (موظف قديم قبل الميزة دي) بيفضل شايف كل حاجة عشان ميتقفلش فجأة؛
+        // لحد ما حسام أو مدير يدخل يحدد صلاحياته بنفسه من زرار "🔐 الصلاحيات".
+        function hasSectionPermission(tabKey) {
+            if (!currentUser) return false;
+            if (isSuperAdmin() || isGeorge()) return true;
+            let emp = employees.find(e => e.id === currentUser.id);
+            if (!emp || !emp.permissions) return true;
+            return emp.permissions[tabKey] !== false;
+        }
+        function applySidebarPermissions() {
+            if (!currentUser) return;
+            document.querySelectorAll('.sidebar-menu-item[data-tab]').forEach(item => {
+                let tab = item.getAttribute('data-tab');
+                if (tab === 'employees' || tab === 'maintenance' || tab === 'backup') return; // دول محكومين بمنطق منفصل بالفعل
+                item.style.display = hasSectionPermission(tab) ? 'flex' : 'none';
+            });
+        }
+        function openPermissionsModal(empId) {
+            let emp = employees.find(e => e.id == empId);
+            if (!emp) { showNotification('❌ الموظف غير موجود'); return; }
+            let perms = emp.permissions || {};
+            let checklistHtml = PERMISSION_SECTIONS.map(s => `
+                <label style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #eee;">
+                    <input type="checkbox" class="perm-checkbox" data-key="${s.key}" ${perms[s.key] !== false ? 'checked' : ''}>
+                    ${s.label}
+                </label>`).join('');
+            let modalBody = `
+                <div style="margin-bottom:15px;padding:12px;background:#f8f9fa;border-radius:10px;border-right:4px solid #1a4a5f;">
+                    <label style="display:flex;align-items:center;gap:8px;font-weight:bold;cursor:pointer;">
+                        <input type="checkbox" id="permActiveAccount" ${emp.active === false ? '' : 'checked'}>
+                        ✅ تفعيل حساب المستخدم (لو اتشال التيك، الموظف مش هيقدر يسجل دخول خالص)
+                    </label>
+                </div>
+                <h4 style="color:#1a4a5f;margin-bottom:10px;">📂 الأقسام المسموح لـ "${emp.username}" الدخول عليها:</h4>
+                <div style="max-height:320px;overflow-y:auto;border:1px solid #eee;border-radius:10px;padding:0 10px;">${checklistHtml}</div>
+                <div style="margin-top:12px;display:flex;gap:10px;">
+                    <button type="button" onclick="selectAllPermissions(true)" class="btn-sm btn-success">✅ تحديد الكل</button>
+                    <button type="button" onclick="selectAllPermissions(false)" class="btn-sm btn-warning">⬜ إلغاء الكل</button>
+                </div>
+                <button type="button" onclick="savePermissions('${empId}')" class="btn-success" style="width:100%;margin-top:15px;">💾 حفظ الصلاحيات</button>
+            `;
+            document.getElementById('modalTitle').innerHTML = `🔐 صلاحيات: ${emp.username}`;
+            document.getElementById('modalBody').innerHTML = modalBody;
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+        function selectAllPermissions(state) {
+            document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = state);
+        }
+        async function savePermissions(empId) {
+            if (!canChangePasswordFor({ id: empId })) {
+                showNotification('❌ غير مسموح لك بتعديل صلاحيات هذا الموظف');
+                return;
+            }
+            let idx = employees.findIndex(e => e.id == empId);
+            if (idx === -1) { showNotification('❌ الموظف غير موجود'); return; }
+            let permissions = {};
+            document.querySelectorAll('.perm-checkbox').forEach(cb => {
+                permissions[cb.getAttribute('data-key')] = cb.checked;
+            });
+            let active = document.getElementById('permActiveAccount').checked;
+            let previous = { ...employees[idx] };
+            employees[idx] = { ...employees[idx], permissions, active };
+            try {
+                await database.ref('employees').set(employees);
+                showNotification(`✅ تم حفظ صلاحيات "${employees[idx].username}" بنجاح`);
+                closeModal();
+                if (currentUser && currentUser.id === empId) applySidebarPermissions();
+            } catch (err) {
+                employees[idx] = previous;
+                showNotification('❌ حدث خطأ أثناء حفظ الصلاحيات');
+                console.error(err);
+            }
         }
 
         // ========== دوال إجبار الخروج عند تغيير كلمة السر ==========
@@ -1542,12 +1697,14 @@
                 let canChangePass = canChangePasswordFor(emp);
                 let canChangeUser = canChangeUsername(emp);
                 let canDel = canDeleteEmployee(emp);
+                let canSetPerms = canChangePasswordFor(emp) && !emp.isFixed;
 
                 let actions = '';
                 if (canChangeUser) actions += `<button class="btn-primary btn-sm" onclick="changeUsername('${emp.id}')">✏️ تغيير اليوزر</button> `;
                 if (canChangePass) actions += `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
+                if (canSetPerms) actions += `<button class="btn-primary btn-sm" onclick="openPermissionsModal('${emp.id}')">🔐 الصلاحيات</button> `;
                 if (canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
-                if (!canChangePass && !canDel && !canChangeUser) actions = 'لا يمكن التعديل';
+                if (!canChangePass && !canDel && !canChangeUser && !canSetPerms) actions = 'لا يمكن التعديل';
 
                 let createdInfo = '';
                 if (canSeeSignatures() && emp.createdByName) {
@@ -1555,9 +1712,10 @@
                         <i class="fas fa-user-plus"></i> أضاف: ${emp.createdByName}
                     </span>`;
                 }
+                let statusBadge = emp.active === false ? '<span class="work-status status-overdue" style="margin-right:6px;">⛔ معطل</span>' : '';
 
                 return `<tr>
-                    <td style="text-align:right">${emp.username}${createdInfo}</td>
+                    <td style="text-align:right">${emp.username}${statusBadge}${createdInfo}</td>
                     <td style="text-align:right">${emp.role || 'محامي'}</td>
                     <td style="text-align:right">${actions}</td>
                 </tr>`;
@@ -1865,8 +2023,18 @@
                 let user = fixedAdmins.find(e => e.username === username && e.password === hashed);
                 if (!user) { user = employees.find(e => e.username === username && e.password === hashed); }
                 
+                if (user && user.active === false) {
+                    errorDiv.innerHTML = '🔒 هذا الحساب معطل من قبل الإدارة، يرجى التواصل مع المسؤول';
+                    errorDiv.style.display = 'block';
+                    showNotification('🔒 الحساب معطل');
+                    return;
+                }
+
                 if (user) {
                     errorDiv.style.display = 'none';
+                    let rememberBox = document.getElementById('rememberUsername');
+                    if (rememberBox && rememberBox.checked) localStorage.setItem('law_rememberedUsername', username);
+                    else localStorage.removeItem('law_rememberedUsername');
                     currentUser = { ...user, loginTime: Date.now() };
                     localStorage.setItem('law_currentUser', JSON.stringify(currentUser));
                     document.getElementById('loginScreen').style.display = 'none';
@@ -1886,6 +2054,7 @@
                         initStatCards();
                         renderArchive();
                         bindSidebarButtons();
+                        applySidebarPermissions();
                         let employeesTabItem = document.getElementById('employeesTabItem');
                         let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
                         if (employeesTabItem) employeesTabItem.style.display = isAdmin() ? 'flex' : 'none';
@@ -1978,6 +2147,7 @@
                     let lastTab = localStorage.getItem('lastOpenTab');
                     if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) switchToTab(lastTab, false);
                     bindSidebarButtons();
+                    applySidebarPermissions();
                     requestNotificationPermission();
                     showNotificationModal();
                     startNotificationChecker();
@@ -2056,6 +2226,7 @@
             database.ref('employees').on('value', (s) => {
                 employees = s.val() ? Object.values(s.val()) : [];
                 renderEmployeesTable();
+                applySidebarPermissions(); // لو حد غيّر صلاحيات المستخدم الحالي، تتحدث قائمته فورًا
             });
             database.ref('customCourts').on('value', (s) => {
                 customCourts = s.val() ? Object.values(s.val()) : [];
@@ -2118,32 +2289,22 @@
         // ========== دوال الأجندة المتقدمة ==========
         let currentYearAgenda = new Date().getFullYear();
         let currentMonthAgenda = new Date().getMonth();
+        let agendaSelectedDate = new Date();
+        const AGENDA_MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
         function renderAdvancedAgenda() {
-            let container = document.getElementById('advancedAgendaList');
-            if (!container) return;
-            let years = [currentYearAgenda - 1, currentYearAgenda, currentYearAgenda + 1];
-            let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            container.innerHTML = `<div class="year-months">${years.map(y => `<span class="year-btn ${y === currentYearAgenda ? 'active' : ''}" onclick="selectYear(${y})">${y}</span>`).join('')}</div><div class="year-months" id="monthsContainer">${months.map((m, i) => `<span class="month-btn ${i === currentMonthAgenda ? 'active' : ''}" onclick="selectMonth(${currentYearAgenda},${i})">${m}</span>`).join('')}</div><div id="monthDaysContainer"></div>`;
+            if (!document.getElementById('monthDaysContainer')) return;
+            showMonthDays(currentYearAgenda, currentMonthAgenda);
+            renderAgendaSessionsGrid(agendaSelectedDate);
+        }
+        function changeAgendaMonth(delta) {
+            let newDate = new Date(currentYearAgenda, currentMonthAgenda + delta, 1);
+            currentYearAgenda = newDate.getFullYear();
+            currentMonthAgenda = newDate.getMonth();
             showMonthDays(currentYearAgenda, currentMonthAgenda);
         }
-        function selectYear(year) {
-            currentYearAgenda = year;
-            let months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-            document.getElementById('monthsContainer').innerHTML = months.map((m, i) => `<span class="month-btn ${i === currentMonthAgenda ? 'active' : ''}" onclick="selectMonth(${year},${i})">${m}</span>`).join('');
-            document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active'));
-            let yearBtn = Array.from(document.querySelectorAll('.year-btn')).find(btn => btn.innerText == year);
-            if (yearBtn) yearBtn.classList.add('active');
-            showMonthDays(year, currentMonthAgenda);
-        }
-        function selectMonth(year, month) {
-            currentYearAgenda = year;
-            currentMonthAgenda = month;
-            document.querySelectorAll('.month-btn').forEach(btn => btn.classList.remove('active'));
-            let monthBtns = document.querySelectorAll('.month-btn');
-            if (monthBtns[month]) monthBtns[month].classList.add('active');
-            showMonthDays(year, month);
-        }
         function showMonthDays(year, month) {
+            let label = document.getElementById('agendaMonthYearLabel');
+            if (label) label.innerText = `${AGENDA_MONTH_NAMES[month]} ${year}`;
             let daysInMonth = new Date(year, month + 1, 0).getDate();
             let firstDayIndex = new Date(year, month, 1).getDay();
             let today = new Date();
@@ -2155,7 +2316,8 @@
                 let sessionCount = getSessionCountForDate(date);
                 let hasSessions = sessionCount > 0;
                 let isToday = date.toDateString() === today.toDateString();
-                daysHtml += `<div class="day-card ${hasSessions ? 'has-session' : ''} ${isToday ? 'today' : ''}" onclick="showDaySessions(${year},${month},${d})">${d}${sessionCount > 0 ? `<br><small>${sessionCount} جلسة</small>` : ''}</div>`;
+                let isSelected = date.toDateString() === agendaSelectedDate.toDateString();
+                daysHtml += `<div class="day-card ${hasSessions ? 'has-session' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected-day' : ''}" onclick="selectAgendaDay(${year},${month},${d})">${d}${sessionCount > 0 ? `<br><small>${sessionCount} جلسة</small>` : ''}</div>`;
             }
             daysHtml += '</div>';
             document.getElementById('monthDaysContainer').innerHTML = daysHtml;
@@ -2174,30 +2336,52 @@
             });
             return count;
         }
-        function showDaySessions(year, month, day) {
-            let date = new Date(year, month, day);
+        function selectAgendaDay(year, month, day) {
+            agendaSelectedDate = new Date(year, month, day);
+            showMonthDays(currentYearAgenda, currentMonthAgenda);
+            renderAgendaSessionsGrid(agendaSelectedDate);
+        }
+        // جدول "جلسات اليوم" بنفس أعمدة شاشة الأجندة في البرنامج القديم
+        function renderAgendaSessionsGrid(date) {
+            let tbody = document.getElementById('agendaSessionsGridBody');
+            let dayLabel = document.getElementById('agendaSelectedDayLabel');
+            if (!tbody) return;
+            let isToday = date.toDateString() === new Date().toDateString();
+            if (dayLabel) dayLabel.innerText = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}${isToday ? ' (اليوم)' : ''}`;
             let sessions = [];
             activeCases.forEach(c => {
                 let futureDate = c.nextSessionDate && !c.nextSessionProcessed ? new Date(c.nextSessionDate) : (c.firstSessionDate && !c.firstSessionProcessed ? new Date(c.firstSessionDate) : null);
                 if (futureDate && futureDate.toDateString() === date.toDateString()) {
-                    sessions.push({ ...c, sessionType: 'قادمة', sessionDate: futureDate, isPast: false, decision: c.decision, allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c) });
+                    sessions.push({ ...c, decision: c.decision, allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c) });
                 }
                 if (c.pastSessions) {
                     c.pastSessions.forEach(ps => {
                         let pastDate = new Date(ps.date);
                         if (pastDate.toDateString() === date.toDateString()) {
-                            sessions.push({ ...c, sessionType: 'سابقة', sessionDate: pastDate, isPast: true, decision: ps.decision, allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c) });
+                            sessions.push({ ...c, decision: ps.decision, allClients: getAllClientsNames(c), allOpponents: getAllOpponents(c) });
                         }
                     });
                 }
             });
-            if (sessions.length === 0) {
-                document.getElementById('modalBody').innerHTML = '<p>لا توجد جلسات في هذا اليوم</p>';
-            } else {
-                document.getElementById('modalBody').innerHTML = sessions.map(s => `<div class="session-card"><h4>⚖️ ${s.number} (${s.year}) - ${s.court}</h4><div class="info-row"><span class="info-badge">👥 الموكلين: ${s.allClients.join(' - ')}</span><span class="info-badge">⚖️ الخصوم: ${s.allOpponents.map(o => `${o.name} (${o.role || '-'})`).join(' - ')}</span><span class="info-badge">⏰ الساعة: ${s.sessionDate.toLocaleTimeString('ar-EG')}</span><span class="info-badge">📌 نوع الجلسة: ${s.sessionType}</span></div><p><strong>موضوع القضية:</strong> ${s.subject || 'غير محدد'}</p><p><strong>${s.isPast ? 'قرار الجلسة السابقة:' : 'آخر قرار:'}</strong> ${s.decision || 'لا يوجد'}</p><button onclick="viewFullCase('${s.id}', 'active')" class="btn-sm btn-primary">📋 عرض التفاصيل</button></div>`).join('');
+            if (!sessions.length) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:25px;color:#888;">لا توجد جلسات في هذا اليوم</td></tr>`;
+                return;
             }
-            document.getElementById('modalTitle').innerHTML = `📅 جلسات يوم ${date.toLocaleDateString('ar-EG')}`;
-            document.getElementById('detailsModal').style.display = 'flex';
+            tbody.innerHTML = sessions.map((s, idx) => {
+                let mainOpponent = s.allOpponents[0] || { name: '-', role: '-' };
+                return `<tr>
+                    <td>${idx + 1}</td>
+                    <td>${s.court || '-'}</td>
+                    <td>${s.circuit || '-'}</td>
+                    <td>${s.number || '-'}</td>
+                    <td>${s.year || '-'}</td>
+                    <td>${s.allClients.join(' - ') || 'غير محدد'}</td>
+                    <td>${s.clientRole || '-'}</td>
+                    <td>${mainOpponent.name}</td>
+                    <td>${mainOpponent.role || '-'}</td>
+                    <td style="text-align:right;">${s.decision || 'لا يوجد'} <button onclick="viewFullCase('${s.id}','active')" class="btn-primary btn-sm" style="margin-right:6px;" title="عرض التفاصيل"><i class="fas fa-eye"></i></button></td>
+                </tr>`;
+            }).join('');
         }
 
         // ========== دوال الإضافة ==========
@@ -2254,6 +2438,143 @@
                 select.options[i].style.display = (optionText.includes(searchText) || searchText === '') ? '' : 'none';
             }
         }
+
+        // ========== حفظ فورم إضافة قضية جديدة ==========
+        document.getElementById('newCaseForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            let caseNumber = document.getElementById('caseNumber').value.trim();
+            let caseYear = document.getElementById('caseYear').value.trim();
+            let caseSubject = document.getElementById('caseSubject').value.trim();
+            let caseCourt = document.getElementById('caseCourt').value.trim();
+            let caseCircuitSelect = document.getElementById('caseCircuit').value;
+            let otherCircuit = document.getElementById('otherCircuit').value.trim();
+            let circuit = caseCircuitSelect === 'أخرى' ? otherCircuit : caseCircuitSelect;
+            let firstSessionDate = document.getElementById('firstSessionDate').value;
+            let caseClient = document.getElementById('caseClient').value;
+            let clientRole = document.getElementById('clientRole').value;
+            let caseDecision = document.getElementById('caseDecision').value.trim();
+            let opponents = getOpponentsData();
+            let additionalClients = getAdditionalClientsData();
+
+            if (!caseNumber || !caseYear || !caseSubject || !caseCourt || !circuit || !firstSessionDate || !caseClient || !clientRole) {
+                showNotification('❌ يرجى تعبئة كل الحقول الإجبارية (*)');
+                return;
+            }
+            if (!opponents.length) {
+                showNotification('❌ يجب إضافة خصم واحد على الأقل (الخصم الأول إجباري)');
+                return;
+            }
+
+            let sig = getCurrentUserSignature();
+            let newCase = {
+                id: 'case_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                number: caseNumber,
+                year: caseYear,
+                subject: caseSubject,
+                court: caseCourt,
+                circuit: circuit,
+                firstSessionDate: firstSessionDate,
+                firstSessionProcessed: false,
+                clientId: caseClient,
+                clientRole: clientRole,
+                additionalClients: additionalClients,
+                opponents: opponents,
+                decision: caseDecision,
+                createdByName: sig.name,
+                createdAt: new Date().toISOString()
+            };
+
+            activeCases.push(newCase);
+            try {
+                await database.ref('activeCases').set(activeCases);
+                showNotification('✅ تم إضافة القضية بنجاح');
+                this.reset();
+                document.getElementById('opponentsContainer').innerHTML = '';
+                document.getElementById('additionalClientsContainer').innerHTML = '';
+                addOpponent();
+                document.getElementById('caseCourt').style.display = 'none';
+                document.getElementById('caseCourt').value = '';
+                document.querySelectorAll('.court-btn').forEach(b => b.classList.remove('selected'));
+                toggleOtherCircuit();
+                switchToTab('activeCases');
+            } catch (err) {
+                activeCases = activeCases.filter(c => c.id !== newCase.id);
+                showNotification('❌ حدث خطأ أثناء إضافة القضية');
+                console.error(err);
+            }
+        });
+
+        // ========== حفظ فورم إضافة موكل ==========
+        document.getElementById('clientForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            let clientName = document.getElementById('clientName').value.trim();
+            let clientNationalId = document.getElementById('clientNationalId').value.trim();
+            let clientPhone = document.getElementById('clientPhone').value.trim();
+            if (!clientName || !clientPhone) {
+                showNotification('❌ يرجى إدخال الاسم ورقم الموبايل');
+                return;
+            }
+            let sig = getCurrentUserSignature();
+            let newClient = {
+                id: 'client_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                name: clientName,
+                nationalId: clientNationalId,
+                phone: clientPhone,
+                createdByName: sig.name,
+                createdAt: new Date().toISOString()
+            };
+            clients.push(newClient);
+            try {
+                await database.ref('clients').set(clients);
+                showNotification('✅ تم إضافة الموكل بنجاح');
+                this.reset();
+            } catch (err) {
+                clients = clients.filter(c => c.id !== newClient.id);
+                showNotification('❌ حدث خطأ أثناء إضافة الموكل');
+                console.error(err);
+            }
+        });
+
+        // ========== حفظ فورم إضافة موظف (بالصلاحية: محامي / مدير مكتب) ==========
+        document.getElementById('employeeForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!isAdmin()) {
+                showNotification('❌ غير مسموح لك بإضافة موظفين');
+                return;
+            }
+            let empUsername = document.getElementById('empUsername').value.trim();
+            let empPassword = document.getElementById('empPassword').value;
+            let empRole = document.getElementById('empRole').value;
+            if (!empUsername || !empPassword) {
+                showNotification('❌ يرجى إدخال اسم المستخدم وكلمة المرور');
+                return;
+            }
+            let allExisting = [...fixedAdmins, ...employees];
+            if (allExisting.some(emp => emp.username === empUsername)) {
+                showNotification('❌ اسم المستخدم ده مستخدم بالفعل، اختار اسم تاني');
+                return;
+            }
+            let sig = getCurrentUserSignature();
+            let newEmployee = {
+                id: 'emp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                username: empUsername,
+                password: hashPassword(empPassword),
+                role: empRole,
+                isFixed: false,
+                createdByName: sig.name,
+                createdAt: new Date().toISOString()
+            };
+            employees.push(newEmployee);
+            try {
+                await database.ref('employees').set(employees);
+                showNotification(`✅ تم إضافة الموظف "${empUsername}" بصلاحية ${empRole === 'مدير' ? 'مدير مكتب' : 'محامي'}`);
+                this.reset();
+            } catch (err) {
+                employees = employees.filter(emp => emp.id !== newEmployee.id);
+                showNotification('❌ حدث خطأ أثناء إضافة الموظف');
+                console.error(err);
+            }
+        });
 
         // ========== أحداث Firebase للباك أب ==========
         const backupTables = ['activeCases', 'closedCases', 'clients', 'employees', 'adminWorks', 'judgmentRecords', 'enforcements', 'experts'];
@@ -2575,8 +2896,41 @@
         }
 
         // ========== بدء التشغيل ==========
+        // ========== تعبئة قائمة أسماء المستخدمين في شاشة الدخول ==========
+        async function populateLoginUsernameDropdown() {
+            let input = document.getElementById('loginUsername');
+            let datalist = document.getElementById('loginUsernameList');
+            if (!input || !datalist) return;
+            // الحقل يفضل قابل للكتابة اليدوية دايمًا، حتى لو القائمة دي فشلت تتحمل أو كانت فاضية —
+            // القائمة هنا للاقتراح بس (autocomplete)، مش شرط للدخول.
+            try {
+                const [fixedSnap, empSnap] = await Promise.all([
+                    database.ref('fixedAdmins').once('value'),
+                    database.ref('employees').once('value')
+                ]);
+                let names = [];
+                const fixedData = fixedSnap.val();
+                if (fixedData) Object.values(fixedData).forEach(u => { if (u.username && u.username !== 'undefined') names.push(u.username); });
+                const empData = empSnap.val();
+                if (empData) Object.values(empData).forEach(u => { if (u.username && u.username !== 'undefined') names.push(u.username); });
+                names.sort((a, b) => a.localeCompare(b, 'ar'));
+                datalist.innerHTML = names.map(n => `<option value="${n}"></option>`).join('');
+            } catch (e) {
+                console.error('تعذر تحميل قائمة اقتراحات الأسماء لشاشة الدخول (ده مش هيمنعك من الدخول):', e);
+            }
+            let remembered = localStorage.getItem('law_rememberedUsername');
+            if (remembered) {
+                input.value = remembered;
+                let rememberBox = document.getElementById('rememberUsername');
+                if (rememberBox) rememberBox.checked = true;
+                document.getElementById('loginPassword')?.focus();
+            }
+        }
+
         initializeDefaultAdmins();
         ensureSuperAdminExists();
+        populateLoginUsernameDropdown();
+        addOpponent(); // عشان حقل "الخصم الأول" يظهر افتراضيًا في فورم إضافة قضية جديدة (هو إجباري)
         checkLoginStatus();
     </script>
 </body>
