@@ -189,14 +189,14 @@
                 <h2>منصة المكاتب القانونية</h2>
                 <p>سجّل دخولك لمكتبك</p>
                 <div class="login-field">
-                    <label>البريد الإلكتروني</label>
-                    <input type="email" id="loginEmail" placeholder="example@email.com" autocomplete="username">
+                    <label>اسم المستخدم</label>
+                    <input type="text" id="loginUsername" placeholder="اسم المستخدم" autocomplete="username">
                 </div>
                 <div class="login-field">
                     <label>كلمة المرور</label>
                     <input type="password" id="loginPassword" placeholder="********" autocomplete="current-password">
                 </div>
-                <label class="login-remember"><input type="checkbox" id="rememberUsername"> تذكر البريد الإلكتروني</label>
+                <label class="login-remember"><input type="checkbox" id="rememberUsername"> تذكر اسم المستخدم</label>
             </div>
             <button onclick="attemptLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
             <div id="loginError" class="error-msg" style="margin:15px 30px 0;"></div>
@@ -936,17 +936,47 @@
             if (!container) return;
             if (!allOffices.length) { container.innerHTML = '<p style="text-align:center;padding:15px;">لا توجد مكاتب بعد — أضف أول مكتب من الفورم اللي فوق</p>'; return; }
             container.innerHTML = allOffices.map(o => {
-                let managers = allPlatformUsers.filter(u => u.officeId === o.id && u.role === 'manager');
-                let lawyers = allPlatformUsers.filter(u => u.officeId === o.id && u.role === 'lawyer');
+                let officeUsers = allPlatformUsers.filter(u => u.officeId === o.id);
+                let usersHtml = officeUsers.length ? officeUsers.map(u => {
+                    let roleLabel = u.role === 'manager' ? 'مدير مكتب' : 'محامي';
+                    let isActive = u.active !== false;
+                    return `<div class="multi-item" style="background:white;border-radius:10px;padding:8px 12px;">
+                        <span style="flex:2;">${u.username} <small style="color:#888;">(${roleLabel})</small> ${!isActive ? '<span class="work-status status-overdue">⛔ معطل</span>' : ''}</span>
+                        <button class="btn-sm ${isActive ? 'btn-warning' : 'btn-success'}" onclick="togglePlatformUserActive('${u.id}', ${!isActive})">${isActive ? '⛔ تعطيل' : '✅ تفعيل'}</button>
+                        <button class="delete-btn" onclick="deletePlatformUser('${u.id}', '${u.username}')"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                }).join('') : '<p style="color:#888;font-size:13px;">لا يوجد مستخدمين بعد</p>';
                 return `<div class="session-card">
                     <h4>🏢 ${o.name}</h4>
-                    <div class="info-row">
-                        <span class="info-badge">👤 المديرين: ${managers.map(m => m.username).join(' - ') || 'لا يوجد'}</span>
-                        <span class="info-badge">👥 عدد الموظفين: ${lawyers.length}</span>
-                    </div>
+                    <div style="margin:10px 0;display:flex;flex-direction:column;gap:6px;">${usersHtml}</div>
                     <p style="font-size:12px;color:#888;margin-top:8px;">أُنشئ بواسطة: ${o.createdBy || '-'} ${o.createdAt ? '| ' + new Date(o.createdAt).toLocaleDateString('ar-EG') : ''}</p>
                 </div>`;
             }).join('');
+        }
+        // حسام بس يقدر يعطل/يفعّل أي مستخدم في أي مكتب — التعطيل بيمنع الدخول فورًا حتى لو كان داخل بالفعل
+        async function togglePlatformUserActive(uid, newState) {
+            if (!isSuperAdmin()) { showNotification('❌ غير مسموح'); return; }
+            try {
+                await database.ref('users/' + uid + '/active').set(newState);
+                if (!newState) await database.ref('forceLogout/' + uid).set(Date.now());
+                showNotification(newState ? '✅ تم تفعيل الحساب' : '⛔ تم تعطيل الحساب وإخراجه فورًا');
+            } catch (err) {
+                showNotification('❌ حدث خطأ: ' + (err.message || err));
+            }
+        }
+        // حذف نهائي: بيشيل بروفايل المستخدم ورابط اسم المستخدم، فمستحيل يدخل تاني حتى لو عنده الباسورد
+        async function deletePlatformUser(uid, username) {
+            if (!isSuperAdmin()) { showNotification('❌ غير مسموح'); return; }
+            if (!confirm(`⚠️ هل أنت متأكد من حذف حساب "${username}"؟ مش هيقدر يدخل خالص بعد كده.`)) return;
+            try {
+                let usernameKey = sanitizeUsernameKey(username);
+                await database.ref('usernames/' + usernameKey).remove();
+                await database.ref('users/' + uid).remove();
+                await database.ref('forceLogout/' + uid).set(Date.now());
+                showNotification(`✅ تم حذف حساب "${username}"`);
+            } catch (err) {
+                showNotification('❌ حدث خطأ: ' + (err.message || err));
+            }
         }
         async function addNewOffice() {
             let officeName = document.getElementById('newOfficeName').value.trim();
@@ -962,9 +992,16 @@
                 showNotification('❌ كلمة سر المدير لازم تكون 6 أحرف على الأقل');
                 return;
             }
+            let usernameKey = sanitizeUsernameKey(managerUsername);
             statusDiv.innerHTML = '⏳ جاري الإنشاء...';
             let officeId = null;
             try {
+                let existing = await database.ref('usernames/' + usernameKey).once('value');
+                if (existing.exists()) {
+                    statusDiv.innerHTML = '';
+                    showNotification('❌ اسم المستخدم ده مستخدم بالفعل، اختار اسم تاني للمدير');
+                    return;
+                }
                 let officeRef = database.ref('offices').push();
                 officeId = officeRef.key;
                 await officeRef.set({ name: officeName, createdAt: new Date().toISOString(), createdBy: getCurrentUserSignature().name });
@@ -976,6 +1013,7 @@
                     username: managerUsername, email: managerEmail, role: 'manager', officeId: officeId,
                     active: true, createdByName: getCurrentUserSignature().name, createdAt: new Date().toISOString()
                 });
+                await database.ref('usernames/' + usernameKey).set({ email: managerEmail, uid: uid });
                 await secondaryAuth.signOut();
 
                 statusDiv.innerHTML = '';
@@ -2156,27 +2194,40 @@
 
         // ========== دوال تسجيل الدخول والخروج ==========
         // ========== تسجيل الدخول/الخروج (Firebase Authentication حقيقي) ==========
+        // بنحول اسم المستخدم لإيميل حقيقي جوّه قبل ما نكلم Firebase Auth (اللي بيشتغل بالإيميل بس من ورا الكواليس)،
+        // عن طريق جدول بحث /usernames/{username} -> { email }.
+        function sanitizeUsernameKey(username) {
+            return username.trim().replace(/[.#$\[\]\/]/g, '_');
+        }
         async function attemptLogin() {
-            let email = document.getElementById('loginEmail').value.trim();
+            let username = document.getElementById('loginUsername').value.trim();
             let password = document.getElementById('loginPassword').value;
             let errorDiv = document.getElementById('loginError');
             errorDiv.style.display = 'none';
             errorDiv.innerHTML = '';
 
-            if (!email || !password) {
-                errorDiv.innerHTML = '❌ يرجى إدخال البريد الإلكتروني وكلمة المرور';
+            if (!username || !password) {
+                errorDiv.innerHTML = '❌ يرجى إدخال اسم المستخدم وكلمة المرور';
                 errorDiv.style.display = 'block';
                 return;
             }
             try {
+                let usernameKey = sanitizeUsernameKey(username);
+                let snap = await database.ref('usernames/' + usernameKey).once('value');
+                let entry = snap.val();
+                if (!entry || !entry.email) {
+                    errorDiv.innerHTML = '❌ اسم المستخدم أو كلمة المرور غير صحيحة';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
                 let rememberBox = document.getElementById('rememberUsername');
-                if (rememberBox && rememberBox.checked) localStorage.setItem('law_rememberedEmail', email);
-                else localStorage.removeItem('law_rememberedEmail');
-                await auth.signInWithEmailAndPassword(email, password);
+                if (rememberBox && rememberBox.checked) localStorage.setItem('law_rememberedUsername', username);
+                else localStorage.removeItem('law_rememberedUsername');
+                await auth.signInWithEmailAndPassword(entry.email, password);
                 // باقي الإعداد بيحصل تلقائيًا جوه onAuthStateChanged تحت
             } catch (err) {
                 console.error(err);
-                let msg = '❌ البريد الإلكتروني أو كلمة المرور غير صحيحة';
+                let msg = '❌ اسم المستخدم أو كلمة المرور غير صحيحة';
                 if (err.code === 'auth/too-many-requests') msg = '❌ محاولات كتير غلط، حاول تاني بعد شوية';
                 else if (err.code === 'auth/user-disabled') msg = '🔒 هذا الحساب معطل من قبل الإدارة';
                 errorDiv.innerHTML = msg;
@@ -2214,9 +2265,9 @@
         }
 
         function prefillRememberedEmail() {
-            let remembered = localStorage.getItem('law_rememberedEmail');
+            let remembered = localStorage.getItem('law_rememberedUsername');
             if (remembered) {
-                let input = document.getElementById('loginEmail');
+                let input = document.getElementById('loginUsername');
                 if (input) input.value = remembered;
                 let rememberBox = document.getElementById('rememberUsername');
                 if (rememberBox) rememberBox.checked = true;
@@ -2256,13 +2307,21 @@
                 errorDiv.style.display = 'block';
                 return;
             }
+            let usernameKey = sanitizeUsernameKey(username);
             try {
+                let existing = await database.ref('usernames/' + usernameKey).once('value');
+                if (existing.exists()) {
+                    errorDiv.innerHTML = '❌ اسم المستخدم ده مستخدم بالفعل، اختار اسم تاني';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
                 let cred = await auth.createUserWithEmailAndPassword(email, password);
                 let uid = cred.user.uid;
                 await database.ref('users/' + uid).set({
                     username: username, email: email, role: 'superAdmin', officeId: null,
                     active: true, createdAt: new Date().toISOString()
                 });
+                await database.ref('usernames/' + usernameKey).set({ email: email, uid: uid });
                 showNotification('✅ تم إنشاء الحساب الرئيسي بنجاح');
             } catch (err) {
                 console.error(err);
