@@ -279,7 +279,7 @@
                     <div class="sidebar-menu-item" data-tab="experts"><i class="fas fa-user-graduate"></i><span>الخبراء</span></div>
                     <div class="sidebar-menu-item" data-tab="archive"><i class="fas fa-archive"></i><span>الأرشيف</span></div>
                     <div class="sidebar-menu-item" data-tab="reports"><i class="fas fa-chart-line"></i><span>التقارير</span></div>
-                    <div class="sidebar-menu-item" data-tab="employees" id="employeesTabItem" style="display:none;"><i class="fas fa-user-tie"></i><span>الموظفين</span></div>
+                    <div class="sidebar-menu-item" data-tab="employees" id="employeesTabItem" style="display:none;"><i class="fas fa-user-tie"></i><span>محامين المكتب</span></div>
                     <div class="sidebar-menu-item" data-tab="maintenance" id="maintenanceMenuItem" style="display:none;"><i class="fas fa-tools"></i><span>وضع الصيانة</span></div>
                     <div class="sidebar-menu-item" data-tab="officesManagement" id="officesManagementMenuItem" style="display:none;"><i class="fas fa-building"></i><span>إدارة المكاتب</span></div>
                     <div class="sidebar-menu-item" data-tab="backup" id="backupMenuItem" style="display:none;"><i class="fas fa-cloud-upload-alt"></i><span>الباك اب</span></div>
@@ -460,9 +460,17 @@
                         </div>
                         <!-- لوحة الموظفين -->
                         <div id="employeesPanel" class="panel">
-                            <h3>👨‍💼 الموظفين</h3>
-                            <form id="employeeForm"><div class="form-group"><label>اسم المستخدم *</label><input type="text" id="empUsername" required></div><div class="form-group"><label>كلمة المرور *</label><input type="password" id="empPassword" required></div><div class="form-group"><label>الصلاحية</label><select id="empRole"><option value="محامي">محامي</option><option value="مدير">مدير</option></select></div><button type="submit">➕ إضافة موظف</button></form>
-                            <div class="table-responsive"><table id="employeesTable"><thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>إجراءات</th></tr></thead><tbody></tbody></table></div>
+                            <h3>👨‍💼 محامين المكتب</h3>
+                            <div class="report-simple">
+                                <h4>➕ إضافة محامي جديد لمكتبك</h4>
+                                <div class="form-group"><label>اسم المستخدم *</label><input type="text" id="empUsername" required></div>
+                                <div class="form-group"><label>البريد الإلكتروني *</label><input type="email" id="empEmail" required></div>
+                                <div class="form-group"><label>كلمة المرور * (6 أحرف على الأقل)</label><input type="password" id="empPassword" required></div>
+                                <button type="button" onclick="addOfficeLawyer()">➕ إضافة محامي</button>
+                                <div id="newLawyerStatus" style="margin-top:10px;"></div>
+                            </div>
+                            <h4 style="margin-top:20px;color:#1a4a5f;">📋 محامين مكتبك الحاليين</h4>
+                            <div id="officeLawyersList"></div>
                         </div>
                         <!-- لوحة الصيانة -->
                         <div id="maintenancePanel" class="panel">
@@ -797,6 +805,12 @@
         function canDeleteEverywhere() { return isSuperAdmin(); }
         function canSeeSignatures() { return isSuperAdmin(); }
         function currentOfficeId() { return currentUser ? (currentUser.officeId || null) : null; }
+        // كل بيانات القضايا/الموكلين/التوكيلات... بقت معزولة تحت offices/{officeId}/... بدل ما تكون مشتركة بين كل المكاتب
+        function officeRef(path) {
+            let oid = currentOfficeId();
+            if (!oid) { console.error('officeRef استُخدمت من غير مكتب للمستخدم الحالي:', path); return database.ref('_no_office_/' + path); }
+            return database.ref('offices/' + oid + '/' + path);
+        }
         function canChangePasswordFor(employee) {
             if (!currentUser) return false;
             if (isSuperAdmin()) return true;
@@ -824,9 +838,9 @@
             return { id: currentUser.id, name: displayName };
         }
 
-        // ========== نظام صلاحيات الأقسام لكل موظف ==========
+        // ========== نظام صلاحيات الأقسام لكل محامي (مبني على /users الجديد، مش /employees القديمة) ==========
         const PERMISSION_SECTIONS = [
-            { key: 'dashboard', label: 'الرئيسية (جهاز الكمبيوتر)' },
+            { key: 'dashboard', label: 'الرئيسية' },
             { key: 'newCase', label: 'قضية جديدة' },
             { key: 'activeCases', label: 'قضايا المكتب' },
             { key: 'pastSessions', label: 'ما تم بالجلسات' },
@@ -841,78 +855,156 @@
             { key: 'archive', label: 'الأرشيف' },
             { key: 'reports', label: 'التقارير' }
         ];
-        // حسام (سوبر أدمن) وجورج (مؤسس) دايمًا بكل الصلاحيات، زي ما طلبت.
-        // أي موظف تاني معندوش "permissions" محفوظة (موظف قديم قبل الميزة دي) بيفضل شايف كل حاجة عشان ميتقفلش فجأة؛
-        // لحد ما حسام أو مدير يدخل يحدد صلاحياته بنفسه من زرار "🔐 الصلاحيات".
+        // حسام (مالك المنصة) والمدير دايمًا بكل صلاحيات مكتبه. المحامي بس اللي ممكن يتقيد بأقسام معينة.
         function hasSectionPermission(tabKey) {
             if (!currentUser) return false;
-            if (isSuperAdmin() || isGeorge()) return true;
-            let emp = employees.find(e => e.id === currentUser.id);
-            if (!emp || !emp.permissions) return true;
-            return emp.permissions[tabKey] !== false;
+            if (isSuperAdmin()) return true;
+            if (currentUser.role === 'manager') return true;
+            if (!currentUser.permissions) return true; // لسه محدش حدد له صلاحيات معينة
+            return currentUser.permissions[tabKey] !== false;
         }
         function applySidebarPermissions() {
             if (!currentUser) return;
             document.querySelectorAll('.sidebar-menu-item[data-tab]').forEach(item => {
                 let tab = item.getAttribute('data-tab');
-                if (tab === 'employees' || tab === 'maintenance' || tab === 'backup') return; // دول محكومين بمنطق منفصل بالفعل
+                if (['employees', 'maintenance', 'backup', 'officesManagement'].includes(tab)) return; // دول محكومين بمنطق منفصل بالفعل
                 item.style.display = hasSectionPermission(tab) ? 'flex' : 'none';
             });
         }
-        function openPermissionsModal(empId) {
-            let emp = employees.find(e => e.id == empId);
-            if (!emp) { showNotification('❌ الموظف غير موجود'); return; }
-            let perms = emp.permissions || {};
+        function openLawyerPermissionsModal(uid) {
+            let lawyer = officeLawyers.find(u => u.id == uid);
+            if (!lawyer) { showNotification('❌ المحامي غير موجود'); return; }
+            let perms = lawyer.permissions || {};
             let checklistHtml = PERMISSION_SECTIONS.map(s => `
                 <label style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #eee;">
                     <input type="checkbox" class="perm-checkbox" data-key="${s.key}" ${perms[s.key] !== false ? 'checked' : ''}>
                     ${s.label}
                 </label>`).join('');
             let modalBody = `
-                <div style="margin-bottom:15px;padding:12px;background:#f8f9fa;border-radius:10px;border-right:4px solid #1a4a5f;">
-                    <label style="display:flex;align-items:center;gap:8px;font-weight:bold;cursor:pointer;">
-                        <input type="checkbox" id="permActiveAccount" ${emp.active === false ? '' : 'checked'}>
-                        ✅ تفعيل حساب المستخدم (لو اتشال التيك، الموظف مش هيقدر يسجل دخول خالص)
-                    </label>
-                </div>
-                <h4 style="color:#1a4a5f;margin-bottom:10px;">📂 الأقسام المسموح لـ "${emp.username}" الدخول عليها:</h4>
+                <h4 style="color:#1a4a5f;margin-bottom:10px;">📂 الأقسام المسموح لـ "${lawyer.username}" الدخول عليها:</h4>
                 <div style="max-height:320px;overflow-y:auto;border:1px solid #eee;border-radius:10px;padding:0 10px;">${checklistHtml}</div>
                 <div style="margin-top:12px;display:flex;gap:10px;">
                     <button type="button" onclick="selectAllPermissions(true)" class="btn-sm btn-success">✅ تحديد الكل</button>
                     <button type="button" onclick="selectAllPermissions(false)" class="btn-sm btn-warning">⬜ إلغاء الكل</button>
                 </div>
-                <button type="button" onclick="savePermissions('${empId}')" class="btn-success" style="width:100%;margin-top:15px;">💾 حفظ الصلاحيات</button>
+                <button type="button" onclick="saveLawyerPermissions('${uid}')" class="btn-success" style="width:100%;margin-top:15px;">💾 حفظ الصلاحيات</button>
             `;
-            document.getElementById('modalTitle').innerHTML = `🔐 صلاحيات: ${emp.username}`;
+            document.getElementById('modalTitle').innerHTML = `🔐 صلاحيات: ${lawyer.username}`;
             document.getElementById('modalBody').innerHTML = modalBody;
             document.getElementById('detailsModal').style.display = 'flex';
         }
         function selectAllPermissions(state) {
             document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = state);
         }
-        async function savePermissions(empId) {
-            if (!canChangePasswordFor({ id: empId })) {
-                showNotification('❌ غير مسموح لك بتعديل صلاحيات هذا الموظف');
-                return;
-            }
-            let idx = employees.findIndex(e => e.id == empId);
-            if (idx === -1) { showNotification('❌ الموظف غير موجود'); return; }
+        async function saveLawyerPermissions(uid) {
+            if (currentUser.role !== 'manager') { showNotification('❌ غير مسموح'); return; }
             let permissions = {};
             document.querySelectorAll('.perm-checkbox').forEach(cb => {
                 permissions[cb.getAttribute('data-key')] = cb.checked;
             });
-            let active = document.getElementById('permActiveAccount').checked;
-            let previous = { ...employees[idx] };
-            employees[idx] = { ...employees[idx], permissions, active };
             try {
-                await database.ref('employees').set(employees);
-                showNotification(`✅ تم حفظ صلاحيات "${employees[idx].username}" بنجاح`);
+                await database.ref('users/' + uid + '/permissions').set(permissions);
+                showNotification('✅ تم حفظ الصلاحيات بنجاح');
                 closeModal();
-                if (currentUser && currentUser.id === empId) applySidebarPermissions();
             } catch (err) {
-                employees[idx] = previous;
-                showNotification('❌ حدث خطأ أثناء حفظ الصلاحيات');
+                showNotification('❌ حدث خطأ أثناء حفظ الصلاحيات: ' + (err.message || err));
+            }
+        }
+
+        // ========== إدارة محامين المكتب (مدير المكتب بس، ومحصورة في مكتبه هو بس) ==========
+        let officeLawyers = [];
+        let officeLawyersQueryRef = null;
+        function loadOfficeLawyersForManager() {
+            if (currentUser.role !== 'manager') return;
+            let oid = currentOfficeId();
+            if (!oid) return;
+            officeLawyersQueryRef = database.ref('users').orderByChild('officeId').equalTo(oid);
+            officeLawyersQueryRef.on('value', (s) => {
+                let val = s.val();
+                let all = val ? Object.keys(val).map(id => ({ id, ...val[id] })) : [];
+                officeLawyers = all.filter(u => u.role === 'lawyer');
+                renderOfficeLawyers();
+            });
+        }
+        function unbindOfficeLawyersListener() {
+            if (officeLawyersQueryRef) { try { officeLawyersQueryRef.off(); } catch (e) {} officeLawyersQueryRef = null; }
+        }
+        function renderOfficeLawyers() {
+            let container = document.getElementById('officeLawyersList');
+            if (!container) return;
+            if (!officeLawyers.length) { container.innerHTML = '<p style="text-align:center;padding:15px;">لا يوجد محامين بعد — أضف أول محامي من الفورم اللي فوق</p>'; return; }
+            container.innerHTML = officeLawyers.map(u => {
+                let isActive = u.active !== false;
+                return `<div class="session-card">
+                    <h4>👤 ${u.username} ${!isActive ? '<span class="work-status status-overdue">⛔ معطل</span>' : ''}</h4>
+                    <p style="font-size:12px;color:#888;">${u.email || ''}</p>
+                    <div class="admin-actions">
+                        <button class="btn-sm btn-primary" onclick="openLawyerPermissionsModal('${u.id}')">🔐 الصلاحيات</button>
+                        <button class="btn-sm ${isActive ? 'btn-warning' : 'btn-success'}" onclick="toggleOfficeLawyerActive('${u.id}', ${!isActive})">${isActive ? '⛔ تعطيل' : '✅ تفعيل'}</button>
+                        <button class="delete-btn" onclick="deleteOfficeLawyer('${u.id}', '${u.username}')"><i class="fas fa-trash"></i> حذف</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        async function addOfficeLawyer() {
+            if (currentUser.role !== 'manager') { showNotification('❌ غير مسموح'); return; }
+            let username = document.getElementById('empUsername').value.trim();
+            let email = document.getElementById('empEmail').value.trim();
+            let password = document.getElementById('empPassword').value;
+            let statusDiv = document.getElementById('newLawyerStatus');
+            if (!username || !email || !password) { showNotification('❌ يرجى تعبئة كل الحقول'); return; }
+            if (password.length < 6) { showNotification('❌ كلمة السر لازم تكون 6 أحرف على الأقل'); return; }
+            let usernameKey = sanitizeUsernameKey(username);
+            statusDiv.innerHTML = '⏳ جاري الإنشاء...';
+            try {
+                let existing = await database.ref('usernames/' + usernameKey).once('value');
+                if (existing.exists()) {
+                    statusDiv.innerHTML = '';
+                    showNotification('❌ اسم المستخدم ده مستخدم بالفعل، اختار اسم تاني');
+                    return;
+                }
+                // تطبيق ثانوي عشان إنشاء الحساب ميسجلش دخول بيه بدل المدير في الجلسة الحالية
+                let cred = await secondaryAuth.createUserWithEmailAndPassword(email, password);
+                let uid = cred.user.uid;
+                await database.ref('users/' + uid).set({
+                    username: username, email: email, role: 'lawyer', officeId: currentOfficeId(),
+                    active: true, createdByName: getCurrentUserSignature().name, createdAt: new Date().toISOString()
+                });
+                await database.ref('usernames/' + usernameKey).set({ email: email, uid: uid });
+                await secondaryAuth.signOut();
+
+                statusDiv.innerHTML = '';
+                showNotification(`✅ تم إضافة المحامي "${username}" لمكتبك بنجاح`);
+                document.getElementById('empUsername').value = '';
+                document.getElementById('empEmail').value = '';
+                document.getElementById('empPassword').value = '';
+            } catch (err) {
                 console.error(err);
+                statusDiv.innerHTML = '';
+                showNotification('❌ حدث خطأ: ' + (err.message || err));
+            }
+        }
+        async function toggleOfficeLawyerActive(uid, newState) {
+            if (currentUser.role !== 'manager') { showNotification('❌ غير مسموح'); return; }
+            try {
+                await database.ref('users/' + uid + '/active').set(newState);
+                if (!newState) await database.ref('forceLogout/' + uid).set(Date.now());
+                showNotification(newState ? '✅ تم تفعيل الحساب' : '⛔ تم تعطيل الحساب وإخراجه فورًا');
+            } catch (err) {
+                showNotification('❌ حدث خطأ: ' + (err.message || err));
+            }
+        }
+        async function deleteOfficeLawyer(uid, username) {
+            if (currentUser.role !== 'manager') { showNotification('❌ غير مسموح'); return; }
+            if (!confirm(`⚠️ هل أنت متأكد من حذف حساب "${username}"؟ مش هيقدر يدخل خالص بعد كده.`)) return;
+            try {
+                let usernameKey = sanitizeUsernameKey(username);
+                await database.ref('usernames/' + usernameKey).remove();
+                await database.ref('users/' + uid).remove();
+                await database.ref('forceLogout/' + uid).set(Date.now());
+                showNotification(`✅ تم حذف حساب "${username}"`);
+            } catch (err) {
+                showNotification('❌ حدث خطأ: ' + (err.message || err));
             }
         }
 
@@ -947,11 +1039,32 @@
                     </div>`;
                 }).join('') : '<p style="color:#888;font-size:13px;">لا يوجد مستخدمين بعد</p>';
                 return `<div class="session-card">
-                    <h4>🏢 ${o.name}</h4>
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+                        <h4>🏢 ${o.name}</h4>
+                        <button class="delete-btn" onclick="deleteEntireOffice('${o.id}', '${o.name}')"><i class="fas fa-trash"></i> حذف المكتب بالكامل</button>
+                    </div>
                     <div style="margin:10px 0;display:flex;flex-direction:column;gap:6px;">${usersHtml}</div>
                     <p style="font-size:12px;color:#888;margin-top:8px;">أُنشئ بواسطة: ${o.createdBy || '-'} ${o.createdAt ? '| ' + new Date(o.createdAt).toLocaleDateString('ar-EG') : ''}</p>
                 </div>`;
             }).join('');
+        }
+        // حذف المكتب بالكامل: بيشيل المكتب نفسه + كل المستخدمين التابعين له + كل بياناته (قضايا، موكلين، كل حاجة تحت offices/{id})
+        async function deleteEntireOffice(officeId, officeName) {
+            if (!isSuperAdmin()) { showNotification('❌ غير مسموح'); return; }
+            if (!confirm(`⚠️⚠️ تحذير هام: هيتم حذف مكتب "${officeName}" بالكامل — كل المديرين والمحامين التابعين له، وكل القضايا والموكلين وبياناته بالكامل. الإجراء ده نهائي ومينفعش يترجع أبدًا.\n\nهل أنت متأكد 100%؟`)) return;
+            try {
+                let officeUsers = allPlatformUsers.filter(u => u.officeId === officeId);
+                for (let u of officeUsers) {
+                    let usernameKey = sanitizeUsernameKey(u.username);
+                    await database.ref('usernames/' + usernameKey).remove();
+                    await database.ref('users/' + u.id).remove();
+                    await database.ref('forceLogout/' + u.id).set(Date.now());
+                }
+                await database.ref('offices/' + officeId).remove();
+                showNotification(`✅ تم حذف مكتب "${officeName}" وكل بياناته والمستخدمين التابعين له بالكامل`);
+            } catch (err) {
+                showNotification('❌ حدث خطأ: ' + (err.message || err));
+            }
         }
         // حسام بس يقدر يعطل/يفعّل أي مستخدم في أي مكتب — التعطيل بيمنع الدخول فورًا حتى لو كان داخل بالفعل
         async function togglePlatformUserActive(uid, newState) {
@@ -1270,17 +1383,17 @@
 
                 document.getElementById('restoreStatus').innerHTML = '⏳ جاري استعادة البيانات...';
 
-                if (backupData.activeCases) await database.ref('activeCases').set(backupData.activeCases);
-                if (backupData.closedCases) await database.ref('closedCases').set(backupData.closedCases);
-                if (backupData.clients) await database.ref('clients').set(backupData.clients);
+                if (backupData.activeCases) await officeRef('activeCases').set(backupData.activeCases);
+                if (backupData.closedCases) await officeRef('closedCases').set(backupData.closedCases);
+                if (backupData.clients) await officeRef('clients').set(backupData.clients);
                 if (backupData.employees) await database.ref('employees').set(backupData.employees);
-                if (backupData.adminWorks) await database.ref('adminWorks').set(backupData.adminWorks);
-                if (backupData.judgmentRecords) await database.ref('judgmentRecords').set(backupData.judgmentRecords);
-                if (backupData.enforcements) await database.ref('enforcements').set(backupData.enforcements);
-                if (backupData.archivedEnforcements) await database.ref('archivedEnforcements').set(backupData.archivedEnforcements);
-                if (backupData.experts) await database.ref('experts').set(backupData.experts);
-                if (backupData.archiveCategories) await database.ref('archiveCategories').set(backupData.archiveCategories);
-                if (backupData.customCourts) await database.ref('customCourts').set(backupData.customCourts);
+                if (backupData.adminWorks) await officeRef('adminWorks').set(backupData.adminWorks);
+                if (backupData.judgmentRecords) await officeRef('judgmentRecords').set(backupData.judgmentRecords);
+                if (backupData.enforcements) await officeRef('enforcements').set(backupData.enforcements);
+                if (backupData.archivedEnforcements) await officeRef('archivedEnforcements').set(backupData.archivedEnforcements);
+                if (backupData.experts) await officeRef('experts').set(backupData.experts);
+                if (backupData.archiveCategories) await officeRef('archiveCategories').set(backupData.archiveCategories);
+                if (backupData.customCourts) await officeRef('customCourts').set(backupData.customCourts);
 
                 document.getElementById('restoreStatus').innerHTML = '✅ تم استعادة النسخة بنجاح، سيتم تحديث الصفحة';
                 document.getElementById('restoreResult').style.display = 'block';
@@ -1894,7 +2007,7 @@
                 let actions = '';
                 if (canChangeUser) actions += `<button class="btn-primary btn-sm" onclick="changeUsername('${emp.id}')">✏️ تغيير اليوزر</button> `;
                 if (canChangePass) actions += `<button class="btn-warning btn-sm" onclick="changePassword('${emp.id}')">🔑 تغيير كلمة السر</button> `;
-                if (canSetPerms) actions += `<button class="btn-primary btn-sm" onclick="openPermissionsModal('${emp.id}')">🔐 الصلاحيات</button> `;
+                if (canSetPerms) actions += `<button class="btn-primary btn-sm" onclick="openLawyerPermissionsModal('${emp.id}')">🔐 الصلاحيات</button> `;
                 if (canDel) actions += `<button class="delete-btn" onclick="deleteEmployee('${emp.id}')">🗑️ حذف</button>`;
                 if (!canChangePass && !canDel && !canChangeUser && !canSetPerms) actions = 'لا يمكن التعديل';
 
@@ -2027,7 +2140,7 @@
 
         function completeAdminWork(workId) {
             let work = adminWorks.find(w => w.id == workId);
-            if (work) { work.status = 'completed'; work.completedAt = new Date().toISOString(); database.ref('adminWorks').set(adminWorks); showNotification('تم إكمال العمل الإداري'); renderAdminWorks(); renderTomorrowAppointments(); }
+            if (work) { work.status = 'completed'; work.completedAt = new Date().toISOString(); officeRef('adminWorks').set(adminWorks); showNotification('تم إكمال العمل الإداري'); renderAdminWorks(); renderTomorrowAppointments(); }
         }
 
         function renderJudgmentRecords() {
@@ -2141,7 +2254,7 @@
         function deleteActiveCase(id) {
             if (!confirm('⚠️ هل أنت متأكد من حذف هذه القضية؟')) return;
             activeCases = activeCases.filter(c => c.id != id);
-            database.ref('activeCases').set(activeCases);
+            officeRef('activeCases').set(activeCases);
             showNotification('✅ تم حذف القضية');
             renderActiveCases();
             updateStats();
@@ -2149,7 +2262,7 @@
         function deleteClosedCase(id) {
             if (!confirm('⚠️ هل أنت متأكد من حذف هذه القضية المنتهية؟')) return;
             closedCases = closedCases.filter(c => c.id != id);
-            database.ref('closedCases').set(closedCases);
+            officeRef('closedCases').set(closedCases);
             showNotification('✅ تم حذف القضية');
             renderArchive();
             renderClosedCases();
@@ -2158,7 +2271,7 @@
         function deleteClient(id) {
             if (!confirm('⚠️ هل أنت متأكد من حذف هذا الموكل؟ سيؤثر ذلك على القضايا المرتبطة به.')) return;
             clients = clients.filter(c => c.id != id);
-            database.ref('clients').set(clients);
+            officeRef('clients').set(clients);
             showNotification('تم حذف الموكل');
             renderClientsTable();
             populateSelects();
@@ -2252,22 +2365,24 @@
 
         function logout() {
             try {
-                database.ref('activeCases').off();
-                database.ref('closedCases').off();
-                database.ref('clients').off();
+                officeRef('activeCases').off();
+                officeRef('closedCases').off();
+                officeRef('clients').off();
                 database.ref('employees').off();
-                database.ref('customCourts').off();
-                database.ref('adminWorks').off();
-                database.ref('judgmentRecords').off();
-                database.ref('enforcements').off();
-                database.ref('experts').off();
-                database.ref('archivedEnforcements').off();
+                officeRef('customCourts').off();
+                officeRef('adminWorks').off();
+                officeRef('judgmentRecords').off();
+                officeRef('enforcements').off();
+                officeRef('experts').off();
+                officeRef('archivedEnforcements').off();
                 database.ref('fixedAdmins').off();
                 database.ref('maintenance').off();
                 database.ref('serverDown').off();
-                database.ref('archiveCategories').off();
+                officeRef('archiveCategories').off();
                 database.ref('offices').off();
                 database.ref('users').off();
+                unbindOfficeLawyersListener();
+                unbindAutoBackupTriggers();
                 if (forceLogoutListenerRef) { forceLogoutListenerRef.off(); forceLogoutListenerRef = null; }
             } catch (e) { console.error(e); }
             if (sessionTimeout) clearTimeout(sessionTimeout);
@@ -2353,41 +2468,70 @@
             let roleLabel = isSuperAdmin() ? 'مالك المنصة' : (currentUser.role === 'manager' ? 'مدير مكتب' : 'محامي');
             document.getElementById('currentUserRole').innerHTML = roleLabel;
             document.getElementById('currentUserRole').className = `role-badge ${isSuperAdmin() ? 'role-super' : (currentUser.role === 'manager' ? 'role-admin' : 'role-lawyer')}`;
-            loadDataFromFirebase();
+
+            // حسام (مالك المنصة) معندوش مكتب خالص، فمفيش بيانات قضايا يحملها — هو بس بيدير المكاتب
+            if (currentOfficeId()) {
+                loadDataFromFirebase();
+                bindAutoBackupTriggers();
+            }
             bindSystemStatusListeners();
+
             setTimeout(() => {
                 updateWelcomeMessage();
+                bindSidebarButtons();
+
+                let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
+                let officesItem = document.getElementById('officesManagementMenuItem');
+                let backupMenuItem = document.getElementById('backupMenuItem');
+                let employeesTabItem = document.getElementById('employeesTabItem');
+
                 if (isSuperAdmin()) {
                     setupMaintenanceControls();
-                    let backupMenuItem = document.getElementById('backupMenuItem');
-                    if (backupMenuItem) backupMenuItem.style.display = 'flex';
-                    let officesItem = document.getElementById('officesManagementMenuItem');
+                    if (maintenanceMenuItem) maintenanceMenuItem.style.display = 'flex';
                     if (officesItem) officesItem.style.display = 'flex';
+                    if (backupMenuItem) backupMenuItem.style.display = 'none'; // الباك أب بقى لمدير المكتب، مش لحسام
+                    if (employeesTabItem) employeesTabItem.style.display = 'none';
                     loadOfficesAndUsersForSuperAdmin();
+                    // حسام مالك المنصة بس وملوش مكتب، فمش من حقه يشوف قضايا/موكلين أي مكتب
+                    PERMISSION_SECTIONS.forEach(s => {
+                        let item = document.querySelector(`.sidebar-menu-item[data-tab="${s.key}"]`);
+                        if (item) item.style.display = 'none';
+                    });
+                } else {
+                    applySidebarPermissions();
+                    if (maintenanceMenuItem) maintenanceMenuItem.style.display = 'none';
+                    if (officesItem) officesItem.style.display = 'none';
+                    if (backupMenuItem) backupMenuItem.style.display = currentUser.role === 'manager' ? 'flex' : 'none';
+                    if (employeesTabItem) employeesTabItem.style.display = currentUser.role === 'manager' ? 'flex' : 'none';
+                    if (currentUser.role === 'manager') loadOfficeLawyersForManager();
+                    initStatCards();
+                    renderArchive();
                 }
-                initStatCards();
-                renderArchive();
-                bindSidebarButtons();
-                applySidebarPermissions();
-                // ⚠️ شاشة "شئون الموظفين" القديمة متوقفة مؤقتًا لحد ما ننقل إضافة الموظفين لنظام المكاتب الجديد (مرحلة قادمة)
-                let employeesTabItem = document.getElementById('employeesTabItem');
-                if (employeesTabItem) employeesTabItem.style.display = 'none';
-                let maintenanceMenuItem = document.getElementById('maintenanceMenuItem');
-                if (maintenanceMenuItem) maintenanceMenuItem.style.display = isSuperAdmin() ? 'flex' : 'none';
+
                 let exportExcelBtn = document.getElementById('exportExcelBtn');
-                if (exportExcelBtn) exportExcelBtn.style.display = isSuperAdmin() ? 'inline-block' : 'none';
+                if (exportExcelBtn) exportExcelBtn.style.display = 'none'; // مرتبط بالنظام القديم، معطل مؤقتًا
+
+                // مينفعش نرجّع تاب كان آخر مرة مفتوح لو مستخدم تاني (غير مسموح له بيه) بيستخدم نفس الجهاز/المتصفح
                 let lastTab = localStorage.getItem('lastOpenTab');
-                if (lastTab && document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`)) switchToTab(lastTab, false);
+                let lastTabMenuItem = lastTab ? document.querySelector(`.sidebar-menu-item[data-tab="${lastTab}"]`) : null;
+                if (lastTabMenuItem && lastTabMenuItem.style.display !== 'none') {
+                    switchToTab(lastTab, false);
+                } else {
+                    switchToTab(isSuperAdmin() ? 'officesManagement' : 'dashboard', false);
+                }
+
                 requestNotificationPermission();
-                showNotificationModal();
-                startNotificationChecker();
+                if (currentOfficeId()) {
+                    showNotificationModal();
+                    startNotificationChecker();
+                }
                 checkAllSystemStatus();
-                loadMegaAccount();
+                if (currentUser.role === 'manager') loadMegaAccount();
             }, 500);
             setSessionTimeout();
             bindSessionEvents();
             bindForceLogoutListener();
-            showNotification(`✅ مرحباً بك يا أستاذ ${currentUser.username}`);
+            showNotification(`✅ مرحباً بك يا ${currentUser.username}`);
         }
 
         function hideAllAuthScreens() {
@@ -2476,15 +2620,15 @@
         }
 
         function loadDataFromFirebase() {
-            database.ref('activeCases').on('value', (s) => {
+            officeRef('activeCases').on('value', (s) => {
                 activeCases = s.val() ? Object.values(s.val()) : [];
                 updateStats(); renderActiveCases(); renderPastSessions(); renderTomorrowAppointments(); renderAdvancedAgenda(); checkForNewNotifications();
             });
-            database.ref('closedCases').on('value', (s) => {
+            officeRef('closedCases').on('value', (s) => {
                 closedCases = s.val() ? Object.values(s.val()) : [];
                 updateStats(); renderClosedCases(); renderArchive();
             });
-            database.ref('clients').on('value', (s) => {
+            officeRef('clients').on('value', (s) => {
                 clients = s.val() ? Object.values(s.val()) : [];
                 updateStats(); renderClientsTable(); populateSelects(); renderActiveCases(); renderPastSessions(); renderTomorrowAppointments(); renderAdvancedAgenda(); renderClosedCases(); renderArchive(); renderExperts(); renderEnforcements(); renderJudgmentRecords();
             });
@@ -2493,27 +2637,27 @@
                 renderEmployeesTable();
                 applySidebarPermissions(); // لو حد غيّر صلاحيات المستخدم الحالي، تتحدث قائمته فورًا
             });
-            database.ref('customCourts').on('value', (s) => {
+            officeRef('customCourts').on('value', (s) => {
                 customCourts = s.val() ? Object.values(s.val()) : [];
                 updateCourtOptions();
             });
-            database.ref('adminWorks').on('value', (s) => {
+            officeRef('adminWorks').on('value', (s) => {
                 adminWorks = s.val() ? Object.values(s.val()) : [];
                 renderAdminWorks(); renderTomorrowAppointments();
             });
-            database.ref('judgmentRecords').on('value', (s) => {
+            officeRef('judgmentRecords').on('value', (s) => {
                 judgmentRecords = s.val() ? Object.values(s.val()) : [];
                 renderJudgmentRecords();
             });
-            database.ref('enforcements').on('value', (s) => {
+            officeRef('enforcements').on('value', (s) => {
                 enforcements = s.val() ? Object.values(s.val()) : [];
                 renderEnforcements(); checkForNewNotifications(); renderTomorrowAppointments();
             });
-            database.ref('experts').on('value', (s) => {
+            officeRef('experts').on('value', (s) => {
                 experts = s.val() ? Object.values(s.val()) : [];
                 renderExperts(); checkForNewNotifications(); renderTomorrowAppointments();
             });
-            database.ref('archivedEnforcements').on('value', (s) => {
+            officeRef('archivedEnforcements').on('value', (s) => {
                 archivedEnforcements = s.val() ? Object.values(s.val()) : [];
                 renderArchive();
             });
@@ -2531,7 +2675,7 @@
                 }
                 renderEmployeesTable();
             });
-            database.ref('archiveCategories').on('value', (s) => {
+            officeRef('archiveCategories').on('value', (s) => {
                 if (s.val()) {
                     archiveCategories = s.val();
                 } else {
@@ -2545,7 +2689,7 @@
                         { id: "اسره_سوهاج", name: "👨‍👩‍👧 أسرة سوهاج", circuit: "أسرة سوهاج" },
                         { id: "توكيلات_منتهيه", name: "📄 توكيلات تنفيذ منتهية", circuit: "توكيلات تنفيذ منتهية" }
                     ];
-                    database.ref('archiveCategories').set(archiveCategories);
+                    officeRef('archiveCategories').set(archiveCategories);
                 }
                 renderArchive();
             });
@@ -2751,7 +2895,7 @@
 
             activeCases.push(newCase);
             try {
-                await database.ref('activeCases').set(activeCases);
+                await officeRef('activeCases').set(activeCases);
                 showNotification('✅ تم إضافة القضية بنجاح');
                 this.reset();
                 document.getElementById('opponentsContainer').innerHTML = '';
@@ -2790,7 +2934,7 @@
             };
             clients.push(newClient);
             try {
-                await database.ref('clients').set(clients);
+                await officeRef('clients').set(clients);
                 showNotification('✅ تم إضافة الموكل بنجاح');
                 this.reset();
             } catch (err) {
@@ -2800,54 +2944,23 @@
             }
         });
 
-        // ========== حفظ فورم إضافة موظف (بالصلاحية: محامي / مدير مكتب) ==========
-        document.getElementById('employeeForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!isAdmin()) {
-                showNotification('❌ غير مسموح لك بإضافة موظفين');
-                return;
-            }
-            let empUsername = document.getElementById('empUsername').value.trim();
-            let empPassword = document.getElementById('empPassword').value;
-            let empRole = document.getElementById('empRole').value;
-            if (!empUsername || !empPassword) {
-                showNotification('❌ يرجى إدخال اسم المستخدم وكلمة المرور');
-                return;
-            }
-            let allExisting = [...fixedAdmins, ...employees];
-            if (allExisting.some(emp => emp.username === empUsername)) {
-                showNotification('❌ اسم المستخدم ده مستخدم بالفعل، اختار اسم تاني');
-                return;
-            }
-            let sig = getCurrentUserSignature();
-            let newEmployee = {
-                id: 'emp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-                username: empUsername,
-                password: hashPassword(empPassword),
-                role: empRole,
-                isFixed: false,
-                createdByName: sig.name,
-                createdAt: new Date().toISOString()
-            };
-            employees.push(newEmployee);
-            try {
-                await database.ref('employees').set(employees);
-                showNotification(`✅ تم إضافة الموظف "${empUsername}" بصلاحية ${empRole === 'مدير' ? 'مدير مكتب' : 'محامي'}`);
-                this.reset();
-            } catch (err) {
-                employees = employees.filter(emp => emp.id !== newEmployee.id);
-                showNotification('❌ حدث خطأ أثناء إضافة الموظف');
-                console.error(err);
-            }
-        });
+        // ملاحظة: فورم إضافة الموظف القديم (الأدمن/محامي عبر /employees) اتلغى —
+        // محله دلوقتي addOfficeLawyer() اللي بتضيف محامي حقيقي مرتبط بمكتب المدير عبر Firebase Auth.
 
-        // ========== أحداث Firebase للباك أب ==========
-        const backupTables = ['activeCases', 'closedCases', 'clients', 'employees', 'adminWorks', 'judgmentRecords', 'enforcements', 'experts'];
-        backupTables.forEach(table => {
-            database.ref(table).on('child_added', triggerAutoBackup);
-            database.ref(table).on('child_changed', triggerAutoBackup);
-            database.ref(table).on('child_removed', triggerAutoBackup);
-        });
+        // ========== أحداث Firebase للباك أب (بتتربط بس بعد ما نعرف مكتب المستخدم الحالي) ==========
+        const backupTables = ['activeCases', 'closedCases', 'clients', 'adminWorks', 'judgmentRecords', 'enforcements', 'experts'];
+        function bindAutoBackupTriggers() {
+            if (!currentOfficeId()) return;
+            backupTables.forEach(table => {
+                officeRef(table).on('child_added', triggerAutoBackup);
+                officeRef(table).on('child_changed', triggerAutoBackup);
+                officeRef(table).on('child_removed', triggerAutoBackup);
+            });
+        }
+        function unbindAutoBackupTriggers() {
+            if (!currentOfficeId()) return;
+            backupTables.forEach(table => { try { officeRef(table).off(); } catch (e) {} });
+        }
 
         // ========== دوال التهيئة ==========
         async function initializeDefaultAdmins() {
@@ -2951,7 +3064,7 @@
                     let newCourt = input.value.trim();
                     if (!['المراغة', 'سوهاج', ...customCourts].includes(newCourt)) {
                         customCourts.push(newCourt);
-                        database.ref('customCourts').set(customCourts);
+                        officeRef('customCourts').set(customCourts);
                         showNotification(`تم إضافة محكمة "${newCourt}"`);
                     }
                     selectCourt(newCourt);
