@@ -14,7 +14,7 @@
     <script type="module">
         import { Storage } from 'https://unpkg.com/megajs/dist/main.browser-es.mjs';
         window.MegaStorage = Storage;
-    </script>
+    </script>https://www.facebook.com/share/p/1K81o8KcRc/
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         html, body { overflow-x: hidden; max-width: 100%; }
@@ -1009,6 +1009,7 @@
                 let val = s.val();
                 allOffices = val ? Object.keys(val).map(id => ({ id, ...val[id] })) : [];
                 renderOfficesManagement();
+                syncAllOfficesBackupTriggers();
             });
             database.ref('users').on('value', s => {
                 let val = s.val();
@@ -1228,6 +1229,7 @@
                     const files = storage.root.children || [];
                     document.getElementById('megaFileCount').innerText = files.length;
                 } catch (e) {}
+                syncAllOfficesBackupTriggers(); // نبدأ نراقب كل المكاتب للباك أب التلقائي أول ما نتصل
 
             } catch (error) {
                 console.error('❌ فشل الاتصال بـ MEGA:', error);
@@ -1285,6 +1287,7 @@
                     const files = storage.root.children || [];
                     document.getElementById('megaFileCount').innerText = files.length;
                 } catch (e) {}
+                syncAllOfficesBackupTriggers();
             } catch (e) {
                 console.warn('⚠️ فشل استعادة جلسة MEGA:', e.message || e);
             }
@@ -1299,49 +1302,116 @@
         function encodeTextForMega(text) {
             return new TextEncoder().encode(text);
         }
-        async function backupOfficeNow(officeId, officeName) {
-            if (!isSuperAdmin()) { showNotification('❌ غير مسموح'); return; }
-            if (!megaStorage) { showNotification('❌ لازم تسجل دخول MEGA الأول من شاشة "الباك اب"'); return; }
+        // قائمة البيانات اللي بتتحفظ/بترجع بالباك أب — بيانات القضايا بس، مش اسم المكتب أو المستخدمين (عشان الاستعادة متغيرش اسم المكتب بالغلط)
+        const OFFICE_DATA_COLLECTIONS = ['activeCases', 'closedCases', 'clients', 'adminWorks', 'judgmentRecords', 'enforcements', 'experts', 'archivedEnforcements', 'archiveCategories', 'customCourts'];
+
+        async function backupOfficeNow(officeId, officeName, silent) {
+            if (!isSuperAdmin()) { if (!silent) showNotification('❌ غير مسموح'); return; }
+            if (!megaStorage) { if (!silent) showNotification('❌ لازم تسجل دخول MEGA الأول من شاشة "الباك اب"'); return; }
             try {
-                showNotification(`⏳ جاري عمل نسخة احتياطية لمكتب "${officeName}"...`);
-                let snap = await database.ref('offices/' + officeId).once('value');
-                let officeData = snap.val() || {};
+                if (!silent) showNotification(`⏳ جاري عمل نسخة احتياطية لمكتب "${officeName}"...`);
+                let officeData = {};
+                for (let table of OFFICE_DATA_COLLECTIONS) {
+                    let snap = await database.ref('offices/' + officeId + '/' + table).once('value');
+                    officeData[table] = snap.val() || null;
+                }
+                officeData._officeName = officeName;
+                officeData._backupDate = new Date().toISOString();
+
                 let fileName = sanitizeMegaFilename(officeName);
                 let backupJSON = JSON.stringify(officeData, null, 2);
                 let encoded = encodeTextForMega(backupJSON);
 
+                // بنمسح الملف القديم بنفس الاسم ونرفع بدله — يعني تعديل على نفس ملف المكتب، مش إنشاء ملف جديد كل مرة
                 let oldFile = (megaStorage.root.children || []).find(f => f.name === fileName);
                 if (oldFile) { try { await oldFile.delete(true); } catch (e) { console.warn('تعذر حذف النسخة القديمة:', e.message || e); } }
 
                 await megaStorage.upload(fileName, encoded).complete;
-                document.getElementById('megaFileCount').innerText = (megaStorage.root.children || []).length;
-                showNotification(`✅ تم رفع نسخة احتياطية لمكتب "${officeName}" بنجاح`);
+                let fc = document.getElementById('megaFileCount');
+                if (fc) fc.innerText = (megaStorage.root.children || []).length;
+                if (!silent) showNotification(`✅ تم رفع نسخة احتياطية لمكتب "${officeName}" بنجاح`);
+                else console.log(`✅ باك أب تلقائي: تم تحديث ملف مكتب "${officeName}"`);
             } catch (err) {
                 console.error(err);
-                showNotification('❌ فشل عمل النسخة الاحتياطية: ' + (err.message || err));
+                if (!silent) showNotification('❌ فشل عمل النسخة الاحتياطية: ' + (err.message || err));
             }
         }
-        async function restoreOfficeBackup(officeId, officeName) {
+
+        // استعادة: حسام يختار الملف اللي عايزه بنفسه من كل الملفات الموجودة في MEGA، مش مطابقة تلقائية بالاسم
+        function restoreOfficeBackup(officeId, officeName) {
             if (!isSuperAdmin()) { showNotification('❌ غير مسموح'); return; }
             if (!megaStorage) { showNotification('❌ لازم تسجل دخول MEGA الأول من شاشة "الباك اب"'); return; }
-            if (!confirm(`⚠️ تحذير: هيتم استبدال كل بيانات مكتب "${officeName}" الحالية بالنسخة المحفوظة في MEGA. متأكد؟`)) return;
+            let files = (megaStorage.root.children || []).filter(f => f.name && f.name.endsWith('.json'));
+            if (!files.length) { showNotification('❌ مفيش ملفات نسخ احتياطية في MEGA خالص'); return; }
+            let listHtml = files.map(f => {
+                let safeOfficeName = officeName.replace(/'/g, "\\'");
+                let safeFileName = f.name.replace(/'/g, "\\'");
+                let sizeKb = f.size ? (f.size / 1024).toFixed(1) + ' KB' : '';
+                return `<div class="session-card" style="cursor:pointer;" onclick="confirmRestoreFromFile('${officeId}', '${safeOfficeName}', '${safeFileName}')">
+                    <h4>📄 ${f.name}</h4>
+                    <p style="font-size:12px;color:#888;">${sizeKb}</p>
+                </div>`;
+            }).join('');
+            document.getElementById('modalTitle').innerHTML = `⬇️ اختر الملف اللي عايز تستعيده لمكتب "${officeName}"`;
+            document.getElementById('modalBody').innerHTML = listHtml;
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+        async function confirmRestoreFromFile(officeId, officeName, fileName) {
+            closeModal();
+            if (!confirm(`⚠️ تحذير: هيتم استبدال كل بيانات مكتب "${officeName}" الحالية بمحتوى الملف "${fileName}". اسم المكتب والمستخدمين التابعين له مش هيتأثروا. متأكد؟`)) return;
             try {
-                let fileName = sanitizeMegaFilename(officeName);
                 let backupFile = (megaStorage.root.children || []).find(f => f.name === fileName);
-                if (!backupFile) {
-                    showNotification(`❌ لا توجد نسخة احتياطية محفوظة لمكتب "${officeName}" في MEGA بعد`);
-                    return;
-                }
+                if (!backupFile) { showNotification('❌ الملف ده مش موجود دلوقتي، حاول تاني'); return; }
                 showNotification('⏳ جاري استعادة النسخة...');
                 let buffer = await backupFile.downloadBuffer();
                 let jsonString = new TextDecoder().decode(buffer);
                 let officeData = JSON.parse(jsonString);
-                await database.ref('offices/' + officeId).set(officeData);
-                showNotification(`✅ تم استعادة نسخة مكتب "${officeName}" بنجاح`);
+                for (let table of OFFICE_DATA_COLLECTIONS) {
+                    if (officeData[table] !== undefined) {
+                        await database.ref('offices/' + officeId + '/' + table).set(officeData[table]);
+                    }
+                }
+                showNotification(`✅ تم استعادة مكتب "${officeName}" من ملف "${fileName}" بنجاح`);
             } catch (err) {
                 console.error(err);
                 showNotification('❌ فشل استعادة النسخة: ' + (err.message || err));
             }
+        }
+
+        // ========== باك أب تلقائي: أي تعديل (إضافة/حذف) في بيانات أي مكتب بيحدّث ملف المكتب ده في MEGA تلقائيًا ==========
+        let officeBackupListeners = {};   // officeId -> [{ref}]
+        let officeBackupTimeouts = {};    // officeId -> timeout handle (تأجيل بسيط عشان ما نرفعش كل ثانية)
+        function bindOfficeBackupTriggers(officeId, officeName) {
+            if (!megaStorage || officeBackupListeners[officeId]) return;
+            officeBackupListeners[officeId] = [];
+            OFFICE_DATA_COLLECTIONS.forEach(table => {
+                let ref = database.ref('offices/' + officeId + '/' + table);
+                let handler = () => {
+                    if (officeBackupTimeouts[officeId]) clearTimeout(officeBackupTimeouts[officeId]);
+                    officeBackupTimeouts[officeId] = setTimeout(() => backupOfficeNow(officeId, officeName, true), 3000);
+                };
+                ref.on('child_added', handler);
+                ref.on('child_changed', handler);
+                ref.on('child_removed', handler);
+                officeBackupListeners[officeId].push(ref);
+            });
+        }
+        function unbindOfficeBackupTriggers(officeId) {
+            if (!officeBackupListeners[officeId]) return;
+            officeBackupListeners[officeId].forEach(ref => { try { ref.off(); } catch (e) {} });
+            delete officeBackupListeners[officeId];
+            if (officeBackupTimeouts[officeId]) { clearTimeout(officeBackupTimeouts[officeId]); delete officeBackupTimeouts[officeId]; }
+        }
+        // بتتظبط تلقائيًا مع أي تحديث في قائمة المكاتب (مكتب جديد يتضاف له مراقبة، مكتب محذوف تتشال مراقبته)
+        function syncAllOfficesBackupTriggers() {
+            if (!megaStorage) return;
+            allOffices.forEach(o => bindOfficeBackupTriggers(o.id, o.name));
+            Object.keys(officeBackupListeners).forEach(oid => {
+                if (!allOffices.find(o => o.id === oid)) unbindOfficeBackupTriggers(oid);
+            });
+        }
+        function unbindAllOfficesBackupTriggers() {
+            Object.keys(officeBackupListeners).forEach(oid => unbindOfficeBackupTriggers(oid));
         }
 
         // ========== دوال مواعيد الغد ==========
@@ -2318,6 +2388,7 @@
                 database.ref('offices').off();
                 database.ref('users').off();
                 unbindOfficeLawyersListener();
+                unbindAllOfficesBackupTriggers();
                 if (forceLogoutListenerRef) { forceLogoutListenerRef.off(); forceLogoutListenerRef = null; }
             } catch (e) { console.error(e); }
             if (sessionTimeout) clearTimeout(sessionTimeout);
