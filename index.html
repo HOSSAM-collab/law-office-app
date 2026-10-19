@@ -529,19 +529,12 @@
                                     <button onclick="testMegaConnection()" class="btn-primary">🔍 اختبار الاتصال</button>
                                     <span id="megaStatus"></span>
                                 </div>
-                                <div style="margin-top:15px;background:#e2e3e5;padding:15px;border-radius:12px;border-right:4px solid #6c757d;margin-bottom:15px;">
-                                    <h4>📥 استعادة النسخة الاحتياطية</h4>
-                                    <button onclick="restoreFromMega()" class="btn-warning">⬇️ استعادة آخر نسخة من MEGA</button>
-                                    <span id="restoreStatus"></span>
-                                    <div id="restoreResult" style="margin-top:10px;display:none;"></div>
-                                </div>
                                 <div style="margin-top:15px;background:#d4edda;padding:15px;border-radius:12px;border-right:4px solid #28a745;">
-                                    <h4>📋 حالة النسخ الاحتياطي</h4>
+                                    <h4>📋 حالة الاتصال</h4>
                                     <p><strong>الحساب المتصل:</strong> <span id="connectedMegaAccount" class="backup-status-disconnected">غير متصل</span></p>
-                                    <p><strong>آخر نسخة تم رفعها:</strong> <span id="lastBackupTime">لم يتم الرفع بعد</span></p>
-                                    <p><strong>حالة النسخ التلقائي:</strong> <span id="autoBackupStatus" class="backup-status-disconnected">⏸️ غير مفعل</span></p>
                                     <p><strong>عدد الملفات في MEGA:</strong> <span id="megaFileCount">-</span></p>
                                 </div>
+                                <p style="margin-top:10px;font-size:13px;color:#666;">💡 بعد ما تتصل بحساب MEGA، روح لشاشة "إدارة المكاتب" — هتلاقي زرار نسخة احتياطية واستعادة جنب كل مكتب على حدة، كل مكتب بملفه الخاص.</p>
                             </div>
                         </div>
                     </div>
@@ -1044,6 +1037,10 @@
                         <button class="delete-btn" onclick="deleteEntireOffice('${o.id}', '${o.name}')"><i class="fas fa-trash"></i> حذف المكتب بالكامل</button>
                     </div>
                     <div style="margin:10px 0;display:flex;flex-direction:column;gap:6px;">${usersHtml}</div>
+                    <div class="admin-actions" style="margin-top:8px;">
+                        <button class="btn-sm btn-primary" onclick="backupOfficeNow('${o.id}', '${o.name}')"><i class="fas fa-cloud-upload-alt"></i> نسخة احتياطية الآن</button>
+                        <button class="btn-sm btn-warning" onclick="restoreOfficeBackup('${o.id}', '${o.name}')"><i class="fas fa-cloud-download-alt"></i> استعادة نسخة</button>
+                    </div>
                     <p style="font-size:12px;color:#888;margin-top:8px;">أُنشئ بواسطة: ${o.createdBy || '-'} ${o.createdAt ? '| ' + new Date(o.createdAt).toLocaleDateString('ar-EG') : ''}</p>
                 </div>`;
             }).join('');
@@ -1224,17 +1221,13 @@
                 document.getElementById('megaStatus').innerHTML = '<span style="color:green;">✅ تم تسجيل الدخول بنجاح</span>';
                 document.getElementById('connectedMegaAccount').innerHTML = email;
                 document.getElementById('connectedMegaAccount').className = 'backup-status-connected';
-                document.getElementById('autoBackupStatus').innerHTML = '🟢 مفعل';
-                document.getElementById('autoBackupStatus').className = 'backup-status-connected';
 
-                showNotification('✅ تم تسجيل حساب MEGA وبدء النسخ الاحتياطي التلقائي');
+                showNotification('✅ تم تسجيل حساب MEGA بنجاح. روح لشاشة "إدارة المكاتب" عشان تعمل نسخة احتياطية لأي مكتب');
 
                 try {
                     const files = storage.root.children || [];
                     document.getElementById('megaFileCount').innerText = files.length;
                 } catch (e) {}
-
-                triggerAutoBackup();
 
             } catch (error) {
                 console.error('❌ فشل الاتصال بـ MEGA:', error);
@@ -1269,8 +1262,6 @@
                     if (account.email) {
                         document.getElementById('connectedMegaAccount').innerHTML = account.email;
                         document.getElementById('connectedMegaAccount').className = 'backup-status-connected';
-                        document.getElementById('autoBackupStatus').innerHTML = '🟢 مفعل';
-                        document.getElementById('autoBackupStatus').className = 'backup-status-connected';
                         // محاولة الاتصال التلقائي
                         connectMega(account.email, account.password, account.twofa);
                     }
@@ -1294,117 +1285,62 @@
                     const files = storage.root.children || [];
                     document.getElementById('megaFileCount').innerText = files.length;
                 } catch (e) {}
-                triggerAutoBackup();
             } catch (e) {
                 console.warn('⚠️ فشل استعادة جلسة MEGA:', e.message || e);
             }
         }
 
-        async function uploadToMegaAuto(backupData) {
-            if (!megaStorage) {
-                console.warn('⚠️ MEGA غير متصل، يتم تخطي الرفع');
-                return;
-            }
-
+        // ========== باك أب MEGA: حسام (مالك المنصة) بس، ملف منفصل لكل مكتب باسمه ==========
+        function sanitizeMegaFilename(name) {
+            return (name || 'مكتب').trim().replace(/[\\\/:*?"<>|]/g, '_') + '.json';
+        }
+        // بنحول النص لبايتات UTF-8 صح قبل الرفع — ده كان سبب خطأ "Specified data size does not match"
+        // (النصوص العربية عدد البايتات فيها أكتر من عدد الحروف، والمكتبة كانت بتحسبها غلط لو استلمت نص خام).
+        function encodeTextForMega(text) {
+            return new TextEncoder().encode(text);
+        }
+        async function backupOfficeNow(officeId, officeName) {
+            if (!isSuperAdmin()) { showNotification('❌ غير مسموح'); return; }
+            if (!megaStorage) { showNotification('❌ لازم تسجل دخول MEGA الأول من شاشة "الباك اب"'); return; }
             try {
-                const backupJSON = JSON.stringify(backupData, null, 2);
-                const fileName = 'LawFirm_Backup_Current.json';
+                showNotification(`⏳ جاري عمل نسخة احتياطية لمكتب "${officeName}"...`);
+                let snap = await database.ref('offices/' + officeId).once('value');
+                let officeData = snap.val() || {};
+                let fileName = sanitizeMegaFilename(officeName);
+                let backupJSON = JSON.stringify(officeData, null, 2);
+                let encoded = encodeTextForMega(backupJSON);
 
-                const oldFile = (megaStorage.root.children || []).find(f => f.name === fileName);
-                if (oldFile) {
-                    try { await oldFile.delete(true); } catch (e) { console.warn('تعذر حذف النسخة القديمة:', e.message || e); }
-                }
+                let oldFile = (megaStorage.root.children || []).find(f => f.name === fileName);
+                if (oldFile) { try { await oldFile.delete(true); } catch (e) { console.warn('تعذر حذف النسخة القديمة:', e.message || e); } }
 
-                await megaStorage.upload(fileName, backupJSON).complete;
-
-                console.log('✅ تم رفع النسخة الاحتياطية إلى MEGA');
-                document.getElementById('lastBackupTime').innerText = new Date().toLocaleString();
+                await megaStorage.upload(fileName, encoded).complete;
                 document.getElementById('megaFileCount').innerText = (megaStorage.root.children || []).length;
-            } catch (error) {
-                console.error('❌ فشل رفع النسخة لـ MEGA:', error.message || error);
-                if (error.message && (error.message.includes('session') || error.message.includes('auth'))) {
-                    await loadMegaAccount();
-                }
+                showNotification(`✅ تم رفع نسخة احتياطية لمكتب "${officeName}" بنجاح`);
+            } catch (err) {
+                console.error(err);
+                showNotification('❌ فشل عمل النسخة الاحتياطية: ' + (err.message || err));
             }
         }
-
-        function prepareBackupData() {
-            return {
-                activeCases: activeCases,
-                closedCases: closedCases,
-                clients: clients,
-                employees: employees,
-                fixedAdmins: fixedAdmins.map(a => ({ ...a, password: '********' })),
-                adminWorks: adminWorks,
-                judgmentRecords: judgmentRecords,
-                enforcements: enforcements,
-                archivedEnforcements: archivedEnforcements,
-                experts: experts,
-                archiveCategories: archiveCategories,
-                customCourts: customCourts,
-                backupDate: new Date().toISOString(),
-                backupVersion: '1.0'
-            };
-        }
-
-        function triggerAutoBackup() {
-            if (!megaStorage) {
-                console.warn('⚠️ MEGA غير متصل، يتم تخطي الرفع التلقائي');
-                return;
-            }
-            if (backupTimeout) clearTimeout(backupTimeout);
-            backupTimeout = setTimeout(() => {
-                const backupData = prepareBackupData();
-                uploadToMegaAuto(backupData);
-            }, 3000);
-        }
-
-        // ========== استعادة من MEGA ==========
-        async function restoreFromMega() {
-            if (!megaStorage) {
-                showNotification('❌ لم يتم تسجيل الدخول إلى MEGA بعد');
-                return;
-            }
-
-            if (!confirm('⚠️ تحذير: استعادة النسخة ستستبدل جميع البيانات الحالية! هل أنت متأكد؟')) return;
-
+        async function restoreOfficeBackup(officeId, officeName) {
+            if (!isSuperAdmin()) { showNotification('❌ غير مسموح'); return; }
+            if (!megaStorage) { showNotification('❌ لازم تسجل دخول MEGA الأول من شاشة "الباك اب"'); return; }
+            if (!confirm(`⚠️ تحذير: هيتم استبدال كل بيانات مكتب "${officeName}" الحالية بالنسخة المحفوظة في MEGA. متأكد؟`)) return;
             try {
-                document.getElementById('restoreStatus').innerHTML = '⏳ جاري تحميل النسخة...';
-                const backupFile = (megaStorage.root.children || []).find(f => f.name === 'LawFirm_Backup_Current.json');
-
+                let fileName = sanitizeMegaFilename(officeName);
+                let backupFile = (megaStorage.root.children || []).find(f => f.name === fileName);
                 if (!backupFile) {
-                    document.getElementById('restoreStatus').innerHTML = '❌ لا توجد نسخة احتياطية في MEGA';
+                    showNotification(`❌ لا توجد نسخة احتياطية محفوظة لمكتب "${officeName}" في MEGA بعد`);
                     return;
                 }
-
-                const buffer = await backupFile.downloadBuffer();
-                const jsonString = new TextDecoder().decode(buffer);
-                const backupData = JSON.parse(jsonString);
-
-                document.getElementById('restoreStatus').innerHTML = '⏳ جاري استعادة البيانات...';
-
-                if (backupData.activeCases) await officeRef('activeCases').set(backupData.activeCases);
-                if (backupData.closedCases) await officeRef('closedCases').set(backupData.closedCases);
-                if (backupData.clients) await officeRef('clients').set(backupData.clients);
-                if (backupData.employees) await database.ref('employees').set(backupData.employees);
-                if (backupData.adminWorks) await officeRef('adminWorks').set(backupData.adminWorks);
-                if (backupData.judgmentRecords) await officeRef('judgmentRecords').set(backupData.judgmentRecords);
-                if (backupData.enforcements) await officeRef('enforcements').set(backupData.enforcements);
-                if (backupData.archivedEnforcements) await officeRef('archivedEnforcements').set(backupData.archivedEnforcements);
-                if (backupData.experts) await officeRef('experts').set(backupData.experts);
-                if (backupData.archiveCategories) await officeRef('archiveCategories').set(backupData.archiveCategories);
-                if (backupData.customCourts) await officeRef('customCourts').set(backupData.customCourts);
-
-                document.getElementById('restoreStatus').innerHTML = '✅ تم استعادة النسخة بنجاح، سيتم تحديث الصفحة';
-                document.getElementById('restoreResult').style.display = 'block';
-                document.getElementById('restoreResult').innerHTML = `<div style="color:green;">✅ تم استعادة البيانات بنجاح</div>`;
-                showNotification('✅ تم استعادة البيانات بنجاح، سيتم تحديث الصفحة');
-                setTimeout(() => location.reload(), 2000);
-
-            } catch (error) {
-                console.error('❌ فشل استعادة النسخة:', error);
-                document.getElementById('restoreStatus').innerHTML = '❌ فشل الاستعادة: ' + (error.message || error);
-                showNotification('❌ فشل استعادة النسخة: ' + (error.message || error));
+                showNotification('⏳ جاري استعادة النسخة...');
+                let buffer = await backupFile.downloadBuffer();
+                let jsonString = new TextDecoder().decode(buffer);
+                let officeData = JSON.parse(jsonString);
+                await database.ref('offices/' + officeId).set(officeData);
+                showNotification(`✅ تم استعادة نسخة مكتب "${officeName}" بنجاح`);
+            } catch (err) {
+                console.error(err);
+                showNotification('❌ فشل استعادة النسخة: ' + (err.message || err));
             }
         }
 
@@ -2382,7 +2318,6 @@
                 database.ref('offices').off();
                 database.ref('users').off();
                 unbindOfficeLawyersListener();
-                unbindAutoBackupTriggers();
                 if (forceLogoutListenerRef) { forceLogoutListenerRef.off(); forceLogoutListenerRef = null; }
             } catch (e) { console.error(e); }
             if (sessionTimeout) clearTimeout(sessionTimeout);
@@ -2472,7 +2407,6 @@
             // حسام (مالك المنصة) معندوش مكتب خالص، فمفيش بيانات قضايا يحملها — هو بس بيدير المكاتب
             if (currentOfficeId()) {
                 loadDataFromFirebase();
-                bindAutoBackupTriggers();
             }
             bindSystemStatusListeners();
 
@@ -2489,9 +2423,10 @@
                     setupMaintenanceControls();
                     if (maintenanceMenuItem) maintenanceMenuItem.style.display = 'flex';
                     if (officesItem) officesItem.style.display = 'flex';
-                    if (backupMenuItem) backupMenuItem.style.display = 'none'; // الباك أب بقى لمدير المكتب، مش لحسام
+                    if (backupMenuItem) backupMenuItem.style.display = 'flex'; // الباك أب بقى لحسام (مالك المنصة) بس
                     if (employeesTabItem) employeesTabItem.style.display = 'none';
                     loadOfficesAndUsersForSuperAdmin();
+                    loadMegaAccount();
                     // حسام مالك المنصة بس وملوش مكتب، فمش من حقه يشوف قضايا/موكلين أي مكتب
                     PERMISSION_SECTIONS.forEach(s => {
                         let item = document.querySelector(`.sidebar-menu-item[data-tab="${s.key}"]`);
@@ -2501,7 +2436,7 @@
                     applySidebarPermissions();
                     if (maintenanceMenuItem) maintenanceMenuItem.style.display = 'none';
                     if (officesItem) officesItem.style.display = 'none';
-                    if (backupMenuItem) backupMenuItem.style.display = currentUser.role === 'manager' ? 'flex' : 'none';
+                    if (backupMenuItem) backupMenuItem.style.display = 'none'; // الباك أب بقى لحسام بس، مش للمدير
                     if (employeesTabItem) employeesTabItem.style.display = currentUser.role === 'manager' ? 'flex' : 'none';
                     if (currentUser.role === 'manager') loadOfficeLawyersForManager();
                     initStatCards();
@@ -2526,7 +2461,6 @@
                     startNotificationChecker();
                 }
                 checkAllSystemStatus();
-                if (currentUser.role === 'manager') loadMegaAccount();
             }, 500);
             setSessionTimeout();
             bindSessionEvents();
@@ -2947,20 +2881,8 @@
         // ملاحظة: فورم إضافة الموظف القديم (الأدمن/محامي عبر /employees) اتلغى —
         // محله دلوقتي addOfficeLawyer() اللي بتضيف محامي حقيقي مرتبط بمكتب المدير عبر Firebase Auth.
 
-        // ========== أحداث Firebase للباك أب (بتتربط بس بعد ما نعرف مكتب المستخدم الحالي) ==========
-        const backupTables = ['activeCases', 'closedCases', 'clients', 'adminWorks', 'judgmentRecords', 'enforcements', 'experts'];
-        function bindAutoBackupTriggers() {
-            if (!currentOfficeId()) return;
-            backupTables.forEach(table => {
-                officeRef(table).on('child_added', triggerAutoBackup);
-                officeRef(table).on('child_changed', triggerAutoBackup);
-                officeRef(table).on('child_removed', triggerAutoBackup);
-            });
-        }
-        function unbindAutoBackupTriggers() {
-            if (!currentOfficeId()) return;
-            backupTables.forEach(table => { try { officeRef(table).off(); } catch (e) {} });
-        }
+        // ملاحظة: الباك أب بقى يدوي بس (زرار "نسخة احتياطية الآن" لكل مكتب من شاشة إدارة المكاتب)،
+        // مش تلقائي عند كل تغيير — عشان حسام هو اللي بيتحكم فيه دلوقتي مش كل مدير لوحده.
 
         // ========== دوال التهيئة ==========
         async function initializeDefaultAdmins() {
