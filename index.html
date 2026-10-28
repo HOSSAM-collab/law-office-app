@@ -197,8 +197,9 @@
                 </div>
                 <label class="login-remember"><input type="checkbox" id="rememberUsername"> تذكر اسم المستخدم</label>
             </div>
-            <button onclick="attemptLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
+            <button id="loginButton" onclick="attemptLogin()"><i class="fas fa-sign-in-alt"></i> دخول</button>
             <div id="loginError" class="error-msg" style="margin:15px 30px 0;"></div>
+            <div id="connWarning" style="display:none;margin:12px 30px 0;font-size:12px;color:#856404;background:#fff3cd;padding:8px;border-radius:8px;text-align:center;">⚠️ لسه مفيش اتصال بخادم قاعدة البيانات — لو فضلت كده راجع الإنترنت أو قواعد الحماية في Firebase.</div>
         </div>
     </div>
     <!-- شاشة الإعداد الأول: إنشاء حساب حسام (السوبر أدمن المالك للمنصة) لو لسه متعملش -->
@@ -1300,10 +1301,4 @@
                 if (twofa) options.secondFactorCode = twofa;
                 const storage = new window.MegaStorage(options);
                 await storage.ready;
-                megaStorage = storage;
-                console.log('✅ تم استعادة جلسة MEGA');
-                try {
-                    const files = storage.root.children || [];
-                    document.getElementById('megaFileCount').innerText = files.length;
-                } catch (e) {}
-                
+                megaSt
