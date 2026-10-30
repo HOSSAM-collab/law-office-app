@@ -10,6 +10,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script>
+        // لو Firebase ما اتحملش من gstatic (شبكة أو برنامج بيحجبه) نجرب نسخة بديلة من jsDelivr قبل ما نستسلم
+        (function () {
+            var base = 'https://cdn.jsdelivr.net/npm/firebase@9.23.0/';
+            function tag(f) { document.write('<script src="' + base + f + '"><\/script>'); }
+            if (!window.firebase) tag('firebase-app-compat.js');
+            if (!window.firebase || !window.firebase.database) tag('firebase-database-compat.js');
+            if (!window.firebase || !window.firebase.auth) tag('firebase-auth-compat.js');
+        })();
+    </script>
     <script type="module">
         import { Storage } from 'https://unpkg.com/megajs/dist/main.browser-es.mjs';
         window.MegaStorage = Storage;
@@ -581,21 +591,27 @@
             showFatalErrorBanner('Promise: ' + (e.reason?.message || e.reason || 'خطأ غير معروف'));
         });
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        let auth, secondaryApp, secondaryAuth;
+        // لو مكتبة Firebase ما اتحملتش، السكربت مبيقفش من أول سطر — بنكمل ونوضح السبب على شاشة الدخول
+        let database = null, auth = null, secondaryApp = null, secondaryAuth = null;
+        let firebaseInitError = null;
         try {
+            if (typeof firebase === 'undefined') throw new Error('مكتبة Firebase ما اتحمّلتش من الإنترنت (gstatic.com / jsDelivr)');
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
             auth = firebase.auth();
             // تطبيق ثانوي منفصل، بنستخدمه بس وإحنا بننشئ حساب مستخدم جديد (مدير/موظف) —
             // عشان إنشاء حساب بالطريقة العادية بيعمل تسجيل دخول تلقائي بيه ويبدّل جلسة حسام/المدير الحالية، وده غير مقبول هنا.
             secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
             secondaryAuth = secondaryApp.auth();
         } catch (e) {
-            showFatalErrorBanner('تعذر تحميل نظام تسجيل الدخول (Firebase Auth): ' + e.message);
+            firebaseInitError = e;
+            showFatalErrorBanner('تعذر تشغيل Firebase: ' + e.message);
         }
+        const FIREBASE_MISSING_MSG = '❌ مكتبة Firebase ما اتحمّلتش على الصفحة دي، فتسجيل الدخول مش هيشتغل. افتح الرابط من متصفح عادي (مش معاينة داخل تطبيق)، وجرب إنترنت تاني أو أوقف مانع الإعلانات/الـ VPN.';
 
         // ========== المتغيرات العامة ==========
         let currentUser = null;
+        let loginInProgress = false;
         let activeCases = [], closedCases = [], clients = [], customCourts = [];
         let adminWorks = [], judgmentRecords = [], enforcements = [], experts = [], archivedEnforcements = [];
         let isMaintenanceMode = false, maintenanceEndTime = null;
@@ -1278,27 +1294,4 @@
             if (saved) {
                 try {
                     const account = JSON.parse(saved);
-                    document.getElementById('megaEmail').value = account.email || '';
-                    document.getElementById('megaPassword').value = account.password || '';
-                    if (account.twofa) document.getElementById('mega2fa').value = account.twofa || '';
-                    if (account.email) {
-                        document.getElementById('connectedMegaAccount').innerHTML = account.email;
-                        document.getElementById('connectedMegaAccount').className = 'backup-status-connected';
-                        // محاولة الاتصال التلقائي
-                        connectMega(account.email, account.password, account.twofa);
-                    }
-                } catch (e) {}
-            }
-        }
-
-        async function connectMega(email, password, twofa) {
-            if (!window.MegaStorage) {
-                console.warn('⚠️ مكتبة MEGA لم تُحمّل بعد');
-                return;
-            }
-            try {
-                const options = { email: email, password: password, keepalive: false };
-                if (twofa) options.secondFactorCode = twofa;
-                const storage = new window.MegaStorage(options);
-                await storage.ready;
-                megaSt
+                    document.getElementById('megaEmail').value = account.
